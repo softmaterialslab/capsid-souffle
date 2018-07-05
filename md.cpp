@@ -30,25 +30,23 @@ void run_molecular () {
     vector<THERMOSTAT> real_bath;                           //vector of thermostats
     BOX tardis;                                             //creates a simulation box
 
-    double totaltime, ecut, qs, capconc, saltconc, numden, ks, kb, delt;
-    string file_name;
-    cout << "Total time:" << endl;                  cin >> totaltime;
-    cout << "ecut:" << endl;                        cin >> ecut;
-    cout << "Solvent valency:" << endl;             cin >> qs;
-    cout << "capsomere concentration:" << endl;     cin >> capconc;
-    cout << "salt concentration" << endl;           cin >> saltconc;
-    cout << "number of capsomeres:" << endl;        cin >> numden;
-    cout << "stretching constant" << endl;          cin >> ks;
-    cout << "bending constant" << endl;             cin >> kb;
-    cout << "input parameter filename:" << endl;    cin >> file_name;
-    cout << "timestep" << endl;                     cin >> delt;
+    double capconc, saltconc, ks, kb ;
+    string file_name = "41part";
+	double totaltime = 100;				//total time in MD units
+	double ecut = 2.5;					//lennard jones cut-off distance
+	double qs = 1;						//salt valency
+	double delt = .002;					//time step in MD units
+	double numden = 8;					//number of subunits in the box
+	double chain_length_real = 5;		//nose hoover chain length
+	double Q = 1;						//nose hoover mass (reduced units)
+	double T = 1;						//set temperature (reduced units)
+   
+    cout << "capsomere concentration (micromolar):" << endl;     cin >> capconc;
+    cout << "salt concentration (millimolar):" << endl;          cin >> saltconc;
+    cout << "stretching constant (KbT):" << endl;          		 cin >> ks;
+    cout << "bending constant (KbT):" << endl;             		 cin >> kb;
+        
 
-
-
-    double chain_length_real, Q, T;
-    cout << "Nose' Hoover chain length:" << endl;   cin >> chain_length_real;
-    cout << "Nose' Hoover mass" << endl;            cin >> Q;
-    cout << "Desired set temperature:" << endl;     cin >> T;
 
 
     allonsy(capconc, numden, file_name);     //Setting up the input file (uses user specified file to generate lattice)
@@ -365,20 +363,22 @@ void run_brownian(){
     vector<PAIR> gpair;                                     //create vector to hold LJ pairings
     BOX tardis;                                             //creates a simulation box
 
-    double totaltime, ecut, qs, capconc, saltconc, numden, ks, kb, delt, T, fric_zeta;
-    string file_name;
-    cout << "Total time:" << endl;                  cin >> totaltime;
-    cout << "ecut:" << endl;                        cin >> ecut;
-    cout << "Solvent valency:" << endl;             cin >> qs;
-    cout << "capsomere concentration:" << endl;     cin >> capconc;
-    cout << "salt concentration" << endl;           cin >> saltconc;
-    cout << "number of capsomeres:" << endl;        cin >> numden;
-    cout << "stretching constant" << endl;          cin >> ks;
-    cout << "bending constant" << endl;             cin >> kb;
-    cout << "input parameter filename:" << endl;    cin >> file_name;
-    cout << "timestep" << endl;                     cin >> delt;
-    cout << "desired set temperature:" << endl;     cin >> T;
-    cout << "friction coefficient:" << endl;        cin >> fric_zeta;
+    double capconc, saltconc, ks, kb , fric_zeta;
+    string file_name = "41part";
+	double totaltime = 100;				//total time in MD units
+	double ecut = 2.5;					//lennard jones cut-off distance
+	double qs = 1;						//salt valency
+	double delt = .002;					//time step in MD units
+	double numden = 8;					//number of subunits in the box
+	double chain_length_real = 5;		//nose hoover chain length
+	double Q = 1;						//nose hoover mass (reduced units)
+	double T = 1;						//set temperature (reduced units)
+   
+    cout << "capsomere concentration (micromolar):" << endl;     cin >> capconc;
+    cout << "salt concentration (millimolar):" << endl;          cin >> saltconc;
+    cout << "stretching constant (KbT):" << endl;          		 cin >> ks;
+    cout << "bending constant (KbT):" << endl;             		 cin >> kb;
+    cout << "friction coefficient (reduced unit):" << endl;      cin >> fric_zeta;
 
 
 
