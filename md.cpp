@@ -120,7 +120,8 @@ void run_molecular () {
     double tpenergy = 0;
     double tkenergy = 0;
 
-    initialize_bead_velocities(garfield, gary, T);            //assign random velocities based on initial temperature
+    //initialize_bead_velocities(garfield, gary, T);            //assign random velocities based on initial temperature
+	initialize_constant_bead_velocities(garfield,gary,T);
 
     double particle_ke = particle_kinetic_energy(gary);     //thermostat variables
     double expfac_real;
