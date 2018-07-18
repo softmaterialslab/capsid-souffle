@@ -8,6 +8,8 @@
 #include <vector>
 #include "initialize.h"
 #include "functions.h"
+#include "energies.h"
+#include "forces.h"
 #include "md.h"
 
 using namespace std;
@@ -27,6 +29,7 @@ void run_molecular () {
     vector<UNIT> garfield;                                  //create subunits, named garfield
     vector<FACE> gface;                                     //create faces of gary's on garfield
     vector<PAIR> gpair;                                     //create vector to hold LJ pairings
+    vector<OLIGOMER> ollie;                                 //setting up other objects used in analysis
     vector<THERMOSTAT> real_bath;                           //vector of thermostats
     BOX tardis;                                             //creates a simulation box
 
@@ -61,11 +64,10 @@ void run_molecular () {
     double lb = 0.416;                                // e^2 / (4 pi Er E0 Kb T)
     double ni = saltconc * Avagadro * SIsigma * SIsigma * SIsigma;       //number density (1/sigma*^3)
     int count = 0;                                    //used in oligomer counting later on...
-
-
-    vector<OLIGOMER> ollie;                                 //setting up other objects used in analysis
     vector<int> massbins(garfield.size());
     vector<vector<int> > ms_bin(totaltime / (delt * 1000), vector<int>(garfield.size()));
+	
+	
 
     cout << endl << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
          << delt * SItime / (1e-12) << " picosecond timestep." << endl;
@@ -97,9 +99,14 @@ void run_molecular () {
   /         |      |___/             |_____   \__/    \__/    |                       */
 
 // Calculate initial forces
-    dress_up(gedge, gface);
 
-    for (int i = 0; i < gary.size(); i++)
+
+    dress_up(gedge, gface);
+	
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTRA MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+    for (int i = 0; i < gary.size(); i++)	
         gary[i].update_stretching_force(ks, vdwr);
 
     for (int i = 0; i < gedge.size(); i++) {
@@ -107,11 +114,15 @@ void run_molecular () {
             gedge[i].update_bending_forces(kb);
     }
 
-    update_ES_forces(gary, lb, ni, qs);
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTER MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////   
 
+    update_ES_forces(gary, lb, ni, qs);		//ALSO INTRA-MOLECULAR
+	
     update_LJ_forces(gary, ecut, gpair);
 
-    double senergy = 0;                                 //blank all the energy metrics
+    double senergy = 0;                            //blank all the energy metrics
     double kenergy = 0;
     double benergy = 0;
     double tenergy = 0;
@@ -120,7 +131,8 @@ void run_molecular () {
     double tpenergy = 0;
     double tkenergy = 0;
 
-    initialize_bead_velocities(garfield, gary, T);            //assign random velocities based on initial temperature
+    //initialize_bead_velocities(garfield, gary, T);            //assign random velocities based on initial temperature
+	initialize_constant_bead_velocities(garfield,gary,T);
 
     double particle_ke = particle_kinetic_energy(gary);     //thermostat variables
     double expfac_real;
@@ -128,16 +140,27 @@ void run_molecular () {
     int mstime = -1;                                          //parameter for ms_bin filling
 
     cout << endl << endl << "Calculating..." << endl << endl;
-
+	
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								BEGIN MD LOOP															*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
     for (unsigned int a = 0; a < (totaltime / delt); a++)         // BEGIN MD LOOP
     {
-                                                                    //thermostat set up
+                                                       
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								THERMOSTAT UPDATE														*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////																
         for (int j = real_bath.size() - 1; j > -1; j--)
             update_chain_xi(j, real_bath, delt, particle_ke);
         for (unsigned int j = 0; j < real_bath.size(); j++)
             real_bath[j].update_eta(delt);
 
         expfac_real = exp(-0.5 * delt * real_bath[0].xi);
+		
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								VELOCITY VERLET															*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         for (unsigned int i = 0; i < gary.size(); i++)
             gary[i].therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity half step
@@ -146,25 +169,39 @@ void run_molecular () {
             gary[i].update_position(delt);                 //update position full step
 
         dress_up(gedge, gface);                              //update edge and face properties
+		
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTRA MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         for (unsigned int i = 0; i < gary.size(); i++) {
             gary[i].update_stretching_force(ks, vdwr);          //calculate forces
             gary[i].bforce = VECTOR3D(0, 0, 0);                 //blanking out bending force here
         }
-
-        update_ES_forces(gary, lb, ni, qs);
-
-        update_LJ_forces(gary, ecut, gpair);
-
-        for (unsigned int i = 0; i < gedge.size(); i++) {
+		for (unsigned int i = 0; i < gedge.size(); i++) {
             if (gedge[i].type != 0)
                 gedge[i].update_bending_forces(kb);
         }
+        
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTER MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        update_ES_forces(gary, lb, ni, qs);		//ALSO INTRAMOLECULAR
+
+        update_LJ_forces(gary, ecut, gpair);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								VELOCITY VERLET															*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////        
 
         for (unsigned int i = 0; i < gary.size(); i++) {
             gary[i].therm_update_velocity(delt, real_bath[0], expfac_real);    //update velocity the other half step
         }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								THERMOSTAT UPDATE														*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
         particle_ke = particle_kinetic_energy(gary);
 // forward update of Nose-Hoover chain
         for (unsigned int j = 0; j < real_bath.size(); j++)
@@ -184,7 +221,11 @@ void run_molecular () {
 
 
 
-        if (a % 100 == 0) {                                           //analysis loop (energies)
+        if (a % 100 == 0) {                                           //analysis loop 
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								ANALYZE ENERGIES														*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             for (unsigned int i = 0; i < gary.size(); i++) {
                 gary[i].ne = 0;                                     //blanking out energies here (ADD TO FXN 2-8)
@@ -222,7 +263,9 @@ void run_molecular () {
 
             tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy +
                       tkenergy;      //print info to files for data analysis
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								STORE ENERGY INFO TO FILE												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << gary.size() << endl
                   << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
@@ -253,7 +296,9 @@ void run_molecular () {
             tpenergy = 0;
             tkenergy = 0;
         }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								RADIAL DISTRIBUTION FUNCTION											*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (a % 1000 == 0) {
 //            if (a > 100000) {
@@ -271,6 +316,10 @@ void run_molecular () {
 //            }
 
             int index = -1;
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								MASS SPECTRUM ANALYSIS													*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             for (unsigned int i = 0; i < garfield.size(); i++)           //Create oligomers for mass spectrum analysis
             {
@@ -347,6 +396,28 @@ void run_molecular () {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void run_brownian(){
 
     double const vdwr = pow(2, 0.166666666667);       //System specific paramters (modelled for HBV)
@@ -419,7 +490,9 @@ void run_brownian(){
 
 // Calculate initial forces
     dress_up(gedge, gface);
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTRA MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
     for (int i = 0; i < gary.size(); i++)
         gary[i].update_stretching_force(ks, vdwr);
 
@@ -427,6 +500,9 @@ void run_brownian(){
         if (gedge[i].type != 0)                     //if it is a bending edge
             gedge[i].update_bending_forces(kb);
     }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTER MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     update_ES_forces(gary, lb, ni, qs);
 
@@ -471,20 +547,29 @@ void run_brownian(){
             gary[i].update_position(delt);                 //update position full step
 
         dress_up(gedge, gface);                              //update edge and face properties
+		
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTRA MOLECULAR FORCES												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         for (unsigned int i = 0; i < gary.size(); i++) {
             gary[i].update_stretching_force(ks, vdwr);          //calculate forces
             gary[i].bforce = VECTOR3D(0, 0, 0);                 //blanking out bending force here
         }
+		for (unsigned int i = 0; i < gedge.size(); i++) {
+            if (gedge[i].type != 0)
+                gedge[i].update_bending_forces(kb);
+        }
+        
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*									INTER MOLECULAR FORCES												*/
+////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
         update_ES_forces(gary, lb, ni, qs);
 
         update_LJ_forces(gary, ecut, gpair);
 
-        for (unsigned int i = 0; i < gedge.size(); i++) {
-            if (gedge[i].type != 0)
-                gedge[i].update_bending_forces(kb);
-        }
+
 
         for (unsigned int i = 0; i < gary.size(); i++) {
             //gary[i].brownian_update_velocity(delt, fric_zeta);    //update velocity the other half step
@@ -509,7 +594,9 @@ void run_brownian(){
 
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								ENERGY ANALYSIS															*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (a % 100 == 0) {                                           //analysis loop (energies)
 
@@ -542,6 +629,9 @@ void run_brownian(){
 
             tenergy = senergy + kenergy + ljenergy + benergy + cenergy ; //print info to files for data analysis
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								PRINT ENERGY INFO TO FILE												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << gary.size() << endl
                   << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
@@ -571,6 +661,9 @@ void run_brownian(){
 
         }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								RADIAL DISTRIBUTION FUNCTION											*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (a % 1000 == 0) {
 //            if (a > 100000) {
@@ -588,6 +681,10 @@ void run_brownian(){
 //            }
 
             int index = -1;
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*								MASS SPECTRUM ANALYSIS													*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             for (unsigned int i = 0; i < garfield.size(); i++)           //Create oligomers for mass spectrum analysis
             {

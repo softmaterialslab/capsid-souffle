@@ -28,5 +28,7 @@ void allonsy (double capconc,unsigned int numden, std::string file_name);
 
 void initialize_bead_velocities(std::vector<UNIT> &garfield, std::vector<BEAD> &gary, double T);
 
+void initialize_constant_bead_velocities(std::vector<UNIT> &garfield, std::vector<BEAD> &gary, double T);
+
 
 #endif //LEMONSOUFFLE_INITIALIZE_H

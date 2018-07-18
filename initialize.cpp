@@ -399,7 +399,55 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
 
 
 
+void initialize_constant_bead_velocities(vector<UNIT> &garfield, vector<BEAD> &gary, double T){
+	for (unsigned int i = 0; i < garfield.size(); i+=4)
+	{
+		for (int j = 0; j < garfield[i].itsB.size(); j++) {
+            garfield[i+0].itsB[j]->vel = VECTOR3D(+0.4, -0.2, -0.5);
+			garfield[i+1].itsB[j]->vel = VECTOR3D(-0.3, +0.3, -0.4);
+			garfield[i+2].itsB[j]->vel = VECTOR3D(-0.2, +0.5, +0.3);
+			garfield[i+3].itsB[j]->vel = VECTOR3D(+0.5, -0.4, +0.1);
+        }
+	}
+	
+	// average velocity should be 0; as there is no net flow of the system in any particular direction; we do this next
+    VECTOR3D average_velocity_vector = VECTOR3D(0,0,0);
+    for (unsigned int i = 0; i < garfield.size(); i++) {
+        for (int j=0;j<garfield[i].itsB.size();j++) {
+            average_velocity_vector = average_velocity_vector + garfield[i].itsB[j]->vel;
+        }
+    }
+    
+    average_velocity_vector = average_velocity_vector^(1.0/gary.size());
 
+    // subtract this computed average_velocity_vector from the velocity of each particle to ensure that the total average after this operation is 0
+    for (unsigned int i = 0; i < gary.size(); i++)
+        gary[i].vel = gary[i].vel - average_velocity_vector;
+
+    // scaling the velocity so that the initial kinetic energy corresponds to the initial temperature supplied by the user.
+    double initial_ke = 0.0;
+    for (unsigned int i = 0; i < gary.size(); i++)
+    {
+        gary[i].update_kinetic_energy();
+        initial_ke += gary[i].ke;
+    }
+    double intial_unscaled_T = initial_ke/(1.5*gary.size());
+    double scalefactor = sqrt(T/intial_unscaled_T);
+
+    // scale the velocities
+    for (unsigned int i = 0; i < gary.size(); i++)
+    {
+        gary[i].vel = (gary[i].vel^scalefactor);
+        gary[i].update_kinetic_energy();
+    }
+
+    double scaled_ke = 0.0;
+    for (unsigned int i = 0; i < gary.size(); i++)
+        scaled_ke = scaled_ke + gary[i].ke;
+
+    double set_T = scaled_ke / (1.5*gary.size());
+    cout << "initial velocities corrrespond to this set temperature " << set_T << endl;
+}
 
 
 void initialize_bead_velocities(vector<UNIT> &garfield, vector<BEAD> &gary, double T){ //VIKRAM MANY_PARTICLE CODE BLOCK *editted*
