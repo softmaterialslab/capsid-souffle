@@ -34,20 +34,23 @@ void run_molecular () {
     BOX tardis;                                             //creates a simulation box
 
     double capconc, saltconc, ks, kb ;
-    string file_name = "41part";
-	double totaltime = 100;				//total time in MD units
+    string file_name; // = "41part_c";
+	double totaltime ;//= 100;				//total time in MD units
 	double ecut = 2.5;					//lennard jones cut-off distance
 	double qs = 1;						//salt valency
-	double delt = .002;					//time step in MD units
+	double delt ;//= .002;					//time step in MD units
 	double numden = 8;					//number of subunits in the box
 	double chain_length_real = 5;		//nose hoover chain length
 	double Q = 1;						//nose hoover mass (reduced units)
 	double T = 1;						//set temperature (reduced units)
    
+    cout << "Filename?" << endl;								 cin >> file_name;
     cout << "capsomere concentration (micromolar):" << endl;     cin >> capconc;
     cout << "salt concentration (millimolar):" << endl;          cin >> saltconc;
     cout << "stretching constant (KbT):" << endl;          		 cin >> ks;
     cout << "bending constant (KbT):" << endl;             		 cin >> kb;
+	cout << "total time (MD steps):" << endl;					 cin >> totaltime;
+	cout << "timestep (MD steps):" << endl;						 cin >> delt;
         
 
 
@@ -106,19 +109,28 @@ void run_molecular () {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for (int i = 0; i < gary.size(); i++)	
-        gary[i].update_stretching_force(ks, vdwr);
+    
+    for (unsigned int i = 0; i < garfield.size(); i++) 
+	{
+		for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+		{
+			garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
+			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
+		}
+		
+		for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+		{
+			if (garfield[i].itsE[kk]->type != 0)					//if it is a bending edge...
+				garfield[i].itsE[kk]->update_bending_forces(kb);
+		}
+	}
 
-    for (int i = 0; i < gedge.size(); i++) {
-        if (gedge[i].type != 0)                     //if it is a bending edge
-            gedge[i].update_bending_forces(kb);
-    }
 
  //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////   
 
-    update_ES_forces(gary, lb, ni, qs);		//ALSO INTRA-MOLECULAR
+    update_ES_forces(garfield, lb, ni, qs);		//ALSO INTRA-MOLECULAR
 	
     update_LJ_forces(gary, ecut, gpair);
 
@@ -174,20 +186,26 @@ void run_molecular () {
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        for (unsigned int i = 0; i < gary.size(); i++) {
-            gary[i].update_stretching_force(ks, vdwr);          //calculate forces
-            gary[i].bforce = VECTOR3D(0, 0, 0);                 //blanking out bending force here
-        }
-		for (unsigned int i = 0; i < gedge.size(); i++) {
-            if (gedge[i].type != 0)
-                gedge[i].update_bending_forces(kb);
-        }
+for (unsigned int i = 0; i < garfield.size(); i++) 
+{
+	for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+	{
+		garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
+		garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);			//zeroing bending force here
+	}
+	
+	for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+	{
+		if (garfield[i].itsE[kk]->type != 0)						//if it is a bending edge...
+			garfield[i].itsE[kk]->update_bending_forces(kb);
+	}
+}
         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        update_ES_forces(gary, lb, ni, qs);		//ALSO INTRAMOLECULAR
+        update_ES_forces(garfield, lb, ni, qs);		//ALSO INTRAMOLECULAR
 
         update_LJ_forces(gary, ecut, gpair);
 
@@ -493,18 +511,25 @@ void run_brownian(){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for (int i = 0; i < gary.size(); i++)
-        gary[i].update_stretching_force(ks, vdwr);
-
-    for (int i = 0; i < gedge.size(); i++) {
-        if (gedge[i].type != 0)                     //if it is a bending edge
-            gedge[i].update_bending_forces(kb);
-    }
+     for (unsigned int i = 0; i < garfield.size(); i++) 
+	{
+		for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+		{
+			garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
+			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
+		}
+		
+		for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+		{
+			if (garfield[i].itsE[kk]->type != 0)					//if it is a bending edge...
+				garfield[i].itsE[kk]->update_bending_forces(kb);
+		}
+	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    update_ES_forces(gary, lb, ni, qs);
+    update_ES_forces(garfield, lb, ni, qs);
 
     update_LJ_forces(gary, ecut, gpair);
 
@@ -552,20 +577,26 @@ void run_brownian(){
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        for (unsigned int i = 0; i < gary.size(); i++) {
-            gary[i].update_stretching_force(ks, vdwr);          //calculate forces
-            gary[i].bforce = VECTOR3D(0, 0, 0);                 //blanking out bending force here
-        }
-		for (unsigned int i = 0; i < gedge.size(); i++) {
-            if (gedge[i].type != 0)
-                gedge[i].update_bending_forces(kb);
-        }
+	for (unsigned int i = 0; i < garfield.size(); i++) 
+	{
+		for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+		{
+			garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
+			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
+		}
+		
+		for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+		{
+			if (garfield[i].itsE[kk]->type != 0)					//if it is a bending edge...
+				garfield[i].itsE[kk]->update_bending_forces(kb);
+		}
+	}
         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTER MOLECULAR FORCES												*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
-        update_ES_forces(gary, lb, ni, qs);
+        update_ES_forces(garfield, lb, ni, qs);
 
         update_LJ_forces(gary, ecut, gpair);
 

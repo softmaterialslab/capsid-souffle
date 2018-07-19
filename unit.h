@@ -23,6 +23,7 @@ public:
     int id;                                 //subunit id
     std::vector<BEAD*> itsB;                //particles making up the subunit
     BOX* itsT;                              //it's box (tardis)
+    std::vector<EDGE*> itsE;				//edges within the subunit
     std::vector<OLIGOMER> itsO;                         //its oligmer
     VECTOR3D comvec;                        //center of mass of the subunit
     VECTOR3D vsumvec;
