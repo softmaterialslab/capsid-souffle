@@ -96,6 +96,7 @@ void initialize_system(vector<BEAD> &rgary, vector<EDGE> &rgedge, vector<UNIT> &
         rgedge[index].itsB.push_back(&rgary[g2]);
         rgary[g1].itsE.push_back(&rgedge[index]);     //the bond on g1 (stored in pointer vector in PARTICLE class)
         rgary[g2].itsE.push_back(&rgedge[index]);
+		rgary[g1].itsU[0]->itsE.push_back(&rgedge[index]);
     }
 
 

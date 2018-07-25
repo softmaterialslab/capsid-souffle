@@ -14,24 +14,63 @@ using namespace std;
 
 
 
-void update_ES_forces(vector<BEAD>& gary, double lb, double ni, double qs){
-    for (int i=0; i<gary.size(); i++){
-        gary[i].eforce = VECTOR3D(0,0,0);       //clearing forces
+void update_ES_forces(vector<UNIT>& garfield, double lb, double ni, double qs){
+    for (int i=0; i<garfield.size(); i++){
+		for (int j=0; j<garfield[i].itsB.size(); j++)
+		{
+			garfield[i].itsB[j]->eforce = VECTOR3D(0,0,0);
+		}
     }
-    for (int i=0; i<gary.size()-1; i++)
-    {
-        for (int j=i+1; j<gary.size(); j++)
-        {
-            double kappa = 8 * 3.1416 * ni * lb * qs*qs;
-            VECTOR3D rij = dist( &gary[i] , &gary[j] );
-            VECTOR3D ff = rij ^ ( ( gary[i].q * gary[j].q * lb * exp(-kappa * rij.GetMagnitude() )
+    
+    for (int i = 0; i < garfield.size()-1 ; i++)	//intermolecular forces loop
+	{
+		for (int j = i + 1; j < garfield.size(); j++)
+		{
+			for (int ii = 0; ii < garfield[i].itsB.size(); ii++)
+			{
+				for (int jj = 0; jj < garfield[j].itsB.size(); jj++)
+				{
+					double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+					VECTOR3D rij = dist( garfield[i].itsB[ii] , garfield[j].itsB[jj] );
+					VECTOR3D ff = rij ^ ( ( garfield[i].itsB[ii]->q * garfield[j].itsB[jj]->q * lb * exp(-kappa * rij.GetMagnitude() )
                           / rij.GetMagnitudeSquared() ) * (kappa + 1/rij.GetMagnitude() ) );
 
-            gary[i].eforce += ff;
-            gary[j].eforce -= ff;
-        }
-    }
-}
+					garfield[i].itsB[ii]->eforce += ff;
+					garfield[j].itsB[jj]->eforce -= ff;
+				}
+			}
+		}
+	}
+	for (int i = 0; i < garfield.size(); i++)		//intramolecular forces loop
+	{
+		for (int j = 0; j < garfield[i].itsB.size(); j++)
+		{
+			for (int k = j + 1; k < garfield[i].itsB.size(); k++)
+			{
+				double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+				VECTOR3D rij = dist( garfield[i].itsB[j] , garfield[i].itsB[k] );
+				VECTOR3D ff = rij ^ ( ( garfield[i].itsB[j]->q * garfield[i].itsB[k]->q * lb * exp(-kappa * rij.GetMagnitude() )
+                          / rij.GetMagnitudeSquared() ) * (kappa + 1/rij.GetMagnitude() ) );
+
+				garfield[i].itsB[j]->eforce += ff;
+				garfield[i].itsB[k]->eforce -= ff;
+			}
+		}
+	}
+//     for (int i=0; i<gary.size()-1; i++)
+//     {
+//         for (int j=i+1; j<gary.size(); j++)
+//         {
+//             double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+//             VECTOR3D rij = dist( &gary[i] , &gary[j] );
+//             VECTOR3D ff = rij ^ ( ( gary[i].q * gary[j].q * lb * exp(-kappa * rij.GetMagnitude() )
+//                           / rij.GetMagnitudeSquared() ) * (kappa + 1/rij.GetMagnitude() ) );
+// 
+//             gary[i].eforce += ff;
+//             gary[j].eforce -= ff;
+//         }
+//     }
+ }
 
 void update_LJ_forces(std::vector<BEAD>& gary, double ecut, std::vector<PAIR>& gpair){
 
