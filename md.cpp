@@ -246,24 +246,32 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             for (unsigned int i = 0; i < gary.size(); i++) {
-                gary[i].ne = 0;                                     //blanking out energies here (ADD TO FXN 2-8)
+                gary[i].ne = 0;                                     //blanking out energies here 
                 gary[i].be = 0;
                 gary[i].ce = 0;
             }
-
-            update_ES_energies(gary, lb, ni, qs);
+            
+            for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				{
+					garfield[i].itsB[ii]->update_stretching_energy(ks, vdwr);
+					garfield[i].itsB[ii]->update_kinetic_energy();
+				}
+				for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+				{
+					if (garfield[i].itsE[kk]->type != 0)			//if it is a bending edge...
+						garfield[i].itsE[kk]->update_bending_energy(kb);
+				}
+			}
+																	//Intermolecular Energies
+            update_ES_energies(garfield, lb, ni, qs);
 
             update_LJ_energies(gary, ecut, gpair);
 
-            for (unsigned int i = 0; i < gedge.size(); i++) {
-                if (gedge[i].type != 0) {
-                    gedge[i].update_bending_energy(kb);
-                }
-            }
+           
 
             for (unsigned int i = 0; i < gary.size(); i++) {
-                gary[i].update_stretching_energy(ks, vdwr);
-                gary[i].update_kinetic_energy();
                 senergy += gary[i].se;                          //sum up total energies
                 kenergy += gary[i].ke;
                 ljenergy += gary[i].ne;
@@ -275,7 +283,7 @@ for (unsigned int i = 0; i < garfield.size(); i++)
                 real_bath[i].kinetic_energy();
             }
             for (unsigned int i = 0; i < real_bath.size(); i++) {
-                tpenergy += real_bath[i].pe;                    //sum up total energies
+                tpenergy += real_bath[i].pe;                    	//sum up total energies
                 tkenergy += real_bath[i].ke;
             }
 
@@ -632,24 +640,31 @@ void run_brownian(){
         if (a % 100 == 0) {                                           //analysis loop (energies)
 
             for (unsigned int i = 0; i < gary.size(); i++) {
-                gary[i].ne = 0;                                     //blanking out energies here (ADD TO FXN 2-8)
+                gary[i].ne = 0;                                     //blanking out energies here 
                 gary[i].be = 0;
                 gary[i].ce = 0;
             }
 
-            update_ES_energies(gary, lb, ni, qs);
+             for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				{
+					garfield[i].itsB[ii]->update_stretching_energy(ks, vdwr);
+					garfield[i].itsB[ii]->update_kinetic_energy();
+				}
+				for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+				{
+					if (garfield[i].itsE[kk]->type != 0)			//if it is a bending edge...
+						garfield[i].itsE[kk]->update_bending_energy(kb);
+				}
+			}
+																	//Intermolecular Energies
+            update_ES_energies(garfield, lb, ni, qs);
 
             update_LJ_energies(gary, ecut, gpair);
 
-            for (unsigned int i = 0; i < gedge.size(); i++) {
-                if (gedge[i].type != 0) {
-                    gedge[i].update_bending_energy(kb);
-                }
-            }
 
             for (unsigned int i = 0; i < gary.size(); i++) {
-                gary[i].update_stretching_energy(ks, vdwr);
-                gary[i].update_kinetic_energy();
                 senergy += gary[i].se;                          //sum up total energies
                 kenergy += gary[i].ke;
                 ljenergy += gary[i].ne;
