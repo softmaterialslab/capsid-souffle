@@ -16,9 +16,9 @@ using namespace std;
 
 void update_ES_forces(vector<UNIT>& garfield, double lb, double ni, double qs){
     for (int i=0; i<garfield.size(); i++){
-		for (int j=0; j<garfield[i].itsB.size(); j++)
+		for (int ii=0; ii<garfield[i].itsB.size(); ii++)
 		{
-			garfield[i].itsB[j]->eforce = VECTOR3D(0,0,0);
+			garfield[i].itsB[ii]->eforce = VECTOR3D(0,0,0);
 		}
     }
     
@@ -31,9 +31,10 @@ void update_ES_forces(vector<UNIT>& garfield, double lb, double ni, double qs){
 				for (int jj = 0; jj < garfield[j].itsB.size(); jj++)
 				{
 					double kappa = 8 * 3.1416 * ni * lb * qs*qs;
-					VECTOR3D rij = dist( garfield[i].itsB[ii] , garfield[j].itsB[jj] );
-					VECTOR3D ff = rij ^ ( ( garfield[i].itsB[ii]->q * garfield[j].itsB[jj]->q * lb * exp(-kappa * rij.GetMagnitude() )
-                          / rij.GetMagnitudeSquared() ) * (kappa + 1/rij.GetMagnitude() ) );
+					VECTOR3D r_vec = dist( garfield[i].itsB[ii] , garfield[j].itsB[jj] );
+					long double r = r_vec.GetMagnitude();
+					VECTOR3D ff = r_vec ^ ( ( garfield[i].itsB[ii]->q * garfield[j].itsB[jj]->q * lb * exp(-kappa * r )
+                          / (r * r) ) * (kappa + 1/r) );
 
 					garfield[i].itsB[ii]->eforce += ff;
 					garfield[j].itsB[jj]->eforce -= ff;
@@ -43,17 +44,17 @@ void update_ES_forces(vector<UNIT>& garfield, double lb, double ni, double qs){
 	}
 	for (int i = 0; i < garfield.size(); i++)		//intramolecular forces loop
 	{
-		for (int j = 0; j < garfield[i].itsB.size(); j++)
+		for (int ii = 0; ii < garfield[i].itsB.size(); ii++)
 		{
-			for (int k = j + 1; k < garfield[i].itsB.size(); k++)
+			for (int kk = ii + 1; kk < garfield[i].itsB.size(); kk++)
 			{
 				double kappa = 8 * 3.1416 * ni * lb * qs*qs;
-				VECTOR3D rij = dist( garfield[i].itsB[j] , garfield[i].itsB[k] );
-				VECTOR3D ff = rij ^ ( ( garfield[i].itsB[j]->q * garfield[i].itsB[k]->q * lb * exp(-kappa * rij.GetMagnitude() )
+				VECTOR3D rij = dist( garfield[i].itsB[ii] , garfield[i].itsB[kk] );
+				VECTOR3D ff = rij ^ ( ( garfield[i].itsB[ii]->q * garfield[i].itsB[kk]->q * lb * exp(-kappa * rij.GetMagnitude() )
                           / rij.GetMagnitudeSquared() ) * (kappa + 1/rij.GetMagnitude() ) );
 
-				garfield[i].itsB[j]->eforce += ff;
-				garfield[i].itsB[k]->eforce -= ff;
+				garfield[i].itsB[ii]->eforce += ff;
+				garfield[i].itsB[kk]->eforce -= ff;
 			}
 		}
 	}
