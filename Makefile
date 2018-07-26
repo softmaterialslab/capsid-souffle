@@ -4,7 +4,7 @@ PROG = simulate_spinach_souffle
 
 OBJ = main.o initialize.o functions.o bead.o edge.o face.o unit.o md.o energies.o forces.o
 
-CC = g++ -g -Wall
+CC = g++ -g -Wall -O3
 
 LFLAG = -lgsl -lgslcblas
 

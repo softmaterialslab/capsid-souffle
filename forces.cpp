@@ -34,7 +34,8 @@ void update_ES_forces(vector<UNIT>& garfield, double lb, double ni, double qs){
 					VECTOR3D r_vec = dist( garfield[i].itsB[ii] , garfield[j].itsB[jj] );
 					long double r = r_vec.GetMagnitude();
 					VECTOR3D ff = r_vec ^ ( ( garfield[i].itsB[ii]->q * garfield[j].itsB[jj]->q * lb * exp(-kappa * r )
-                          / (r*r) ) * (kappa + 1/r ) );
+                          / (r * r) ) * (kappa + 1/r) );
+
 
 					garfield[i].itsB[ii]->eforce += ff;
 					garfield[j].itsB[jj]->eforce -= ff;
