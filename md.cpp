@@ -118,10 +118,10 @@ void run_molecular () {
 			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
 		}
 		
-		for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+		for (unsigned int m = 0; m < garfield[i].itsE.size(); m++)
 		{
-			if (garfield[i].itsE[kk]->type != 0)					//if it is a bending edge...
-				garfield[i].itsE[kk]->update_bending_forces(kb);
+			if (garfield[i].itsE[m]->type != 0)					//if it is a bending edge...
+				garfield[i].itsE[m]->update_bending_forces(kb);
 		}
 	}
 
@@ -163,10 +163,10 @@ void run_molecular () {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								THERMOSTAT UPDATE														*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////																
-        for (int j = real_bath.size() - 1; j > -1; j--)
-            update_chain_xi(j, real_bath, delt, particle_ke);
-        for (unsigned int j = 0; j < real_bath.size(); j++)
-            real_bath[j].update_eta(delt);
+        for (int i = real_bath.size() - 1; i > -1; i--)
+            update_chain_xi(i, real_bath, delt, particle_ke);
+        for (unsigned int i = 0; i < real_bath.size(); i++)
+            real_bath[i].update_eta(delt);
 
         expfac_real = exp(-0.5 * delt * real_bath[0].xi);
 		
@@ -174,11 +174,14 @@ void run_molecular () {
 /*								VELOCITY VERLET															*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        for (unsigned int i = 0; i < gary.size(); i++)
-            gary[i].therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity half step
-
-        for (unsigned int i = 0; i < gary.size(); i++)
-            gary[i].update_position(delt);                 //update position full step
+		for (unsigned int i = 0; i < garfield.size(); i++)
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+					{
+						garfield[i].itsB[ii]->therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity half step
+						garfield[i].itsB[ii]->update_position(delt);									  //update position full step
+					}
+			}
 
         dress_up(gedge, gface);                              //update edge and face properties
 		
@@ -213,19 +216,23 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 /*								VELOCITY VERLET															*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////        
 
-        for (unsigned int i = 0; i < gary.size(); i++) {
-            gary[i].therm_update_velocity(delt, real_bath[0], expfac_real);    //update velocity the other half step
-        }
+        for (unsigned int i = 0; i < garfield.size(); i++)
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+					{
+						garfield[i].itsB[ii]->therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity the other half step
+					}
+			}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								THERMOSTAT UPDATE														*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
         particle_ke = particle_kinetic_energy(gary);
-// forward update of Nose-Hoover chain
-        for (unsigned int j = 0; j < real_bath.size(); j++)
-            real_bath[j].update_eta(delt);
-        for (unsigned int j = 0; j < real_bath.size(); j++)
-            update_chain_xi(j, real_bath, delt, particle_ke);
+																				// forward update of Nose-Hoover chain
+        for (unsigned int i = 0; i < real_bath.size(); i++)
+            real_bath[i].update_eta(delt);
+        for (unsigned int i = 0; i < real_bath.size(); i++)
+            update_chain_xi(i, real_bath, delt, particle_ke);
 
 
 /*      __                 __                        ____     ________     ____
@@ -245,11 +252,17 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 /*								ANALYZE ENERGIES														*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            for (unsigned int i = 0; i < gary.size(); i++) {
-                gary[i].ne = 0;                                     //blanking out energies here 
-                gary[i].be = 0;
-                gary[i].ce = 0;
-            }
+         
+            for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				{
+					garfield[i].itsB[ii]->be = 0;
+					garfield[i].itsB[ii]->ne = 0;
+					garfield[i].itsB[ii]->ce = 0;
+				}
+			}
+			
             
             for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
 			{
@@ -269,15 +282,19 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 
             update_LJ_energies(gary, ecut, gpair);
 
-           
+           for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				{
+					senergy += garfield[i].itsB[ii]->se;                          //sum up total energies
+					kenergy += garfield[i].itsB[ii]->ke;
+					ljenergy += garfield[i].itsB[ii]->ne;
+					benergy += garfield[i].itsB[ii]->be;
+					cenergy += garfield[i].itsB[ii]->ce;
+				}
+			}
+			
 
-            for (unsigned int i = 0; i < gary.size(); i++) {
-                senergy += gary[i].se;                          //sum up total energies
-                kenergy += gary[i].ke;
-                ljenergy += gary[i].ne;
-                benergy += gary[i].be;
-                cenergy += gary[i].ce;
-            }
             for (unsigned int i = 0; i < real_bath.size(); i++) {        //thermostat energies
                 real_bath[i].potential_energy();
                 real_bath[i].kinetic_energy();
@@ -297,7 +314,7 @@ for (unsigned int i = 0; i < garfield.size(); i++)
                   << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
                   << setw(15)
                   << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
- << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+				  << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
 
             traj << a * delt << setw(15) << kenergy / gary.size() << setw(15) << senergy / gary.size() << setw(15) <<
                  benergy / gary.size() << setw(15) << ljenergy / gary.size() << setw(15) << cenergy / gary.size()
@@ -308,7 +325,7 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 
             for (unsigned int b = 0; b < gary.size(); b++) {
                 ofile << b + 1 << setw(15) << gary[b].type << setw(15) << gary[b].pos.x << setw(15) << gary[b].pos.y \
- << setw(15) << gary[b].pos.z << setw(15) << gary[b].be << setw(15) << gary[b].q << endl;
+					  << setw(15) << gary[b].pos.z << setw(15) << gary[b].be << setw(15) << gary[b].q << endl;
 
                 count += 1;
 
@@ -402,7 +419,6 @@ for (unsigned int i = 0; i < garfield.size(); i++)
             }
 
             ollie.erase(ollie.begin(),ollie.end());                 //erases oligomer objects
-// g(r) dump data
 
 
         }//end of energy analysis loop
@@ -575,9 +591,14 @@ void run_brownian(){
                     (gary[i].vel.z * (-0.5 * fric_zeta * delt)) + (gary[i].tforce.z * (0.5 * delt / gary[i].m)) +
                     sqrt(2 * 6 * delt * fric_zeta / gary[i].m) * (gsl_rng_uniform(r) - 0.5);
         }
-
-        for (unsigned int i = 0; i < gary.size(); i++)
-            gary[i].update_position(delt);                 //update position full step
+			
+		for (unsigned int i = 0; i < garfield.size(); i++)
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+					{
+						garfield[i].itsB[ii]->update_position(delt);  //update position full step
+					}
+			}
 
         dress_up(gedge, gface);                              //update edge and face properties
 		
@@ -611,7 +632,7 @@ void run_brownian(){
 
 
         for (unsigned int i = 0; i < gary.size(); i++) {
-            //gary[i].brownian_update_velocity(delt, fric_zeta);    //update velocity the other half step
+            //gary[i].brownian_update_velocity(delt, fric_zeta);    				//update velocity the other half step
             gary[i].tforce = gary[i].sforce + gary[i].bforce + gary[i].ljforce + gary[i].eforce;
             gary[i].vel.x += (gary[i].vel.x*(-0.5*fric_zeta*delt)) + (gary[i].tforce.x*(0.5*delt/gary[i].m)) +
                              sqrt(2*6*delt*fric_zeta/gary[i].m)*(gsl_rng_uniform(r)-0.5);
@@ -638,14 +659,18 @@ void run_brownian(){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (a % 100 == 0) {                                           //analysis loop (energies)
-
-            for (unsigned int i = 0; i < gary.size(); i++) {
-                gary[i].ne = 0;                                     //blanking out energies here 
-                gary[i].be = 0;
-                gary[i].ce = 0;
-            }
-
-             for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
+			 for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				{
+					garfield[i].itsB[ii]->be = 0;
+					garfield[i].itsB[ii]->ne = 0;
+					garfield[i].itsB[ii]->ce = 0;
+				}
+			}
+			
+            
+            for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
 			{
 				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
 				{
@@ -663,14 +688,17 @@ void run_brownian(){
 
             update_LJ_energies(gary, ecut, gpair);
 
-
-            for (unsigned int i = 0; i < gary.size(); i++) {
-                senergy += gary[i].se;                          //sum up total energies
-                kenergy += gary[i].ke;
-                ljenergy += gary[i].ne;
-                benergy += gary[i].be;
-                cenergy += gary[i].ce;
-            }
+           for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+			{
+				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				{
+					senergy += garfield[i].itsB[ii]->se;                          //sum up total energies
+					kenergy += garfield[i].itsB[ii]->ke;
+					ljenergy += garfield[i].itsB[ii]->ne;
+					benergy += garfield[i].itsB[ii]->be;
+					cenergy += garfield[i].itsB[ii]->ce;
+				}
+			}
 
 
             tenergy = senergy + kenergy + ljenergy + benergy + cenergy ; //print info to files for data analysis
@@ -683,7 +711,7 @@ void run_brownian(){
                   << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
                   << setw(15)
                   << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
- << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+				  << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
 
             traj << a * delt << setw(15) << kenergy / gary.size() << setw(15) << senergy / gary.size() << setw(15) <<
                  benergy / gary.size() << setw(15) << ljenergy / gary.size() << setw(15) << cenergy / gary.size()
@@ -693,7 +721,7 @@ void run_brownian(){
 
             for (unsigned int b = 0; b < gary.size(); b++) {
                 ofile << b + 1 << setw(15) << gary[b].type << setw(15) << gary[b].pos.x << setw(15) << gary[b].pos.y \
- << setw(15) << gary[b].pos.z << setw(15) << gary[b].be << setw(15) << gary[b].q << endl;
+					  << setw(15) << gary[b].pos.z << setw(15) << gary[b].be << setw(15) << gary[b].q << endl;
 
                 count += 1;
 
