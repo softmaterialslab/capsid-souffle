@@ -24,12 +24,12 @@ void run_molecular () {
     double const Avagadro = 6.022e23; // mol^-1
     int filenumber = 100000;
 
-    vector<BEAD> gary;                                      //Create particles, named gary (short for garfield)
-    vector<EDGE> gedge;                                     //create bonds between gary's
-    vector<UNIT> garfield;                                  //create subunits, named garfield
-    vector<FACE> gface;                                     //create faces of gary's on garfield
-    vector<PAIR> gpair;                                     //create vector to hold LJ pairings
-    vector<OLIGOMER> ollie;                                 //setting up other objects used in analysis
+    vector<BEAD> sub_beads;                                      //Create particles, named sub_beads 
+    vector<EDGE> sub_edges;                                     //create edges between sub_beads's
+    vector<UNIT> protein;                                  //create subunits, named protein
+    vector<FACE> sub_faces;                                     //create faces of sub_beads's on protein
+    vector<PAIR> sub_pairlist;                                     //create vector to hold LJ pairings
+    vector<OLIGOMER> oligomers_list;                                 //setting up other objects used in analysis
     vector<THERMOSTAT> real_bath;                           //vector of thermostats
     BOX tardis;                                             //creates a simulation box
 
@@ -60,35 +60,35 @@ void run_molecular () {
     double box_x = pow((numden * 1000 / (capconc * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);    //calculating box size
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
 
-    initialize_system(gary, gedge, garfield, gface, bxsz, tardis, gpair);
+    initialize_system(sub_beads, sub_edges, protein, sub_faces, bxsz, tardis, sub_pairlist);
 
 
                                                                         //user-derived parameters (not edittable)
     double lb = 0.416;                                // e^2 / (4 pi Er E0 Kb T)
     double ni = saltconc * Avagadro * SIsigma * SIsigma * SIsigma;       //number density (1/sigma*^3)
     int count = 0;                                    //used in oligomer counting later on...
-    vector<int> massbins(garfield.size());
-    vector<vector<int> > ms_bin(totaltime / (delt * 1000), vector<int>(garfield.size()));
+    vector<int> massbins(protein.size());
+    vector<vector<int> > ms_bin(totaltime / (delt * 1000), vector<int>(protein.size()));
 	
 	
 
     cout << endl << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
          << delt * SItime / (1e-12) << " picosecond timestep." << endl;
 
-    ofstream traj("gary.traj.out", ios::out);              //setting up file outputs
+    ofstream traj("sub_beads.traj.out", ios::out);              //setting up file outputs
     ofstream ofile("ovito.lammpstrj", ios::out);
     ofstream msdata("ms.out", ios::out);
     initialize_outputfile(traj, ofile);
 
     /*                                                    NOSE-HOOVER CHAIN THERMOSTAT                                  */
     if (chain_length_real == 1)
-        real_bath.push_back((THERMOSTAT(0, T, 3 * gary.size(), 0.0, 0, 0, 1)));
+        real_bath.push_back((THERMOSTAT(0, T, 3 * sub_beads.size(), 0.0, 0, 0, 1)));
     else
     {
-        real_bath.push_back((THERMOSTAT(Q, T, 3 * gary.size(), 0, 0, 0, 1)));
+        real_bath.push_back((THERMOSTAT(Q, T, 3 * sub_beads.size(), 0, 0, 0, 1)));
         while (real_bath.size() != chain_length_real - 1)
-            real_bath.push_back((THERMOSTAT(Q / (3 * gary.size()), T, 1, 0, 0, 0,1)));
-        real_bath.push_back((THERMOSTAT(0, T, 3 * gary.size(), 0.0, 0, 0,1)));
+            real_bath.push_back((THERMOSTAT(Q / (3 * sub_beads.size()), T, 1, 0, 0, 0,1)));
+        real_bath.push_back((THERMOSTAT(0, T, 3 * sub_beads.size(), 0.0, 0, 0,1)));
 // final bath is dummy bath (dummy bath always has zero mass)
     }
 
@@ -104,24 +104,24 @@ void run_molecular () {
 // Calculate initial forces
 
 
-    dress_up(gedge, gface);
+    dress_up(sub_edges, sub_faces);
 	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    for (unsigned int i = 0; i < garfield.size(); i++) 
+    for (unsigned int i = 0; i < protein.size(); i++) 
 	{
-		for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+		for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 		{
-			garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
-			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
+			protein[i].itsB[ii]->update_stretching_force(ks, vdwr);
+			protein[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
 		}
 		
-		for (unsigned int m = 0; m < garfield[i].itsE.size(); m++)
+		for (unsigned int m = 0; m < protein[i].itsE.size(); m++)
 		{
-			if (garfield[i].itsE[m]->type != 0)					//if it is a bending edge...
-				garfield[i].itsE[m]->update_bending_forces(kb);
+			if (protein[i].itsE[m]->type != 0)					//if it is a bending edge...
+				protein[i].itsE[m]->update_bending_forces(kb);
 		}
 	}
 
@@ -130,9 +130,9 @@ void run_molecular () {
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////   
 
-    update_ES_forces(garfield, lb, ni, qs);		//ALSO INTRA-MOLECULAR
+    update_ES_forces(protein, lb, ni, qs);		//ALSO INTRA-MOLECULAR
 	
-    update_LJ_forces(gary, ecut, gpair);
+    update_LJ_forces(sub_beads, ecut, sub_pairlist);
 
     double senergy = 0;                            //blank all the energy metrics
     double kenergy = 0;
@@ -143,10 +143,10 @@ void run_molecular () {
     double tpenergy = 0;
     double tkenergy = 0;
 
-    //initialize_bead_velocities(garfield, gary, T);            //assign random velocities based on initial temperature
-	initialize_constant_bead_velocities(garfield,gary,T);
+    //initialize_bead_velocities(protein, sub_beads, T);            //assign random velocities based on initial temperature
+	initialize_constant_bead_velocities(protein,sub_beads,T);
 
-    double particle_ke = particle_kinetic_energy(gary);     //thermostat variables
+    double particle_ke = particle_kinetic_energy(sub_beads);     //thermostat variables
     double expfac_real;
 
     int mstime = -1;                                          //parameter for ms_bin filling
@@ -174,33 +174,33 @@ void run_molecular () {
 /*								VELOCITY VERLET															*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		for (unsigned int i = 0; i < garfield.size(); i++)
+		for (unsigned int i = 0; i < protein.size(); i++)
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 					{
-						garfield[i].itsB[ii]->therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity half step
-						garfield[i].itsB[ii]->update_position(delt);									  //update position full step
+						protein[i].itsB[ii]->therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity half step
+						protein[i].itsB[ii]->update_position(delt);									  //update position full step
 					}
 			}
 
-        dress_up(gedge, gface);                              //update edge and face properties
+        dress_up(sub_edges, sub_faces);                              //update edge and face properties
 		
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-for (unsigned int i = 0; i < garfield.size(); i++) 
+for (unsigned int i = 0; i < protein.size(); i++) 
 {
-	for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+	for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 	{
-		garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
-		garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);			//zeroing bending force here
+		protein[i].itsB[ii]->update_stretching_force(ks, vdwr);
+		protein[i].itsB[ii]->bforce = VECTOR3D(0,0,0);			//zeroing bending force here
 	}
 	
-	for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+	for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++)
 	{
-		if (garfield[i].itsE[kk]->type != 0)						//if it is a bending edge...
-			garfield[i].itsE[kk]->update_bending_forces(kb);
+		if (protein[i].itsE[kk]->type != 0)						//if it is a bending edge...
+			protein[i].itsE[kk]->update_bending_forces(kb);
 	}
 }
         
@@ -208,26 +208,26 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        update_ES_forces(garfield, lb, ni, qs);		//ALSO INTRAMOLECULAR
+        update_ES_forces(protein, lb, ni, qs);		//ALSO INTRAMOLECULAR
 
-        update_LJ_forces(gary, ecut, gpair);
+        update_LJ_forces(sub_beads, ecut, sub_pairlist);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								VELOCITY VERLET															*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////        
 
-        for (unsigned int i = 0; i < garfield.size(); i++)
+        for (unsigned int i = 0; i < protein.size(); i++)
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 					{
-						garfield[i].itsB[ii]->therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity the other half step
+						protein[i].itsB[ii]->therm_update_velocity(delt, real_bath[0], expfac_real);  //update velocity the other half step
 					}
 			}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								THERMOSTAT UPDATE														*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        particle_ke = particle_kinetic_energy(gary);
+        particle_ke = particle_kinetic_energy(sub_beads);
 																				// forward update of Nose-Hoover chain
         for (unsigned int i = 0; i < real_bath.size(); i++)
             real_bath[i].update_eta(delt);
@@ -253,44 +253,44 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          
-            for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+            for (unsigned int i = 0; i < protein.size(); i++) 		//blanking out energies here 
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					garfield[i].itsB[ii]->be = 0;
-					garfield[i].itsB[ii]->ne = 0;
-					garfield[i].itsB[ii]->ce = 0;
+					protein[i].itsB[ii]->be = 0;
+					protein[i].itsB[ii]->ne = 0;
+					protein[i].itsB[ii]->ce = 0;
 				}
 			}
 			
             
-            for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
+            for (unsigned int i = 0; i < protein.size(); i++) 		// Intramolecular Energies
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					garfield[i].itsB[ii]->update_stretching_energy(ks, vdwr);
-					garfield[i].itsB[ii]->update_kinetic_energy();
+					protein[i].itsB[ii]->update_stretching_energy(ks, vdwr);
+					protein[i].itsB[ii]->update_kinetic_energy();
 				}
-				for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+				for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++)
 				{
-					if (garfield[i].itsE[kk]->type != 0)			//if it is a bending edge...
-						garfield[i].itsE[kk]->update_bending_energy(kb);
+					if (protein[i].itsE[kk]->type != 0)			//if it is a bending edge...
+						protein[i].itsE[kk]->update_bending_energy(kb);
 				}
 			}
 																	//Intermolecular Energies
-            update_ES_energies(garfield, lb, ni, qs);
+            update_ES_energies(protein, lb, ni, qs);
 
-            update_LJ_energies(gary, ecut, gpair);
+            update_LJ_energies(sub_beads, ecut, sub_pairlist);
 
-           for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+           for (unsigned int i = 0; i < protein.size(); i++) 		//blanking out energies here 
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					senergy += garfield[i].itsB[ii]->se;                          //sum up total energies
-					kenergy += garfield[i].itsB[ii]->ke;
-					ljenergy += garfield[i].itsB[ii]->ne;
-					benergy += garfield[i].itsB[ii]->be;
-					cenergy += garfield[i].itsB[ii]->ce;
+					senergy += protein[i].itsB[ii]->se;                          //sum up total energies
+					kenergy += protein[i].itsB[ii]->ke;
+					ljenergy += protein[i].itsB[ii]->ne;
+					benergy += protein[i].itsB[ii]->be;
+					cenergy += protein[i].itsB[ii]->ce;
 				}
 			}
 			
@@ -310,22 +310,22 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 /*								STORE ENERGY INFO TO FILE												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << gary.size() << endl
+            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << sub_beads.size() << endl
                   << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
                   << setw(15)
                   << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
 				  << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
 
-            traj << a * delt << setw(15) << kenergy / gary.size() << setw(15) << senergy / gary.size() << setw(15) <<
-                 benergy / gary.size() << setw(15) << ljenergy / gary.size() << setw(15) << cenergy / gary.size()
-                 << setw(15) << tenergy / gary.size()
-                 << setw(15) << (benergy + senergy + ljenergy + cenergy) / gary.size() << setw(15)
-                 << kenergy * 2 / (3 * gary.size()) << setw(15) << tpenergy / gary.size() << setw(15)
-                 << tkenergy / gary.size() << endl;
+            traj << a * delt << setw(15) << kenergy / sub_beads.size() << setw(15) << senergy / sub_beads.size() << setw(15) <<
+                 benergy / sub_beads.size() << setw(15) << ljenergy / sub_beads.size() << setw(15) << cenergy / sub_beads.size()
+                 << setw(15) << tenergy / sub_beads.size()
+                 << setw(15) << (benergy + senergy + ljenergy + cenergy) / sub_beads.size() << setw(15)
+                 << kenergy * 2 / (3 * sub_beads.size()) << setw(15) << tpenergy / sub_beads.size() << setw(15)
+                 << tkenergy / sub_beads.size() << endl;
 
-            for (unsigned int b = 0; b < gary.size(); b++) {
-                ofile << b + 1 << setw(15) << gary[b].type << setw(15) << gary[b].pos.x << setw(15) << gary[b].pos.y \
-					  << setw(15) << gary[b].pos.z << setw(15) << gary[b].be << setw(15) << gary[b].q << endl;
+            for (unsigned int b = 0; b < sub_beads.size(); b++) {
+                ofile << b + 1 << setw(15) << sub_beads[b].type << setw(15) << sub_beads[b].pos.x << setw(15) << sub_beads[b].pos.y \
+					  << setw(15) << sub_beads[b].pos.z << setw(15) << sub_beads[b].be << setw(15) << sub_beads[b].q << endl;
 
                 count += 1;
 
@@ -349,11 +349,11 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 //                filenumber += 1000;
 //                sprintf(filename, "data.coords.all.%d", filenumber);
 //                ofstream pairout(filename, ios::out);
-//                for (int i = 0; i < gary.size(); i++) {
-//                    if (gary[i].type == 3) {
-//                        pairout << gary[i].id << setw(15) << gary[i].type << setw(15) << gary[i].m << setw(15)
-//                                << gary[i].pos.x
-//                                << setw(15) << gary[i].pos.y << setw(15) << gary[i].pos.z << endl;
+//                for (int i = 0; i < sub_beads.size(); i++) {
+//                    if (sub_beads[i].type == 3) {
+//                        pairout << sub_beads[i].id << setw(15) << sub_beads[i].type << setw(15) << sub_beads[i].m << setw(15)
+//                                << sub_beads[i].pos.x
+//                                << setw(15) << sub_beads[i].pos.y << setw(15) << sub_beads[i].pos.z << endl;
 //                    }
 //                }
 //            }
@@ -364,30 +364,30 @@ for (unsigned int i = 0; i < garfield.size(); i++)
 /*								MASS SPECTRUM ANALYSIS													*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            for (unsigned int i = 0; i < garfield.size(); i++)           //Create oligomers for mass spectrum analysis
+            for (unsigned int i = 0; i < protein.size(); i++)           //Create oligomers for mass spectrum analysis
             {
                 double oldsize = 0;
 
-                if (garfield[i].itsO.size() == 0) {                       //if the unit isn't already counted...
+                if (protein[i].itsO.size() == 0) {                       //if the unit isn't already counted...
 
-                    ollie.push_back(OLIGOMER(VECTOR3D(0, 0, 0)));     //create an oligomer for the unit
+                    oligomers_list.push_back(OLIGOMER(VECTOR3D(0, 0, 0)));     //create an oligomer for the unit
                     index += 1;
-                    ollie[index].itsU.push_back(&garfield[i]);      //add unit to oligomer
-                    ollie[index].id = index;
-                    garfield[i].itsO.push_back(ollie[index]);               //add oligomer to unit
-                    while (oldsize < ollie[index].itsU.size()) {    //while the oligomer is still growing...
+                    oligomers_list[index].itsU.push_back(&protein[i]);      //add unit to oligomer
+                    oligomers_list[index].id = index;
+                    protein[i].itsO.push_back(oligomers_list[index]);               //add oligomer to unit
+                    while (oldsize < oligomers_list[index].itsU.size()) {    //while the oligomer is still growing...
                         int n = oldsize;
-                        oldsize = ollie[index].itsU.size();           //see how much the oligomer has grown
+                        oldsize = oligomers_list[index].itsU.size();           //see how much the oligomer has grown
                         for (int j = n; j < oldsize; j++) {             //loop over the growth from last round
-                            int g = ollie[index].itsU[j]->id;
-                            for (int k = i + 1; k < garfield.size(); k++) { //look for new growth
-                                if (garfield[k].itsO.size() == 0) {  //if it isn't in an oligomer yet...
+                            int g = oligomers_list[index].itsU[j]->id;
+                            for (int k = i + 1; k < protein.size(); k++) { //look for new growth
+                                if (protein[k].itsO.size() == 0) {  //if it isn't in an oligomer yet...
                                     for (int m = 0;
-                                         m < garfield[g].itsB.size(); m++) { //check to see if it is in this oligomer
-                                        for (int n = 0; n < garfield[k].itsB.size(); n++) {
-                                            if (dist(garfield[g].itsB[m], garfield[k].itsB[n]).GetMagnitude() < 1.5) {
-                                                ollie[index].itsU.push_back(&garfield[k]);   //if it is attached, add it
-                                                garfield[k].itsO.push_back(ollie[index]);   //mark subunit as bonded
+                                         m < protein[g].itsB.size(); m++) { //check to see if it is in this oligomer
+                                        for (int n = 0; n < protein[k].itsB.size(); n++) {
+                                            if (dist(protein[g].itsB[m], protein[k].itsB[n]).GetMagnitude() < 1.5) {
+                                                oligomers_list[index].itsU.push_back(&protein[k]);   //if it is attached, add it
+                                                protein[k].itsO.push_back(oligomers_list[index]);   //mark subunit as bonded
                                                 goto finish;
                                             }
                                         }
@@ -403,9 +403,9 @@ for (unsigned int i = 0; i < garfield.size(); i++)
                 }
             }
             mstime += 1;
-            for (int i = 0; i < ollie.size(); i++) {
-                if (ollie[i].itsU.size() >= 1) {
-                    ms_bin[mstime][(ollie[i].itsU.size() - 1)] += 1;          //fill mass bins
+            for (int i = 0; i < oligomers_list.size(); i++) {
+                if (oligomers_list[i].itsU.size() >= 1) {
+                    ms_bin[mstime][(oligomers_list[i].itsU.size() - 1)] += 1;          //fill mass bins
                 }
             }
 
@@ -414,11 +414,11 @@ for (unsigned int i = 0; i < garfield.size(); i++)
             }
             msdata << endl;
 
-            for (int i = 0; i < garfield.size(); i++) {             // clear oligomer pointers from subunit
-                garfield[i].itsO.clear();
+            for (int i = 0; i < protein.size(); i++) {             // clear oligomer pointers from subunit
+                protein[i].itsO.clear();
             }
 
-            ollie.erase(ollie.begin(),ollie.end());                 //erases oligomer objects
+            oligomers_list.erase(oligomers_list.begin(),oligomers_list.end());                 //erases oligomer objects
 
 
         }//end of energy analysis loop
@@ -469,11 +469,11 @@ void run_brownian(){
     double const Avagadro = 6.022e23; // mol^-1
     int filenumber = 100000;
 
-    vector<BEAD> gary;                                      //Create particles, named gary (short for garfield)
-    vector<EDGE> gedge;                                     //create bonds between gary's
-    vector<UNIT> garfield;                                  //create subunits, named garfield
-    vector<FACE> gface;                                     //create faces of gary's on garfield
-    vector<PAIR> gpair;                                     //create vector to hold LJ pairings
+    vector<BEAD> sub_beads;                                      //Create particles, named sub_beads (short for protein)
+    vector<EDGE> sub_edges;                                     //create edges between sub_beads's
+    vector<UNIT> protein;                                  //create subunits, named protein
+    vector<FACE> sub_faces;                                     //create faces of sub_beads's on protein
+    vector<PAIR> sub_pairlist;                                     //create vector to hold LJ pairings
     BOX tardis;                                             //creates a simulation box
 
     double capconc, saltconc, ks, kb , fric_zeta;
@@ -500,7 +500,7 @@ void run_brownian(){
     double box_x = pow((numden * 1000 / (capconc * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);    //calculating box size
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
 
-    initialize_system(gary, gedge, garfield, gface, bxsz, tardis, gpair);
+    initialize_system(sub_beads, sub_edges, protein, sub_faces, bxsz, tardis, sub_pairlist);
 
 
     //user-derived parameters (not edittable)
@@ -509,14 +509,14 @@ void run_brownian(){
     int count = 0;                                    //used in oligomer counting later on...
 
 
-    vector<OLIGOMER> ollie;                                 //setting up other objects used in analysis
-    vector<int> massbins(garfield.size());
-    vector<vector<int> > ms_bin(totaltime / (delt * 1000), vector<int>(garfield.size()));
+    vector<OLIGOMER> oligomers_list;                                 //setting up other objects used in analysis
+    vector<int> massbins(protein.size());
+    vector<vector<int> > ms_bin(totaltime / (delt * 1000), vector<int>(protein.size()));
 
     cout << endl << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
          << delt * SItime / (1e-12) << " picosecond timestep." << endl;
 
-    ofstream traj("gary.traj.out", ios::out);              //setting up file outputs
+    ofstream traj("sub_beads.traj.out", ios::out);              //setting up file outputs
     ofstream ofile("ovito.lammpstrj", ios::out);
     ofstream msdata("ms.out", ios::out);
     initialize_outputfile(traj, ofile);
@@ -531,31 +531,31 @@ void run_brownian(){
   /         |      |___/             |_____   \__/    \__/    |                       */
 
 // Calculate initial forces
-    dress_up(gedge, gface);
+    dress_up(sub_edges, sub_faces);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-     for (unsigned int i = 0; i < garfield.size(); i++) 
+     for (unsigned int i = 0; i < protein.size(); i++) 
 	{
-		for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+		for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 		{
-			garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
-			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
+			protein[i].itsB[ii]->update_stretching_force(ks, vdwr);
+			protein[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
 		}
 		
-		for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+		for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++)
 		{
-			if (garfield[i].itsE[kk]->type != 0)					//if it is a bending edge...
-				garfield[i].itsE[kk]->update_bending_forces(kb);
+			if (protein[i].itsE[kk]->type != 0)					//if it is a bending edge...
+				protein[i].itsE[kk]->update_bending_forces(kb);
 		}
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    update_ES_forces(garfield, lb, ni, qs);
+    update_ES_forces(protein, lb, ni, qs);
 
-    update_LJ_forces(gary, ecut, gpair);
+    update_LJ_forces(sub_beads, ecut, sub_pairlist);
 
     double senergy = 0;                                 //blank all the energy metrics
     double kenergy = 0;
@@ -564,7 +564,7 @@ void run_brownian(){
     double ljenergy = 0;
     double cenergy = 0;
 
-    initialize_bead_velocities(garfield, gary, T);            //assign random velocities based on initial temperature
+    initialize_bead_velocities(protein, sub_beads, T);            //assign random velocities based on initial temperature
 
     int mstime = -1;                                          //parameter for ms_bin filling
 
@@ -578,46 +578,46 @@ void run_brownian(){
     {
 
 
-        for (unsigned int i = 0; i < gary.size(); i++) {
-            //gary[i].brownian_update_velocity(delt, fric_zeta);  //update velocity half step
-            gary[i].tforce = gary[i].sforce + gary[i].bforce + gary[i].ljforce + gary[i].eforce;
-            gary[i].vel.x +=
-                    (gary[i].vel.x * (-0.5 * fric_zeta * delt)) + (gary[i].tforce.x * (0.5 * delt / gary[i].m)) +
-                    sqrt(2 * 6 * delt * fric_zeta / gary[i].m) * (gsl_rng_uniform(r) - 0.5);
-            gary[i].vel.y +=
-                    (gary[i].vel.y * (-0.5 * fric_zeta * delt)) + (gary[i].tforce.y * (0.5 * delt / gary[i].m)) +
-                    sqrt(2 * 6 * delt * fric_zeta / gary[i].m) * (gsl_rng_uniform(r) - 0.5);
-            gary[i].vel.z +=
-                    (gary[i].vel.z * (-0.5 * fric_zeta * delt)) + (gary[i].tforce.z * (0.5 * delt / gary[i].m)) +
-                    sqrt(2 * 6 * delt * fric_zeta / gary[i].m) * (gsl_rng_uniform(r) - 0.5);
+        for (unsigned int i = 0; i < sub_beads.size(); i++) {
+            //sub_beads[i].brownian_update_velocity(delt, fric_zeta);  //update velocity half step
+            sub_beads[i].tforce = sub_beads[i].sforce + sub_beads[i].bforce + sub_beads[i].ljforce + sub_beads[i].eforce;
+            sub_beads[i].vel.x +=
+                    (sub_beads[i].vel.x * (-0.5 * fric_zeta * delt)) + (sub_beads[i].tforce.x * (0.5 * delt / sub_beads[i].m)) +
+                    sqrt(2 * 6 * delt * fric_zeta / sub_beads[i].m) * (gsl_rng_uniform(r) - 0.5);
+            sub_beads[i].vel.y +=
+                    (sub_beads[i].vel.y * (-0.5 * fric_zeta * delt)) + (sub_beads[i].tforce.y * (0.5 * delt / sub_beads[i].m)) +
+                    sqrt(2 * 6 * delt * fric_zeta / sub_beads[i].m) * (gsl_rng_uniform(r) - 0.5);
+            sub_beads[i].vel.z +=
+                    (sub_beads[i].vel.z * (-0.5 * fric_zeta * delt)) + (sub_beads[i].tforce.z * (0.5 * delt / sub_beads[i].m)) +
+                    sqrt(2 * 6 * delt * fric_zeta / sub_beads[i].m) * (gsl_rng_uniform(r) - 0.5);
         }
 			
-		for (unsigned int i = 0; i < garfield.size(); i++)
+		for (unsigned int i = 0; i < protein.size(); i++)
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 					{
-						garfield[i].itsB[ii]->update_position(delt);  //update position full step
+						protein[i].itsB[ii]->update_position(delt);  //update position full step
 					}
 			}
 
-        dress_up(gedge, gface);                              //update edge and face properties
+        dress_up(sub_edges, sub_faces);                              //update edge and face properties
 		
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	for (unsigned int i = 0; i < garfield.size(); i++) 
+	for (unsigned int i = 0; i < protein.size(); i++) 
 	{
-		for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+		for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 		{
-			garfield[i].itsB[ii]->update_stretching_force(ks, vdwr);
-			garfield[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
+			protein[i].itsB[ii]->update_stretching_force(ks, vdwr);
+			protein[i].itsB[ii]->bforce = VECTOR3D(0,0,0);		//resetting bending force here
 		}
 		
-		for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+		for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++)
 		{
-			if (garfield[i].itsE[kk]->type != 0)					//if it is a bending edge...
-				garfield[i].itsE[kk]->update_bending_forces(kb);
+			if (protein[i].itsE[kk]->type != 0)					//if it is a bending edge...
+				protein[i].itsE[kk]->update_bending_forces(kb);
 		}
 	}
         
@@ -625,21 +625,21 @@ void run_brownian(){
 /*									INTER MOLECULAR FORCES												*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
-        update_ES_forces(garfield, lb, ni, qs);
+        update_ES_forces(protein, lb, ni, qs);
 
-        update_LJ_forces(gary, ecut, gpair);
+        update_LJ_forces(sub_beads, ecut, sub_pairlist);
 
 
 
-        for (unsigned int i = 0; i < gary.size(); i++) {
-            //gary[i].brownian_update_velocity(delt, fric_zeta);    				//update velocity the other half step
-            gary[i].tforce = gary[i].sforce + gary[i].bforce + gary[i].ljforce + gary[i].eforce;
-            gary[i].vel.x += (gary[i].vel.x*(-0.5*fric_zeta*delt)) + (gary[i].tforce.x*(0.5*delt/gary[i].m)) +
-                             sqrt(2*6*delt*fric_zeta/gary[i].m)*(gsl_rng_uniform(r)-0.5);
-            gary[i].vel.y += (gary[i].vel.y*(-0.5*fric_zeta*delt)) + (gary[i].tforce.y*(0.5*delt/gary[i].m)) +
-                             sqrt(2*6*delt*fric_zeta/gary[i].m)*(gsl_rng_uniform(r)-0.5);
-            gary[i].vel.z += (gary[i].vel.z*(-0.5*fric_zeta*delt)) + (gary[i].tforce.z*(0.5*delt/gary[i].m)) +
-                             sqrt(2*6*delt*fric_zeta/gary[i].m)*(gsl_rng_uniform(r)-0.5);
+        for (unsigned int i = 0; i < sub_beads.size(); i++) {
+            //sub_beads[i].brownian_update_velocity(delt, fric_zeta);    				//update velocity the other half step
+            sub_beads[i].tforce = sub_beads[i].sforce + sub_beads[i].bforce + sub_beads[i].ljforce + sub_beads[i].eforce;
+            sub_beads[i].vel.x += (sub_beads[i].vel.x*(-0.5*fric_zeta*delt)) + (sub_beads[i].tforce.x*(0.5*delt/sub_beads[i].m)) +
+                             sqrt(2*6*delt*fric_zeta/sub_beads[i].m)*(gsl_rng_uniform(r)-0.5);
+            sub_beads[i].vel.y += (sub_beads[i].vel.y*(-0.5*fric_zeta*delt)) + (sub_beads[i].tforce.y*(0.5*delt/sub_beads[i].m)) +
+                             sqrt(2*6*delt*fric_zeta/sub_beads[i].m)*(gsl_rng_uniform(r)-0.5);
+            sub_beads[i].vel.z += (sub_beads[i].vel.z*(-0.5*fric_zeta*delt)) + (sub_beads[i].tforce.z*(0.5*delt/sub_beads[i].m)) +
+                             sqrt(2*6*delt*fric_zeta/sub_beads[i].m)*(gsl_rng_uniform(r)-0.5);
         }
 
 
@@ -659,44 +659,44 @@ void run_brownian(){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (a % 100 == 0) {                                           //analysis loop (energies)
-			 for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+			 for (unsigned int i = 0; i < protein.size(); i++) 		//blanking out energies here 
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					garfield[i].itsB[ii]->be = 0;
-					garfield[i].itsB[ii]->ne = 0;
-					garfield[i].itsB[ii]->ce = 0;
+					protein[i].itsB[ii]->be = 0;
+					protein[i].itsB[ii]->ne = 0;
+					protein[i].itsB[ii]->ce = 0;
 				}
 			}
 			
             
-            for (unsigned int i = 0; i < garfield.size(); i++) 		// Intramolecular Energies
+            for (unsigned int i = 0; i < protein.size(); i++) 		// Intramolecular Energies
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					garfield[i].itsB[ii]->update_stretching_energy(ks, vdwr);
-					garfield[i].itsB[ii]->update_kinetic_energy();
+					protein[i].itsB[ii]->update_stretching_energy(ks, vdwr);
+					protein[i].itsB[ii]->update_kinetic_energy();
 				}
-				for (unsigned int kk = 0; kk < garfield[i].itsE.size(); kk++)
+				for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++)
 				{
-					if (garfield[i].itsE[kk]->type != 0)			//if it is a bending edge...
-						garfield[i].itsE[kk]->update_bending_energy(kb);
+					if (protein[i].itsE[kk]->type != 0)			//if it is a bending edge...
+						protein[i].itsE[kk]->update_bending_energy(kb);
 				}
 			}
 																	//Intermolecular Energies
-            update_ES_energies(garfield, lb, ni, qs);
+            update_ES_energies(protein, lb, ni, qs);
 
-            update_LJ_energies(gary, ecut, gpair);
+            update_LJ_energies(sub_beads, ecut, sub_pairlist);
 
-           for (unsigned int i = 0; i < garfield.size(); i++) 		//blanking out energies here 
+           for (unsigned int i = 0; i < protein.size(); i++) 		//blanking out energies here 
 			{
-				for (unsigned int ii = 0; ii < garfield[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					senergy += garfield[i].itsB[ii]->se;                          //sum up total energies
-					kenergy += garfield[i].itsB[ii]->ke;
-					ljenergy += garfield[i].itsB[ii]->ne;
-					benergy += garfield[i].itsB[ii]->be;
-					cenergy += garfield[i].itsB[ii]->ce;
+					senergy += protein[i].itsB[ii]->se;                          //sum up total energies
+					kenergy += protein[i].itsB[ii]->ke;
+					ljenergy += protein[i].itsB[ii]->ne;
+					benergy += protein[i].itsB[ii]->be;
+					cenergy += protein[i].itsB[ii]->ce;
 				}
 			}
 
@@ -707,21 +707,21 @@ void run_brownian(){
 /*								PRINT ENERGY INFO TO FILE												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << gary.size() << endl
+            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << sub_beads.size() << endl
                   << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
                   << setw(15)
                   << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
 				  << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
 
-            traj << a * delt << setw(15) << kenergy / gary.size() << setw(15) << senergy / gary.size() << setw(15) <<
-                 benergy / gary.size() << setw(15) << ljenergy / gary.size() << setw(15) << cenergy / gary.size()
-                 << setw(15) << tenergy / gary.size()
-                 << setw(15) << (benergy + senergy + ljenergy + cenergy) / gary.size() << setw(15)
-                 << kenergy * 2 / (3 * gary.size()) << setw(15) << endl;
+            traj << a * delt << setw(15) << kenergy / sub_beads.size() << setw(15) << senergy / sub_beads.size() << setw(15) <<
+                 benergy / sub_beads.size() << setw(15) << ljenergy / sub_beads.size() << setw(15) << cenergy / sub_beads.size()
+                 << setw(15) << tenergy / sub_beads.size()
+                 << setw(15) << (benergy + senergy + ljenergy + cenergy) / sub_beads.size() << setw(15)
+                 << kenergy * 2 / (3 * sub_beads.size()) << setw(15) << endl;
 
-            for (unsigned int b = 0; b < gary.size(); b++) {
-                ofile << b + 1 << setw(15) << gary[b].type << setw(15) << gary[b].pos.x << setw(15) << gary[b].pos.y \
-					  << setw(15) << gary[b].pos.z << setw(15) << gary[b].be << setw(15) << gary[b].q << endl;
+            for (unsigned int b = 0; b < sub_beads.size(); b++) {
+                ofile << b + 1 << setw(15) << sub_beads[b].type << setw(15) << sub_beads[b].pos.x << setw(15) << sub_beads[b].pos.y \
+					  << setw(15) << sub_beads[b].pos.z << setw(15) << sub_beads[b].be << setw(15) << sub_beads[b].q << endl;
 
                 count += 1;
 
@@ -745,11 +745,11 @@ void run_brownian(){
 //                filenumber += 1000;
 //                sprintf(filename, "data.coords.all.%d", filenumber);
 //                ofstream pairout(filename, ios::out);
-//                for (int i = 0; i < gary.size(); i++) {
-//                    if (gary[i].type == 3) {
-//                        pairout << gary[i].id << setw(15) << gary[i].type << setw(15) << gary[i].m << setw(15)
-//                                << gary[i].pos.x
-//                                << setw(15) << gary[i].pos.y << setw(15) << gary[i].pos.z << endl;
+//                for (int i = 0; i < sub_beads.size(); i++) {
+//                    if (sub_beads[i].type == 3) {
+//                        pairout << sub_beads[i].id << setw(15) << sub_beads[i].type << setw(15) << sub_beads[i].m << setw(15)
+//                                << sub_beads[i].pos.x
+//                                << setw(15) << sub_beads[i].pos.y << setw(15) << sub_beads[i].pos.z << endl;
 //                    }
 //                }
 //            }
@@ -760,30 +760,30 @@ void run_brownian(){
 /*								MASS SPECTRUM ANALYSIS													*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            for (unsigned int i = 0; i < garfield.size(); i++)           //Create oligomers for mass spectrum analysis
+            for (unsigned int i = 0; i < protein.size(); i++)           //Create oligomers for mass spectrum analysis
             {
                 double oldsize = 0;
 
-                if (garfield[i].itsO.size() == 0) {                       //if the unit isn't already counted...
+                if (protein[i].itsO.size() == 0) {                       //if the unit isn't already counted...
 
-                    ollie.push_back(OLIGOMER(VECTOR3D(0, 0, 0)));     //create an oligomer for the unit
+                    oligomers_list.push_back(OLIGOMER(VECTOR3D(0, 0, 0)));     //create an oligomer for the unit
                     index += 1;
-                    ollie[index].itsU.push_back(&garfield[i]);      //add unit to oligomer
-                    ollie[index].id = index;
-                    garfield[i].itsO.push_back(ollie[index]);               //add oligomer to unit
-                    while (oldsize < ollie[index].itsU.size()) {    //while the oligomer is still growing...
+                    oligomers_list[index].itsU.push_back(&protein[i]);      //add unit to oligomer
+                    oligomers_list[index].id = index;
+                    protein[i].itsO.push_back(oligomers_list[index]);               //add oligomer to unit
+                    while (oldsize < oligomers_list[index].itsU.size()) {    //while the oligomer is still growing...
                         int n = oldsize;
-                        oldsize = ollie[index].itsU.size();           //see how much the oligomer has grown
+                        oldsize = oligomers_list[index].itsU.size();           //see how much the oligomer has grown
                         for (int j = n; j < oldsize; j++) {             //loop over the growth from last round
-                            int g = ollie[index].itsU[j]->id;
-                            for (int k = i + 1; k < garfield.size(); k++) { //look for new growth
-                                if (garfield[k].itsO.size() == 0) {  //if it isn't in an oligomer yet...
+                            int g = oligomers_list[index].itsU[j]->id;
+                            for (int k = i + 1; k < protein.size(); k++) { //look for new growth
+                                if (protein[k].itsO.size() == 0) {  //if it isn't in an oligomer yet...
                                     for (int m = 0;
-                                         m < garfield[g].itsB.size(); m++) { //check to see if it is in this oligomer
-                                        for (int n = 0; n < garfield[k].itsB.size(); n++) {
-                                            if (dist(garfield[g].itsB[m], garfield[k].itsB[n]).GetMagnitude() < 1.5) {
-                                                ollie[index].itsU.push_back(&garfield[k]);   //if it is attached, add it
-                                                garfield[k].itsO.push_back(ollie[index]);   //mark subunit as bonded
+                                         m < protein[g].itsB.size(); m++) { //check to see if it is in this oligomer
+                                        for (int n = 0; n < protein[k].itsB.size(); n++) {
+                                            if (dist(protein[g].itsB[m], protein[k].itsB[n]).GetMagnitude() < 1.5) {
+                                                oligomers_list[index].itsU.push_back(&protein[k]);   //if it is attached, add it
+                                                protein[k].itsO.push_back(oligomers_list[index]);   //mark subunit as bonded
                                                 goto finish;
                                             }
                                         }
@@ -799,9 +799,9 @@ void run_brownian(){
                 }
             }
             mstime += 1;
-            for (int i = 0; i < ollie.size(); i++) {
-                if (ollie[i].itsU.size() >= 1) {
-                    ms_bin[mstime][(ollie[i].itsU.size() - 1)] += 1;          //fill mass bins
+            for (int i = 0; i < oligomers_list.size(); i++) {
+                if (oligomers_list[i].itsU.size() >= 1) {
+                    ms_bin[mstime][(oligomers_list[i].itsU.size() - 1)] += 1;          //fill mass bins
                 }
             }
 
@@ -810,11 +810,11 @@ void run_brownian(){
             }
             msdata << endl;
 
-            for (int i = 0; i < garfield.size(); i++) {             // clear oligomer pointers from subunit
-                garfield[i].itsO.clear();
+            for (int i = 0; i < protein.size(); i++) {             // clear oligomer pointers from subunit
+                protein[i].itsO.clear();
             }
 
-            ollie.erase(ollie.begin(),ollie.end());                 //erases oligomer objects
+            oligomers_list.erase(oligomers_list.begin(),oligomers_list.end());                 //erases oligomer objects
 // g(r) dump data
 
 

@@ -11,9 +11,9 @@ class PAIR;
 class UNIT;
 
 
-void update_ES_forces(std::vector<UNIT>& garfield, double lb, double ni, double qs);
+void update_ES_forces(std::vector<UNIT>& protein, double lb, double ni, double qs);
 
-void update_LJ_forces(std::vector<BEAD>& gary, double ecut, std::vector<PAIR>& gpair);
+void update_LJ_forces(std::vector<BEAD>& sub_beads, double ecut, std::vector<PAIR>& sub_pairlist);
 
 
 

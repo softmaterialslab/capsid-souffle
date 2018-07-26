@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <vector>
 #include <map>
-#include "bead.h"           //stores particle class (gary)
+#include "bead.h"           //stores particle class (sub_beads)
 #include "edge.h"
 #include "unit.h"
 #include "face.h"
@@ -19,16 +19,16 @@
 #include "oligomer.h"
 #include "vector3d.h"           //stores VECTOR3D class
 
-void initialize_system(std::vector<BEAD> & rgary,std::vector<EDGE> & rgedge,std::vector<UNIT> & rgarfield, \
-                        std::vector<FACE> & rgface, VECTOR3D bxsz, BOX & rtardis, std::vector<PAIR> &rgpair);
+void initialize_system(std::vector<BEAD> & sub_beads,std::vector<EDGE> & sub_edges,std::vector<UNIT> & protein, \
+                        std::vector<FACE> & sub_faces, VECTOR3D bxsz, BOX & tardis, std::vector<PAIR> & sub_pairlist);
 
 void initialize_outputfile(std::ofstream & reftraj, std::ofstream & refofile);
 
 void allonsy (double capconc,unsigned int numden, std::string file_name);
 
-void initialize_bead_velocities(std::vector<UNIT> &garfield, std::vector<BEAD> &gary, double T);
+void initialize_bead_velocities(std::vector<UNIT> &protein, std::vector<BEAD> &sub_beads, double T);
 
-void initialize_constant_bead_velocities(std::vector<UNIT> &garfield, std::vector<BEAD> &gary, double T);
+void initialize_constant_bead_velocities(std::vector<UNIT> &protein, std::vector<BEAD> &sub_beads, double T);
 
 
 #endif //LEMONSOUFFLE_INITIALIZE_H

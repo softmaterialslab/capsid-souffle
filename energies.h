@@ -11,11 +11,11 @@ class PAIR;
 class UNIT;
 
 
-void update_LJ_energies(std::vector<BEAD>& gary, double ecut, std::vector<PAIR>& gpair);
+void update_LJ_energies(std::vector<BEAD>& sub_beads, double ecut, std::vector<PAIR>& sub_pairlist);
 
-void update_ES_energies(std::vector<UNIT>& garfield, double lb, double ni, double qs);
+void update_ES_energies(std::vector<UNIT>& protein, double lb, double ni, double qs);
 
-long double particle_kinetic_energy(std::vector <BEAD> &rgary);
+long double particle_kinetic_energy(std::vector <BEAD> &sub_beads);
 
 
 
