@@ -186,6 +186,7 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
 /*                                                  MAKING LJ PAIRS                                                   */
 
     count=0;
+	bool skip_loop = false;
     for (int i=0; i<sub_beads.size()-1; i++){
         for (int j=i+1; j<sub_beads.size(); j++){
             if (sub_beads[i].unit != sub_beads[j].unit){
@@ -198,24 +199,30 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
                         sub_pairlist[count].epsilon=lj_a[3][k];
                         sub_pairlist[count].sigma=lj_a[4][k];
                         count+=1;
-                        goto breakpoint;
+						skip_loop = true;
+						break;
                     }
                 }
-                for (int k=0; k<lj_r[0].size(); k++){
-                    if (sub_beads[i].type == lj_r[1][k] && sub_beads[j].type == lj_r[2][k]){
-                        sub_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-                        sub_pairlist[count].type=0;
-                        sub_pairlist[count].itsB.push_back(&sub_beads[i]);
-                        sub_pairlist[count].itsB.push_back(&sub_beads[j]);
-                        sub_pairlist[count].epsilon=lj_r[3][k];
-                        sub_pairlist[count].sigma=lj_r[4][k];
-                        count+=1;
-                        goto breakpoint;
-                    }
-                }
-                cout << "ERROR!!! Beads " << sub_beads[i].id << " and " << sub_beads[j].id << " are not an LJ pair!" << endl;
+                if (skip_loop == false){
+					for (int k=0; k<lj_r[0].size(); k++){
+						if (sub_beads[i].type == lj_r[1][k] && sub_beads[j].type == lj_r[2][k]){
+							sub_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+							sub_pairlist[count].type=0;
+							sub_pairlist[count].itsB.push_back(&sub_beads[i]);
+							sub_pairlist[count].itsB.push_back(&sub_beads[j]);
+							sub_pairlist[count].epsilon=lj_r[3][k];
+							sub_pairlist[count].sigma=lj_r[4][k];
+							count+=1;
+							skip_loop = true;
+							break;
+						}
+					}
+				}
+                if (skip_loop == false) 
+				{ 
+					cout << "ERROR!!! Beads " << sub_beads[i].id << " and " << sub_beads[j].id << " are not an LJ pair!" << endl;
+				} else skip_loop = false;
             }
-            breakpoint: ;
         }
     }
 
