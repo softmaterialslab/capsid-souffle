@@ -8,8 +8,8 @@
 
 using namespace std;
 
-void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<UNIT> &protein, vector<FACE> &sub_faces, \
-                        VECTOR3D bxsz, BOX & tardis, vector<PAIR> & sub_pairlist)
+void initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, \
+                        VECTOR3D bxsz, vector<PAIR> & lj_pairlist)
 {
     /*                                            OPEN FILE                                                            */
 
@@ -28,10 +28,6 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
 
 
 
-/*                                                  BOX                                                             */
-    cout << "Gary is in the TARDIS." << endl;
-    tardis.size=bxsz;                                  //tardis box size
-
 
 
 
@@ -42,20 +38,18 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
     for(int i=0;i<count;i++)
     {                                                   //Read file and initialize positions, id and charge
         crds >> index >> x >> y >> z >> dummy >> charge >> type >> radius >> mass;
-        sub_beads.push_back(BEAD(VECTOR3D(x,y,z)));
-        sub_beads[index].id = index;
-        sub_beads[index].q = charge;
-        sub_beads[index].type = type;
-        sub_beads[index].sigma = radius;
-        sub_beads[index].m = mass;                           //assign mass (clone of user value)
-        sub_beads[index].bx=bxsz;
-        sub_beads[index].itsT = (&tardis);                //assign box/boundaries
-        tardis.itsB.push_back(&sub_beads[index]);         // puts particles in the box
+        subunit_bead.push_back(BEAD(VECTOR3D(x,y,z)));
+        subunit_bead[index].id = index;
+        subunit_bead[index].q = charge;
+        subunit_bead[index].type = type;
+        subunit_bead[index].sigma = radius;
+        subunit_bead[index].m = mass;                           //assign mass (clone of user value)
+        subunit_bead[index].bx=bxsz;
     }
 
 
 
-/*                                                   SUBUNITS                                                        */
+/*                                                   SUBSUBUNITS                                                        */
 
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     cout << "There is(are) " << count << " subunit(s) in the system." << endl;
@@ -63,19 +57,18 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
     for(int i=0;i<count;i++)
     {
         vector<int> pog;                                //particles of protein (POG)
-        pog.resize((sub_beads.size()/count));
+        pog.resize((subunit_bead.size()/count));
         crds >> index ;
                 for (int j=0; j<pog.size();j++){
                     crds >> pog[j];
                 }
         crds >> charge;
         protein[index].id=index;
-        tardis.itsU.push_back(&protein[index]);
-        for(int j=0;j<(sub_beads.size()/count);j++)                            //assign particles to subunit and vice versa
+        for(int j=0;j<(subunit_bead.size()/count);j++)                            //assign particles to subunit and vice versa
         {
-            protein[index].itsB.push_back(&sub_beads[(pog[j])]); //first particle in the subunit, stored in a pointer vector
-            sub_beads[(pog[j])].itsU.push_back(&protein[index]);
-            sub_beads[(pog[j])].unit = protein[index].id;
+            protein[index].itsB.push_back(&subunit_bead[(pog[j])]); //first particle in the subunit, stored in a pointer vector
+            subunit_bead[(pog[j])].itsS.push_back(&protein[index]);
+            subunit_bead[(pog[j])].unit = protein[index].id;
         }
     }
 
@@ -85,18 +78,18 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
 
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     cout << "There are " << count << " edges in the system." << endl;
-    sub_edges.resize(count);
+    subunit_edge.resize(count);
     for(int i=0;i<count;i++)
     {                                                   //Read file and initialize positions, id and charge
         crds >> index >> g1 >> g2 >> type >> length;
-        sub_edges[index].id=index;
-        sub_edges[index].type=type;
-        sub_edges[index].len0=length;
-        sub_edges[index].itsB.push_back(&sub_beads[g1]);     //first particle in the edge (stored in pointer vector in EDGE class)
-        sub_edges[index].itsB.push_back(&sub_beads[g2]);
-        sub_beads[g1].itsE.push_back(&sub_edges[index]);     //the edge on g1 (stored in pointer vector in PARTICLE class)
-        sub_beads[g2].itsE.push_back(&sub_edges[index]);
-		sub_beads[g1].itsU[0]->itsE.push_back(&sub_edges[index]);
+        subunit_edge[index].id=index;
+        subunit_edge[index].type=type;
+        subunit_edge[index].len0=length;
+        subunit_edge[index].itsB.push_back(&subunit_bead[g1]);     //first particle in the edge (stored in pointer vector in EDGE class)
+        subunit_edge[index].itsB.push_back(&subunit_bead[g2]);
+        subunit_bead[g1].itsE.push_back(&subunit_edge[index]);     //the edge on g1 (stored in pointer vector in PARTICLE class)
+        subunit_bead[g2].itsE.push_back(&subunit_edge[index]);
+		subunit_bead[g1].itsS[0]->itsE.push_back(&subunit_edge[index]);
     }
 
 
@@ -107,49 +100,49 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
 
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     cout << "There are " << count << " bead faces in the system." << endl;
-    sub_faces.resize(count);
+    subunit_face.resize(count);
     for(int i=0;i<count;i++) {
         crds >> index >> g1 >> g2 >> g3 >> type >>norm;
-        sub_faces[index].id = index;
-        sub_faces[index].type = type;
-        sub_faces[index].itsB.push_back(&sub_beads[g1]);
-        sub_faces[index].itsB.push_back(&sub_beads[g2]);
-        sub_faces[index].itsB.push_back(&sub_beads[g3]);
-        sub_beads[g1].itsF.push_back(&sub_faces[index]);
-        sub_beads[g2].itsF.push_back(&sub_faces[index]);
-        sub_beads[g3].itsF.push_back(&sub_faces[index]);
+        subunit_face[index].id = index;
+        subunit_face[index].type = type;
+        subunit_face[index].itsB.push_back(&subunit_bead[g1]);
+        subunit_face[index].itsB.push_back(&subunit_bead[g2]);
+        subunit_face[index].itsB.push_back(&subunit_bead[g3]);
+        subunit_bead[g1].itsF.push_back(&subunit_face[index]);
+        subunit_bead[g2].itsF.push_back(&subunit_face[index]);
+        subunit_bead[g3].itsF.push_back(&subunit_face[index]);
 
 
-        for(int j=0;j<(sub_edges.size());j++)                 //Finding edge between faces and storing the result for later use
+        for(int j=0;j<(subunit_edge.size());j++)                 //Finding edge between faces and storing the result for later use
         {
-                if ((*sub_faces[index].itsB[0]).id == (*sub_edges[j].itsB[0]).id && \
-                (*sub_faces[index].itsB[1]).id == (*sub_edges[j].itsB[1]).id) {
-                    sub_faces[index].itsE.push_back(&sub_edges[j]);
-                    sub_edges[j].itsF.push_back(&sub_faces[index]);
-                } else if ((*sub_faces[index].itsB[0]).id == (*sub_edges[j].itsB[1]).id && \
-                       (*sub_faces[index].itsB[1]).id == (*sub_edges[j].itsB[0]).id) {
-                    sub_faces[index].itsE.push_back(&sub_edges[j]);
-                    sub_edges[j].itsF.push_back(&sub_faces[index]);
+                if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
+                (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                } else if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[1]).id && \
+                       (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[0]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
                 }
 
-                if ((*sub_faces[index].itsB[0]).id == (*sub_edges[j].itsB[0]).id && \
-                (*sub_faces[index].itsB[2]).id == (*sub_edges[j].itsB[1]).id) {
-                    sub_faces[index].itsE.push_back(&sub_edges[j]);
-                    sub_edges[j].itsF.push_back(&sub_faces[index]);
-                } else if ((*sub_faces[index].itsB[0]).id == (*sub_edges[j].itsB[1]).id && \
-                       (*sub_faces[index].itsB[2]).id == (*sub_edges[j].itsB[0]).id) {
-                    sub_faces[index].itsE.push_back(&sub_edges[j]);
-                    sub_edges[j].itsF.push_back(&sub_faces[index]);
+                if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
+                (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[1]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                } else if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[1]).id && \
+                       (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[0]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
                 }
 
-                if ((*sub_faces[index].itsB[1]).id == (*sub_edges[j].itsB[1]).id && \
-                (*sub_faces[index].itsB[2]).id == (*sub_edges[j].itsB[0]).id) {
-                    sub_faces[index].itsE.push_back(&sub_edges[j]);
-                    sub_edges[j].itsF.push_back(&sub_faces[index]);
-                } else if ((*sub_faces[index].itsB[1]).id == (*sub_edges[j].itsB[0]).id && \
-                       (*sub_faces[index].itsB[2]).id == (*sub_edges[j].itsB[1]).id) {
-                    sub_faces[index].itsE.push_back(&sub_edges[j]);
-                    sub_edges[j].itsF.push_back(&sub_faces[index]);
+                if ((*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id && \
+                (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[0]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                } else if ((*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[0]).id && \
+                       (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[1]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
                 }
         }                                               //edge_btw function --assigning edges/faces to each other
 
@@ -187,17 +180,17 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
 
     count=0;
 	bool skip_loop = false;
-    for (int i=0; i<sub_beads.size()-1; i++){
-        for (int j=i+1; j<sub_beads.size(); j++){
-            if (sub_beads[i].unit != sub_beads[j].unit){
+    for (int i=0; i<subunit_bead.size()-1; i++){
+        for (int j=i+1; j<subunit_bead.size(); j++){
+            if (subunit_bead[i].unit != subunit_bead[j].unit){
                 for (int k=0; k<lj_a[0].size(); k++){   //make list of LJ pairs to use in simulation. Categorize attractive / repulsive pairs
-                    if (sub_beads[i].type == lj_a[1][k] && sub_beads[j].type == lj_a[2][k]){
-                        sub_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-                        sub_pairlist[count].type=1;
-                        sub_pairlist[count].itsB.push_back(&sub_beads[i]);
-                        sub_pairlist[count].itsB.push_back(&sub_beads[j]);
-                        sub_pairlist[count].epsilon=lj_a[3][k];
-                        sub_pairlist[count].sigma=lj_a[4][k];
+                    if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
+                        lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+                        lj_pairlist[count].type=1;
+                        lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
+                        lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
+                        lj_pairlist[count].epsilon=lj_a[3][k];
+                        lj_pairlist[count].sigma=lj_a[4][k];
                         count+=1;
 						skip_loop = true;
 						break;
@@ -205,13 +198,13 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
                 }
                 if (skip_loop == false){
 					for (int k=0; k<lj_r[0].size(); k++){
-						if (sub_beads[i].type == lj_r[1][k] && sub_beads[j].type == lj_r[2][k]){
-							sub_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-							sub_pairlist[count].type=0;
-							sub_pairlist[count].itsB.push_back(&sub_beads[i]);
-							sub_pairlist[count].itsB.push_back(&sub_beads[j]);
-							sub_pairlist[count].epsilon=lj_r[3][k];
-							sub_pairlist[count].sigma=lj_r[4][k];
+						if (subunit_bead[i].type == lj_r[1][k] && subunit_bead[j].type == lj_r[2][k]){
+							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+							lj_pairlist[count].type=0;
+							lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
+							lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
+							lj_pairlist[count].epsilon=lj_r[3][k];
+							lj_pairlist[count].sigma=lj_r[4][k];
 							count+=1;
 							skip_loop = true;
 							break;
@@ -220,7 +213,7 @@ void initialize_system(vector<BEAD> &sub_beads, vector<EDGE> &sub_edges, vector<
 				}
                 if (skip_loop == false) 
 				{ 
-					cout << "ERROR!!! Beads " << sub_beads[i].id << " and " << sub_beads[j].id << " are not an LJ pair!" << endl;
+					cout << "ERROR!!! Beads " << subunit_bead[i].id << " and " << subunit_bead[j].id << " are not an LJ pair!" << endl;
 				} else skip_loop = false;
             }
         }
@@ -243,7 +236,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile)
 }
 
 
-void allonsy (double capconc,unsigned int numden, string file_name) {
+void generate_lattice (double capsomere_concentration,unsigned int number_capsomeres, string file_name) {
 
     ofstream inputfile("input.GEN.out", ios::out);
 
@@ -259,10 +252,10 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
     crds >> dumb >> dumb >> dumber >> dumb >> dumb >> dumber >> dumb >> dumb >> SIsigma >> dumb >> dumb >> dumber;
 
     //Determine box size:
-    long double box_x = pow((numden * 1000 / (capconc * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);
+    long double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);
     VECTOR3D bxsz = VECTOR3D(box_x,box_x,box_x);        //determine box size based on desired concentration
 
-    unsigned int num_fill = int(ceil(pow((double(numden)), 1.0 / 3.0)));
+    unsigned int num_fill = int(ceil(pow((double(number_capsomeres)), 1.0 / 3.0)));
     int index = 0;
 
     int np;                                             //begin reading in template
@@ -337,14 +330,14 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
                                                         // Create a master template with copies of original template for each
                                                         // new position of the subunit. This is read in by the original data-reading
                                                         // function, initialize_system
-    inputfile << "# Number of Particles = " << np*numden << endl << "Coordinates:" << endl;
+    inputfile << "# Number of Particles = " << np*number_capsomeres << endl << "Coordinates:" << endl;
     inputfile << "index x y z subunit charge type diameter mass" << endl;
 
     for (int i = 0; i < num_fill; i++) {
         for (int j = 0; j < num_fill; j++) {
             for (int k = 0; k < num_fill; k++) {
                 index += 1;
-                if (numden > (index-1)) {
+                if (number_capsomeres > (index-1)) {
                     for (int l = 0; l < np; l++) {
 
                         inputfile << index*np-np+l << setw(15) << setprecision(12) <<(((double)i*bxsz.x*(1/(double)num_fill))+part_template[0][l]) << setw(15)
@@ -360,9 +353,9 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
     }
     index=0;
     inputfile << endl << endl;
-    inputfile << "# Number of Subunits = " << numden << endl << endl << "Subunits:" << endl << endl;
+    inputfile << "# Number of Subunits = " << number_capsomeres << endl << endl << "Subunits:" << endl << endl;
     inputfile << "index " << setw(15) << "particles in unit" << setw(15) << "charge" << endl << endl;
-    for (int i=0; i<numden; i++){
+    for (int i=0; i<number_capsomeres; i++){
         inputfile << i << setw(5);
         for (int j=0; j<np; j++){
             inputfile << (i+1)*np-np+j << setw(5);
@@ -370,9 +363,9 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
         inputfile << 0 << endl;
     }
     inputfile << endl <<endl;
-    inputfile << "# Number of Edges = " << ne*numden << endl << endl << "Edges:" << endl << endl;
+    inputfile << "# Number of Edges = " << ne*number_capsomeres << endl << endl << "Edges:" << endl << endl;
     inputfile << "index" << setw(15) << "e1" << setw(15) << "e2" << setw(15) << "type" << setw(15) << "length" << endl << endl;
-    for (int i=0; i<numden; i++){
+    for (int i=0; i<number_capsomeres; i++){
         for (int j=0; j<ne; j++){
             inputfile << index << setw(15) << edge_template[1][j]+np*(double)i << setw(15) <<
                          edge_template[2][j]+np*(double)i << setw(15) << edge_template[3][j] << setw(15) << setprecision(12) <<edge_template[4][j] << endl;
@@ -382,9 +375,9 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
     }
     index =0;
     inputfile << endl << endl;
-    inputfile << "# Number of Triangles = " << nt*numden << endl << endl << "Triangles:" <<endl <<endl;
+    inputfile << "# Number of Triangles = " << nt*number_capsomeres << endl << endl << "Triangles:" <<endl <<endl;
     inputfile << "index" << setw(15) <<	"t1" <<setw(15) << "t2" << setw(15) << "t3" <<setw(15) << "type" << setw(15) << "normal" <<endl <<endl;
-    for (int i=0; i<numden; i++){
+    for (int i=0; i<number_capsomeres; i++){
         for (int j=0; j<nt; j++){
             inputfile << index << setw(5) << face_template[1][j]+np*(double)i << setw(5) << face_template[2][j]+np*(double)i
                       << setw(5) << face_template[3][j]+np*(double)i << setw(5) << face_template[5][j] << setw(5) << face_template[4][j] << endl;
@@ -407,7 +400,7 @@ void allonsy (double capconc,unsigned int numden, string file_name) {
 
 
 
-void initialize_constant_bead_velocities(vector<UNIT> &protein, vector<BEAD> &sub_beads, double T){
+void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead, double T){
 	for (unsigned int i = 0; i < protein.size(); i+=4)
 	{
 		for (int j = 0; j < protein[i].itsB.size(); j++) {
@@ -426,39 +419,39 @@ void initialize_constant_bead_velocities(vector<UNIT> &protein, vector<BEAD> &su
         }
     }
     
-    average_velocity_vector = average_velocity_vector^(1.0/sub_beads.size());
+    average_velocity_vector = average_velocity_vector^(1.0/subunit_bead.size());
 
     // subtract this computed average_velocity_vector from the velocity of each particle to ensure that the total average after this operation is 0
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
-        sub_beads[i].vel = sub_beads[i].vel - average_velocity_vector;
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
+        subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
 
     // scaling the velocity so that the initial kinetic energy corresponds to the initial temperature supplied by the user.
     double initial_ke = 0.0;
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
     {
-        sub_beads[i].update_kinetic_energy();
-        initial_ke += sub_beads[i].ke;
+        subunit_bead[i].update_kinetic_energy();
+        initial_ke += subunit_bead[i].ke;
     }
-    double intial_unscaled_T = initial_ke/(1.5*sub_beads.size());
+    double intial_unscaled_T = initial_ke/(1.5*subunit_bead.size());
     double scalefactor = sqrt(T/intial_unscaled_T);
 
     // scale the velocities
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
     {
-        sub_beads[i].vel = (sub_beads[i].vel^scalefactor);
-        sub_beads[i].update_kinetic_energy();
+        subunit_bead[i].vel = (subunit_bead[i].vel^scalefactor);
+        subunit_bead[i].update_kinetic_energy();
     }
 
     double scaled_ke = 0.0;
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
-        scaled_ke = scaled_ke + sub_beads[i].ke;
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
+        scaled_ke = scaled_ke + subunit_bead[i].ke;
 
-    double set_T = scaled_ke / (1.5*sub_beads.size());
+    double set_T = scaled_ke / (1.5*subunit_bead.size());
     cout << "initial velocities corrrespond to this set temperature " << set_T << endl;
 }
 
 
-void initialize_bead_velocities(vector<UNIT> &protein, vector<BEAD> &sub_beads, double T){ //VIKRAM MANY_PARTICLE CODE BLOCK *editted*
+void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead, double T){ //VIKRAM MANY_PARTICLE CODE BLOCK *editted*
     double sigma = sqrt(T);// a rough estimate of how large is the spread in the velocities of the particles at a given temperature
     // Maxwell distribution width
     // assumes all lj atoms have the same mass
@@ -487,34 +480,34 @@ void initialize_bead_velocities(vector<UNIT> &protein, vector<BEAD> &sub_beads, 
             average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
         }
     }
-    average_velocity_vector = average_velocity_vector^(1.0/sub_beads.size());
+    average_velocity_vector = average_velocity_vector^(1.0/subunit_bead.size());
 
     // subtract this computed average_velocity_vector from the velocity of each particle to ensure that the total average after this operation is 0
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
-        sub_beads[i].vel = sub_beads[i].vel - average_velocity_vector;
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
+        subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
 
     // scaling the velocity so that the initial kinetic energy corresponds to the initial temperature supplied by the user.
     double initial_ke = 0.0;
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
     {
-        sub_beads[i].update_kinetic_energy();
-        initial_ke += sub_beads[i].ke;
+        subunit_bead[i].update_kinetic_energy();
+        initial_ke += subunit_bead[i].ke;
     }
-    double intial_unscaled_T = initial_ke/(1.5*sub_beads.size());
+    double intial_unscaled_T = initial_ke/(1.5*subunit_bead.size());
     double scalefactor = sqrt(T/intial_unscaled_T);
 
     // scale the velocities
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
     {
-        sub_beads[i].vel = (sub_beads[i].vel^scalefactor);
-        sub_beads[i].update_kinetic_energy();
+        subunit_bead[i].vel = (subunit_bead[i].vel^scalefactor);
+        subunit_bead[i].update_kinetic_energy();
     }
 
     double scaled_ke = 0.0;
-    for (unsigned int i = 0; i < sub_beads.size(); i++)
-        scaled_ke = scaled_ke + sub_beads[i].ke;
+    for (unsigned int i = 0; i < subunit_bead.size(); i++)
+        scaled_ke = scaled_ke + subunit_bead[i].ke;
 
-    double set_T = scaled_ke / (1.5*sub_beads.size());
+    double set_T = scaled_ke / (1.5*subunit_bead.size());
     cout << "initial velocities corrrespond to this set temperature " << set_T << endl;
 
     // initial configuration

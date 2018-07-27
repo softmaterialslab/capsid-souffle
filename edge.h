@@ -9,7 +9,7 @@
 #include "vector3d.h"
 
 class BEAD;
-class UNIT;
+class SUBUNIT;
 class FACE;
 
 

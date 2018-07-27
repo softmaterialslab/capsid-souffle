@@ -4,7 +4,7 @@
 #include"forces.h"
 #include "bead.h"
 #include "LJpair.h"
-#include "unit.h"
+#include "subunit.h"
 #include "edge.h"
 #include "face.h"
 #include "functions.h"
@@ -14,7 +14,7 @@ using namespace std;
 
 
 
-void update_ES_forces(vector<UNIT>& protein, double lb, double ni, double qs){
+void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs){
     for (int i=0; i<protein.size(); i++){
 		for (int ii=0; ii<protein[i].itsB.size(); ii++)
 		{
@@ -62,43 +62,43 @@ void update_ES_forces(vector<UNIT>& protein, double lb, double ni, double qs){
 	}
  }
 
-void update_LJ_forces(vector<BEAD>& sub_beads, double ecut, vector<PAIR>& sub_pairlist){
+void update_LJ_forces(vector<BEAD>& subunit_bead, double ecut, vector<PAIR>& lj_pairlist){
 
-    for ( int i = 0; i<sub_beads.size(); i++) {
-       sub_beads[i].ljforce = VECTOR3D(0,0,0);                           //Clear force
+    for ( int i = 0; i<subunit_bead.size(); i++) {
+       subunit_bead[i].ljforce = VECTOR3D(0,0,0);                           //Clear force
     }
 
-    for (int i=0; i<sub_pairlist.size(); i++){
+    for (int i=0; i<lj_pairlist.size(); i++){
 
-        VECTOR3D r_vec = dist( sub_pairlist[i].itsB[0] , sub_pairlist[i].itsB[1] );
+        VECTOR3D r_vec = dist( lj_pairlist[i].itsB[0] , lj_pairlist[i].itsB[1] );
 		long double r = r_vec.GetMagnitude();
         //double r2 = (r*r);
         double r6 ;
         double r12;
         double sigma6;
         double shc = 1.2;
-        double elj = sub_pairlist[i].epsilon;
-        double sig1 = sub_pairlist[i].itsB[0]->sigma;
-        double sig2 = sub_pairlist[i].itsB[1]->sigma;
+        double elj = lj_pairlist[i].epsilon;
+        double sig1 = lj_pairlist[i].itsB[0]->sigma;
+        double sig2 = lj_pairlist[i].itsB[1]->sigma;
         double del = (sig1+sig2)/2 - shc;
 
-        if (sub_pairlist[i].type==0 && r < (del+1.12246205*shc)){
+        if (lj_pairlist[i].type==0 && r < (del+1.12246205*shc)){
             sigma6 = pow(shc,6);
             double sigma12 = sigma6 * sigma6;
             r6 = pow((r-del),6);
             r12 = r6 * r6;
-            sub_pairlist[i].itsB[0]->ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
-            sub_pairlist[i].itsB[1]->ljforce -= (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
-        } else if (sub_pairlist[i].type==1 && r < ((del+1.12246205*shc)*ecut)){
+            lj_pairlist[i].itsB[0]->ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
+            lj_pairlist[i].itsB[1]->ljforce -= (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
+        } else if (lj_pairlist[i].type==1 && r < ((del+1.12246205*shc)*ecut)){
             r6 = pow((r-del),6);
             r12 = r6 * r6;
             sigma6 = pow(shc,6);
             double sigma12 = sigma6 * sigma6;
-            sub_pairlist[i].itsB[0]->ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del)))));
-            sub_pairlist[i].itsB[1]->ljforce -= (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del)))));
+            lj_pairlist[i].itsB[0]->ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del)))));
+            lj_pairlist[i].itsB[1]->ljforce -= (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del)))));
         } else {
-            sub_pairlist[i].itsB[0]->ljforce += 0;
-            sub_pairlist[i].itsB[1]->ljforce += 0;
+            lj_pairlist[i].itsB[0]->ljforce += 0;
+            lj_pairlist[i].itsB[1]->ljforce += 0;
         }
     }
 }

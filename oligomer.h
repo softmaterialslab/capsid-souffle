@@ -7,7 +7,7 @@
 #include <vector>
 #include "vector3d.h"
 
-class UNIT;
+class SUBUNIT;
 
 class OLIGOMER {
 public:
@@ -15,7 +15,7 @@ public:
     unsigned int size;
     int id;
     double mass;
-    std::vector<UNIT*> itsU;            //Gary's parent subunit
+    std::vector<SUBUNIT*> itsS;            //Gary's parent subunit
     VECTOR3D dummy;
 
     OLIGOMER(VECTOR3D initial = (0, 0, 0))       //constructor

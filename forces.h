@@ -8,12 +8,12 @@
 
 class BEAD;
 class PAIR;
-class UNIT;
+class SUBUNIT;
 
 
-void update_ES_forces(std::vector<UNIT>& protein, double lb, double ni, double qs);
+void update_ES_forces(std::vector<SUBUNIT>& protein, double lb, double ni, double qs);
 
-void update_LJ_forces(std::vector<BEAD>& sub_beads, double ecut, std::vector<PAIR>& sub_pairlist);
+void update_LJ_forces(std::vector<BEAD>& subunit_bead, double ecut, std::vector<PAIR>& lj_pairlist);
 
 
 

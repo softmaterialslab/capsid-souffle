@@ -6,7 +6,7 @@
 #include "edge.h"
 #include "functions.h"
 
-void BEAD::update_stretching_energy(double ks, double vdwr)
+void BEAD::update_stretching_energy(double ks, double bondlength)
 {
     se = 0;
     for(int i=0;i< (itsE.size() );i++)      //Using 1.5 for ~5nm edge length in protein
@@ -15,7 +15,7 @@ void BEAD::update_stretching_energy(double ks, double vdwr)
     }
 }
 
-void BEAD::update_stretching_force(double ks, double vdwr)
+void BEAD::update_stretching_force(double ks, double bondlength)
 {
     sforce = VECTOR3D(0,0,0);
     for(int i=0; i< itsE.size(); i++)
