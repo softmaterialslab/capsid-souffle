@@ -8,7 +8,7 @@
 #include"functions.h"
 #include "bead.h"
 #include "LJpair.h"
-#include "unit.h"
+#include "subunit.h"
 #include "edge.h"
 #include "face.h"
 
@@ -81,12 +81,12 @@ void update_chain_xi(unsigned int j, vector<THERMOSTAT>& bath, double dt, long d
 
 
 
-void dress_up(vector<EDGE> &gedge, vector<FACE> &gface){
-    for (int i=0; i<gedge.size(); i++){
-        gedge[i].update_length();
+void dress_up(vector<EDGE> &subunit_edge, vector<FACE> &subunit_face){
+    for (int i=0; i<subunit_edge.size(); i++){
+        subunit_edge[i].update_length();
     }
-    for (int i=0; i<gface.size();i++){
-        gface[i].update_area_normal();
+    for (int i=0; i<subunit_face.size();i++){
+        subunit_face[i].update_area_normal();
     }
 }
 
@@ -102,7 +102,7 @@ void dress_up(vector<EDGE> &gedge, vector<FACE> &gface){
 // compute MD trust factor R
 double compute_MD_trust_factor_R(int hiteqm)
 {
-    string inPath= "gary.traj.out";
+    string inPath= "sub_beads.traj.out";
     ifstream in(inPath.c_str(), ios::in);
     if (!in)
     {

@@ -8,13 +8,12 @@
 #include <vector>
 #include <cmath>
 #include "vector3d.h"
-#include "box.h"
 #include "thermostat.h"
 #include "rand_gen.h"
 
 
 class EDGE;
-class UNIT;
+class SUBUNIT;
 class FACE;
 class BOX;
 class OLIGOMER;
@@ -44,11 +43,11 @@ public:
     double ne;                        //lennard jones energy (KbT)
     double ce;
     double q;                           //charge
-    std::vector<EDGE*> itsE;            //Gary's bonds
-    std::vector<UNIT*> itsU;            //Gary's parent subunit
-    std::vector<FACE*> itsF;            //Gary's faces
+    std::vector<EDGE*> itsE;            
+    std::vector<SUBUNIT*> itsS;           
+    std::vector<FACE*> itsF;            
     OLIGOMER* itsO;
-    BOX* itsT;                          //it's box (tardis)
+ 
 
 
 //member functions
@@ -63,18 +62,18 @@ public:
     {
         pos = ( pos + (vel ^ delt) );
         // periodic boundary
-        if (pos.x > itsT->size.x/2.0)
-            pos.x = pos.x - itsT->size.x;
-        if (pos.x < -itsT->size.x/2.0)
-            pos.x = pos.x + itsT->size.x;
-        if (pos.y > itsT->size.y/2.0)
-            pos.y = pos.y - itsT->size.y;
-        if (pos.y < -itsT->size.y/2.0)
-            pos.y = pos.y + itsT->size.y;
-        if (pos.z > itsT->size.z/2.0)
-            pos.z = pos.z - itsT->size.z;
-        if (pos.z < -itsT->size.z/2.0)
-            pos.z = pos.z + itsT->size.z;
+        if (pos.x > bx.x/2.0)
+            pos.x = pos.x - bx.x;
+        if (pos.x < -bx.x/2.0)
+            pos.x = pos.x + bx.x;
+        if (pos.y > bx.y/2.0)
+            pos.y = pos.y - bx.y;
+        if (pos.y < -bx.y/2.0)
+            pos.y = pos.y + bx.y;
+        if (pos.z > bx.z/2.0)
+            pos.z = pos.z - bx.z;
+        if (pos.z < -bx.z/2.0)
+            pos.z = pos.z + bx.z;
     }
 
     void update_velocity(double delt)                       //velocity updated half timestep (No thermostat)
@@ -107,9 +106,9 @@ public:
         ke = 0.5 * m * vel.GetMagnitude() * vel.GetMagnitude();
     }
 
-    void update_stretching_energy(double ks, double vdwr);
+    void update_stretching_energy(double ks, double bondlength);
 
-    void update_stretching_force(double ks, double vdwr);
+    void update_stretching_force(double ks, double bondlength);
 
 
 };

@@ -16,7 +16,7 @@ class FACE;
 class BOX;
 //class OLIGOMER;
 
-class UNIT
+class SUBUNIT
 {
 public:
     //member variables
@@ -31,7 +31,7 @@ public:
     double vsum;                            // magnitude of average velocity
 
     //member fxns
-    UNIT(VECTOR3D initial=(0,0,0))       //constructor
+    SUBUNIT(VECTOR3D initial=(0,0,0))       //constructor
     {
         vsumvec=initial;
     }

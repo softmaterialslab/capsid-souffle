@@ -13,7 +13,7 @@
 
 class BEAD;
 class PAIR;
-class UNIT;
+class SUBUNIT;
 class EDGE;
 class FACE;
 class THERMOSTAT;
@@ -25,7 +25,7 @@ VECTOR3D dist(BEAD* A, BEAD* B);
 
 void update_chain_xi(unsigned int j, std::vector<THERMOSTAT>& bath, double dt, long double ke);
 
-void dress_up(std::vector<EDGE> &gedge, std::vector<FACE> &gface);
+void dress_up(std::vector<EDGE> &subunit_edge, std::vector<FACE> &subunit_face);
 
 double compute_MD_trust_factor_R(int hiteqm);
 
