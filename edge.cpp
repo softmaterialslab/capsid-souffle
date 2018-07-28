@@ -10,10 +10,10 @@
 #include "functions.h"
 
 
+using namespace std;
 
 
-
-BEAD* EDGE::opposite(BEAD *theB) {          //Finds particle opposite to the one referred in a bond
+BEAD* EDGE::opposite(BEAD *theB) {          //Finds particle opposite to the one referred in a edge
     assert(itsB.size()==2);
     if (itsB[0]==theB){
         return itsB[1];
@@ -22,7 +22,7 @@ BEAD* EDGE::opposite(BEAD *theB) {          //Finds particle opposite to the one
     } return NULL;
 }
 
-FACE* EDGE::opposite(FACE* theF){           //Find face on the opposite side of the one referred over a bond
+FACE* EDGE::opposite(FACE* theF){           //Find face on the opposite side of the one referred over a edge
     assert(itsF.size()==2);
     if (itsF[0]==theF) {
         return itsF[1];
@@ -32,24 +32,17 @@ FACE* EDGE::opposite(FACE* theF){           //Find face on the opposite side of 
 }
 
 
-void EDGE::update_length() {                //update's the length of a bond (PBC)
-    VECTOR3D r_vec = (itsB[0]->pos - itsB[1]->pos);
-    VECTOR3D box = itsB[0]->bx;
-    if (r_vec.x>box.x/2) r_vec.x -= box.x;
-    if (r_vec.x<-box.x/2) r_vec.x += box.x;
-    if (r_vec.y>box.y/2) r_vec.y -= box.y;
-    if (r_vec.y<-box.y/2) r_vec.y += box.y;
-    if (r_vec.z>box.z/2) r_vec.z -= box.z;
-    if (r_vec.z<-box.z/2) r_vec.z += box.z;
-    length = std::sqrt( r_vec * r_vec );              //bondlength of a garybond
-    lengthvec = r_vec;                                //length vector (useful for some computations)
+void EDGE::update_length() {                //update's the length of a edge (PBC)
+    VECTOR3D r_vec = dist(itsB[0], itsB[1]);
+    length = r_vec.GetMagnitude();              //edgelength
+    lengthvec = r_vec;                          //length vector (useful for some computations)
 }
 
 
 
 void EDGE::update_bending_energy(double Kb)
 {
-    std::vector<BEAD*> r;
+    vector<BEAD*> r;
     r.resize(4);                        //          r[2]
     r[0] = itsB[0];                     //         /    \ <---f[0]
     r[1] = itsB[1];                     //     r[0]------r[1]
@@ -66,7 +59,7 @@ void EDGE::update_bending_energy(double Kb)
 
 void EDGE::update_bending_forces(double Kb)
 {
-    std::vector<BEAD*> r;
+    vector<BEAD*> r;
     r.resize(4);                        //          r[2]
     r[0] = itsB[0];                     //         /    \ <---f[0]
     r[1] = itsB[1];                     //     r[0]------r[1]

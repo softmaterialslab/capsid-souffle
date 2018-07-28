@@ -12,7 +12,7 @@
 
 class BEAD;
 class EDGE;
-class UNIT;
+class SUBUNIT;
 
 class FACE
 {

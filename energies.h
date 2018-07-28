@@ -8,14 +8,14 @@
 
 class BEAD;
 class PAIR;
-class UNIT;
+class SUBUNIT;
 
 
-void update_LJ_energies(std::vector<BEAD>& gary, double ecut, std::vector<PAIR>& gpair);
+void update_LJ_energies(std::vector<BEAD>& subunit_bead, double ecut, std::vector<PAIR>& lj_pairlist);
 
-void update_ES_energies(std::vector<UNIT>& garfield, double lb, double ni, double qs);
+void update_ES_energies(std::vector<SUBUNIT>& protein, double lb, double ni, double qs);
 
-long double particle_kinetic_energy(std::vector <BEAD> &rgary);
+long double particle_kinetic_energy(std::vector <BEAD> &subunit_bead);
 
 
 
