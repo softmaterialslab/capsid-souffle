@@ -6,10 +6,6 @@
 #define LEMONSOUFFLE_MD_H
 
 
-void run_molecular();
-
-void run_brownian();
-
 void run_simulation();
 
 
