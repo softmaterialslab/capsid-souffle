@@ -10,5 +10,7 @@ void run_molecular();
 
 void run_brownian();
 
+void run_simulation();
+
 
 #endif //LEMONSOUFFLE_MD_H
