@@ -7,34 +7,10 @@ using namespace std;
 
 int main() {
 
-    bool brown = true;
-
-    cout
-            << "To run brownian dynamics (overdamped langevin) enter 'b'. Otherwise, to run molecular dynamics with nose' hoover thermostat enter 'm'. [b/m]"
-            << endl;
-
-    char response;
-    cin >> response;
-    if (response == 'b') {
-        brown = true;
-    } else if (response == 'm') {
-        brown = false;
-    }
-
-
-    if (brown == true)   //run initialization & loop using brownian dynamics
-    {
-        run_brownian();
-
-    } else if (brown == false)  // run initialization & loop using molecular dynamics
-    {
-
-        run_molecular();
-
-    }
+	run_simulation();
 }
 
-//ACTION ITEM LIST:
+
 
 
 
