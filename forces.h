@@ -13,7 +13,7 @@ class SUBUNIT;
 
 void update_ES_forces(std::vector<SUBUNIT>& protein, double lb, double ni, double qs);
 
-void update_LJ_forces(std::vector<BEAD>& subunit_bead, double ecut, std::vector<PAIR>& lj_pairlist);
+void update_LJ_forces(std::vector<SUBUNIT>& protein, double ecut, std::vector<PAIR>& lj_pairlist);
 
 
 
