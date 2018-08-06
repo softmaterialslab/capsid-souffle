@@ -2,7 +2,7 @@
 
 HOME = ./
 
-PROG = simulate_spinach_souffle
+PROG = simulate_capsid_souffle
 
 OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o energies.o forces.o
 

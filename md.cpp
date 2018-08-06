@@ -16,6 +16,15 @@ using namespace std;
 
 void run_simulation()
 {
+	
+	ofstream traj("outfiles/energy.out", ios::out);              //setting up file outputs
+    ofstream ofile("outfiles/ovito.lammpstrj", ios::out);
+    ofstream msdata("outfiles/ms.out", ios::out);
+	ofstream sysdata("outfiles/system.out", ios::out);
+	
+    initialize_outputfile(traj, ofile);
+	
+	
 	bool brownian = true;
 	char response;
 
@@ -24,8 +33,10 @@ void run_simulation()
 	
     if (response == 'b') {					//set flag for brownian vs. molecular dynamics
         brownian = true;
+		sysdata << "Running brownian dynamics." << endl;
     } else if (response == 'm') {
         brownian = false;
+		sysdata << "Running molecular dynamics with Nose Hoover thermostat." << endl;
     }
 
 	double const bondlength = pow(2, 0.166666666667);       //System specific paramters (modelled for HBV)
@@ -69,6 +80,15 @@ void run_simulation()
 		Q = 1;												//nose hoover mass (reduced units)
 	}
 	
+	sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a " << delta_t*SItime / (1e-12) << " picosecond timestep." << endl;
+	sysdata << "Capsomere concentration: " << capsomere_concentration << " micromolar" << endl;
+	sysdata << "Salt concentration: " << salt_concentration << " millimolar" << endl;
+	sysdata << "Stretching constant: " << ks << " KbT" << endl;
+	sysdata << "Bending constant: " << kb << " KbT" << endl;
+	sysdata << "Bondlength between beads is " << bondlength << " LJ reduced units, which is " << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
+	sysdata << "Mass of a subunit is " << SImass << " kg." << endl;
+	sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
+	
 	generate_lattice(capsomere_concentration, number_capsomeres, file_name);     //Setting up the input file (uses user specified file to generate lattice)
 	
 	double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);    //calculating box size
@@ -85,12 +105,7 @@ void run_simulation()
     vector<int> massbins(protein.size());
     vector<vector<int> > ms_bin(totaltime / (delta_t * 1000), vector<int>(protein.size()));
 	
-	
-	ofstream traj("energy.out", ios::out);              //setting up file outputs
-    ofstream ofile("ovito.lammpstrj", ios::out);
-    ofstream msdata("ms.out", ios::out);
-    initialize_outputfile(traj, ofile);
-	
+		
 	if (brownian == false)									//for molecular, set up the nose hoover thermostat
 	{
 	if (chain_length_real == 1)
