@@ -13,6 +13,8 @@ class SUBUNIT;
 
 void update_LJ_energies(std::vector<SUBUNIT>& protein, double ecut );
 
+void update_LJ_energies_pairlist(std::vector<SUBUNIT>& protein, double ecut, std::vector<PAIR>& lj_pairlist);
+
 void update_ES_energies(std::vector<SUBUNIT>& protein, double lb, double ni, double qs);
 
 long double particle_kinetic_energy(std::vector <BEAD> &subunit_bead);
