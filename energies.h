@@ -11,7 +11,7 @@ class PAIR;
 class SUBUNIT;
 
 
-void update_LJ_energies(std::vector<BEAD>& subunit_bead, double ecut, std::vector<PAIR>& lj_pairlist);
+void update_LJ_energies(std::vector<SUBUNIT>& protein, double ecut );
 
 void update_ES_energies(std::vector<SUBUNIT>& protein, double lb, double ni, double qs);
 

@@ -14,7 +14,10 @@
 * test the results by comparing energies in gary.traj.out (column1 is kinetic, col7 is total, col8 is potential)
 
 To run with electrostatics w/o salt screening, use:
-echo m 41part_c 200 0 100 20 100 0.002 | ./simulate_spinach_souffle
+echo m 41part_c 200 2 100 20 100 0.002 | ./simulate_spinach_souffle
 
 To run with electrostatics w/ moderate salt screening, use:
 echo m 41part_c 200 50 100 20 100 0.002 | ./simulate_spinach_souffle
+
+To run with brownian dynamics w/ moderate salt screening, use:
+echo b 41part_c 200 50 100 20 100 0.002 1 | ./simulate_spinach_souffle
