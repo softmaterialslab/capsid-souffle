@@ -15,6 +15,8 @@ void update_ES_forces(std::vector<SUBUNIT>& protein, double lb, double ni, doubl
 
 void update_LJ_forces(std::vector<SUBUNIT>& protein, double ecut, std::vector<PAIR>& lj_pairlist);
 
+void update_LJ_forces_pairlist(std::vector<SUBUNIT>& protein, double ecut, std::vector<PAIR>& lj_pairlist);
+
 
 
 

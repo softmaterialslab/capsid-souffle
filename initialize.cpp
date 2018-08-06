@@ -14,7 +14,7 @@ void initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, v
     /*                                            OPEN FILE                                                            */
 
     ifstream crds;                                      //open coordinates file
-    crds.open("input.GEN.out");
+    crds.open("outfiles/input.GEN.out");
     if (!crds) {                                        //check to make sure file is there
         cerr << "ERR: FILE NOT OPENED. Check directory and/or filename.";
         exit(1);
@@ -185,12 +185,12 @@ void initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, v
             if (subunit_bead[i].unit != subunit_bead[j].unit){
                 for (int k=0; k<lj_a[0].size(); k++){   //make list of LJ pairs to use in simulation. Categorize attractive / repulsive pairs
                     if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
-//                         lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-//                         lj_pairlist[count].type=1;
-//                         lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
-//                         lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
-//                         lj_pairlist[count].epsilon=lj_a[3][k];
-//                         lj_pairlist[count].sigma=lj_a[4][k];
+                        lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+                        lj_pairlist[count].type=1;
+                        lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
+                        lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
+                        lj_pairlist[count].epsilon=lj_a[3][k];
+                        lj_pairlist[count].sigma=lj_a[4][k];
 						PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
 						subunit_bead[i].itsP.push_back(new_pair);
 						subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
@@ -210,12 +210,12 @@ void initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, v
                 if (skip_loop == false){
 					for (int k=0; k<lj_r[0].size(); k++){
 						if (subunit_bead[i].type == lj_r[1][k] && subunit_bead[j].type == lj_r[2][k]){
-// 							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-// 							lj_pairlist[count].type=0;
-// 							lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
-// 							lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
-// 							lj_pairlist[count].epsilon=lj_r[3][k];
-// 							lj_pairlist[count].sigma=lj_r[4][k];
+							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+							lj_pairlist[count].type=0;
+							lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
+							lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
+							lj_pairlist[count].epsilon=lj_r[3][k];
+							lj_pairlist[count].sigma=lj_r[4][k];
 							PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
 							subunit_bead[i].itsP.push_back(new_pair);
 							subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
@@ -262,7 +262,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile)
 
 void generate_lattice (double capsomere_concentration,unsigned int number_capsomeres, string file_name) {
 
-    ofstream inputfile("input.GEN.out", ios::out);
+    ofstream inputfile("outfiles/input.GEN.out", ios::out);
 
     ifstream crds;                                      //open coordinates file
     crds.open(file_name.c_str());
