@@ -1,5 +1,7 @@
 # This is a makefile.
 
+HOME = ./
+
 PROG = simulate_spinach_souffle
 
 OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o energies.o forces.o
@@ -11,6 +13,11 @@ LFLAG = -lgsl -lgslcblas
 CFLAG = -c
 
 OFLAG = -o
+
+all: $(PROG)
+
+install: all
+	@echo "creating output files folder: outfiles/"; mkdir $(HOME)outfiles
 
 $(PROG) : $(OBJ)
 	$(CC) $(OFLAG) $(PROG) $(OBJ) $(LIBS) $(LFLAG)
@@ -28,3 +35,6 @@ subunit.o: subunit.h bead.h
 
 clean:
 	rm -f *.o
+
+dataclean: 
+	rm -f outfiles/*.out outfiles/*.lammpstrj; rmdir $(HOME)outfiles
