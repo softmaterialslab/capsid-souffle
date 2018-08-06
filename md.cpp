@@ -75,6 +75,7 @@ void run_simulation()
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
 	
 	initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
+
 	
 																							//user-derived parameters (not edittable)
     double lb = 0.416;                                		// e^2 / (4 pi Er E0 Kb T)
@@ -131,7 +132,8 @@ void run_simulation()
 
     update_ES_forces(protein, lb, ni, qs);		//ALSO INTRA-MOLECULAR
 	
-    update_LJ_forces(subunit_bead, ecut, lj_pairlist);
+    update_LJ_forces(protein, ecut, lj_pairlist);
+
 
     double senergy = 0;                            					//blank all the energy metrics
     double kenergy = 0;
@@ -236,7 +238,7 @@ for (unsigned int i = 0; i < protein.size(); i++)
         
         update_ES_forces(protein, lb, ni, qs);		//ALSO INTRAMOLECULAR
 
-        update_LJ_forces(subunit_bead, ecut, lj_pairlist);
+        update_LJ_forces(protein, ecut, lj_pairlist);
 		
 		
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,7 +315,7 @@ for (unsigned int i = 0; i < protein.size(); i++)
 																	//Intermolecular Energies
             update_ES_energies(protein, lb, ni, qs);
 
-            update_LJ_energies(subunit_bead, ecut, lj_pairlist);
+            update_LJ_energies(protein, ecut );
 
            for (unsigned int i = 0; i < protein.size(); i++) 		//blanking out energies here 
 			{

@@ -16,6 +16,7 @@ public:
     int type;                                        //type classification, 0 for repulsive and 1 for attractive
     double epsilon;
     double sigma;
+	bool lj_calculated;
     std::vector<BEAD *> itsB;                        //vector of particles in the pair
     VECTOR3D dummy;                                 //dummy vector
 

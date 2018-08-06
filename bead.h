@@ -17,6 +17,7 @@ class SUBUNIT;
 class FACE;
 class BOX;
 class OLIGOMER;
+class PAIR;
 
 
 class BEAD
@@ -47,6 +48,7 @@ public:
     std::vector<SUBUNIT*> itsS;           
     std::vector<FACE*> itsF;            
     OLIGOMER* itsO;
+	std::vector<PAIR*> itsP;			// LJ pairs
  
 
 
