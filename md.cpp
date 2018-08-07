@@ -161,8 +161,8 @@ void run_simulation()
     double tpenergy = 0;
     double tkenergy = 0;
 
-    initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
-	//initialize_constant_bead_velocities(protein,subunit_bead,T);
+    //initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
+	initialize_constant_bead_velocities(protein,subunit_bead,T);
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
     double expfac_real;

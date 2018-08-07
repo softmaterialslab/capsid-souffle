@@ -68,7 +68,7 @@ void update_LJ_energies_pairlist(vector<SUBUNIT>& protein, double ecut, vector<P
 		double r6 ;
 		double sigma6;
 		double elj = lj_pairlist[i].epsilon;
-		double shc = 1.2;
+		double shc = 1;
 		double sig1 = lj_pairlist[i].itsB[0]->sigma;
 		double sig2 = lj_pairlist[i].itsB[1]->sigma;
 		double del = (sig1+sig2)/2 - shc;
