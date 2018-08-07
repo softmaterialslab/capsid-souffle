@@ -20,7 +20,7 @@ void run_simulation()
 	ofstream traj("outfiles/energy.out", ios::out);              //setting up file outputs
     ofstream ofile("outfiles/ovito.lammpstrj", ios::out);
     ofstream msdata("outfiles/ms.out", ios::out);
-	ofstream sysdata("outfiles/system.out", ios::out);
+	ofstream sysdata("outfiles/model.parameters.out", ios::out);
 	
     initialize_outputfile(traj, ofile);
 	
@@ -39,10 +39,10 @@ void run_simulation()
 		sysdata << "Running molecular dynamics with Nose Hoover thermostat." << endl;
     }
 
-	double const bondlength = pow(2, 0.166666666667);       //System specific paramters (modelled for HBV)
-    double const SImass = 6.18e-24; //kg               		//SI value for a single bead
-    double const SIsigma = 1.67e-9; //m
-    double const SItime = 7.06e-11; //s
+	double bondlength ;//= pow(2, 0.166666666667);       //System specific paramters (modelled for HBV)
+    double SImass ;//= 6.18e-24; //kg               		//SI value for a single bead
+    double SIsigma ;//= 1.67e-9; //m
+    double SItime ;//= 7.06e-11; //s
     double const Avagadro = 6.022e23; // mol^-1				//useful constants
     int filenumber = 100000;								//used in pair correlation file generation
 	
@@ -80,25 +80,27 @@ void run_simulation()
 		Q = 1;												//nose hoover mass (reduced units)
 	}
 	
+	generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass, SItime);     //Setting up the input file (uses user specified file to generate lattice)
+	
 	sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a " << delta_t*SItime / (1e-12) << " picosecond timestep." << endl;
 	sysdata << "Capsomere concentration: " << capsomere_concentration << " micromolar" << endl;
 	sysdata << "Salt concentration: " << salt_concentration << " millimolar" << endl;
 	sysdata << "Stretching constant: " << ks << " KbT" << endl;
 	sysdata << "Bending constant: " << kb << " KbT" << endl;
 	sysdata << "Bondlength between beads is " << bondlength << " LJ reduced units, which is " << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
-	sysdata << "Mass of a subunit is " << SImass << " kg." << endl;
+	sysdata << "Mass of a bead is " << SImass << " kg." << endl;
 	sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
 	
-	generate_lattice(capsomere_concentration, number_capsomeres, file_name);     //Setting up the input file (uses user specified file to generate lattice)
 	
-	double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);    //calculating box size
+	
+	double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)), 1.0 / 3.0);    //calculating box size
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
 	
 	initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
 
 	
 																							//user-derived parameters (not edittable)
-    double lb = 0.416;                                		// e^2 / (4 pi Er E0 Kb T)
+    double lb = (0.76e-9)/SIsigma;                                		// e^2 / (4 pi Er E0 Kb T)
     double ni = salt_concentration * Avagadro * SIsigma * SIsigma * SIsigma;       //number density (1/sigma*^3)
     int count = 0;                                    		//used in mass spectrum analysis
     int mstime = -1;                                        //parameter for ms_bin filling	
@@ -159,8 +161,8 @@ void run_simulation()
     double tpenergy = 0;
     double tkenergy = 0;
 
-    //initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
-	initialize_constant_bead_velocities(protein,subunit_bead,T);
+    initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
+	//initialize_constant_bead_velocities(protein,subunit_bead,T);
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
     double expfac_real;
