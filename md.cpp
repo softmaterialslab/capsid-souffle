@@ -96,6 +96,8 @@ void run_simulation()
 	double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)), 1.0 / 3.0);    //calculating box size
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
 	
+	sysdata << "box length is " << box_x * SIsigma/(1e-9) << " nanometers." << endl;
+	
 	initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
 
 	
