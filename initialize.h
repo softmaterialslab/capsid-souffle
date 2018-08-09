@@ -23,7 +23,7 @@ void initialize_system(std::vector<BEAD> & subunit_bead,std::vector<EDGE> & subu
 
 void initialize_outputfile(std::ofstream & reftraj, std::ofstream & refofile);
 
-void generate_lattice (double capsomere_concentration ,unsigned int number_capsomeres, std::string file_name);
+void generate_lattice (double capsomere_concentration ,unsigned int number_capsomeres, std::string file_name, double  &bondlength,  double &SIsigma,  double &SImass, double &SItime);
 
 void initialize_bead_velocities(std::vector<SUBUNIT> &protein, std::vector<BEAD> &subunit_bead, double T);
 
