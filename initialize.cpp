@@ -260,7 +260,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile)
 }
 
 
-void generate_lattice (double capsomere_concentration,unsigned int number_capsomeres, string file_name) {
+void generate_lattice (double capsomere_concentration,unsigned int number_capsomeres, string file_name, double &bondlength,  double &SIsigma,  double &SImass, double &SItime) {
 
     ofstream inputfile("outfiles/input.GEN.out", ios::out);
 
@@ -270,10 +270,10 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
         cerr << "ERR: FILE " << file_name << " NOT OPENED. Check directory and/or filename.";
         exit(1);
     }
-    long double SIsigma;                                //reading in data
-    string dumb;
-    double dumber;
-    crds >> dumb >> dumb >> dumber >> dumb >> dumb >> dumber >> dumb >> dumb >> SIsigma >> dumb >> dumb >> dumber;
+    //long double SIsigma, SImass, SItime, bondlength;                                //reading in data
+    string dummy;
+    double dummy_double;
+    crds >> dummy >> dummy >> bondlength >> dummy >> dummy >> SImass >> dummy >> dummy >> SIsigma >> dummy >> dummy >> SItime;
 
     //Determine box size:
     long double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * 6.022e23)), 1.0 / 3.0);
@@ -283,8 +283,8 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     int index = 0;
 
     int np;                                             //begin reading in template
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> np;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> dumb >> dumb >> dumb;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> np;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     long double x,y,z,charge,length,radius, mass;
     int type,name;
     long double part_template[8][np];
@@ -301,8 +301,8 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
         part_template[7][i] = mass;
     }
     int ne;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> ne;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> ne;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy;
     int e1,e2;
     long double edge_template[5][ne];
     for (int i=0; i<ne; i++){
@@ -314,8 +314,8 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
         edge_template[4][i] = length;
     }
     int nt;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> nt;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> dumb;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> nt;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     int t1,t2,t3,normal;
     long double face_template[6][nt];
     for (int i=0; i<nt; i++){
@@ -329,8 +329,8 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     }
     int na=0;
     double epsilon,sigma;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> dumb >> na;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> na;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy;
     long double lj_a_template[5][na];
     for (int i=0; i<na; i++){
         crds >> name >> e1 >> e2 >> epsilon >> sigma;
@@ -341,7 +341,7 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
         lj_a_template[4][i] = sigma;
     }
     int nr=0;
-    crds >> dumb >> dumb >> dumb >> dumb >> dumb >> dumb >> nr >> dumb >> dumb >> dumb >> dumb >> dumb;
+    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> nr >> dummy >> dummy >> dummy >> dummy >> dummy;
     long double lj_r_template[5][nr];
     for (int i=0; i<nr; i++){
         crds >> name >> e1 >> e2 >> epsilon >> sigma;
@@ -535,7 +535,7 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
     cout << "initial velocities corrrespond to this set temperature " << set_T << endl;
 
     // initial configuration
-    ofstream list_initial_velocities("list_initial_velocities.out", ios::out);
+    ofstream list_initial_velocities("outfiles/list_initial_velocities.out", ios::out);
     for (unsigned int i = 0; i < protein.size(); i++)
         list_initial_velocities << protein[i].itsB[0]->id << setw(15) << protein[i].itsB[0]->vel.x << "  " << protein[i].itsB[0]->vel.y << "  " <<
                                 protein[i].itsB[0]->vel.z << "  " << protein[i].itsB[0]->vel.GetMagnitude() << endl;

@@ -1,7 +1,7 @@
 ks_vdwr  = 1.122462048
-mass     = 6.18e-24
-sigma    = 1.67e-9
-time     = 7.06e-11
+mass     = 1.166138e-25
+sigma    = 1e-9
+time     = 5.81386e-12
 
 # Number of Particles = 41
 

@@ -78,7 +78,7 @@ void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs)
 		 double r6 ;
 		 double r12;
 		 double sigma6;
-		 double shc = 1.2;
+		 double shc = 1;
 		 double elj = lj_pairlist[i].epsilon;
 		 double sig1 = lj_pairlist[i].itsB[0]->sigma;
 		 double sig2 = lj_pairlist[i].itsB[1]->sigma;
