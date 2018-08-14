@@ -1,17 +1,19 @@
 # This is a makefile.
 
 HOME = ./
-
 PROG = simulate_capsid_souffle
-
 OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o energies.o forces.o
 
-CC = g++ -g -Wall -O3
+# BigRed2 flags. 
+BigRed2CC = CC -O3 -g -Wall -fopenmp
+BigRed2LFLAG = -lgsl -lgslcblas -lm -lboost_program_options -lboost_mpi -lboost_serialization
+BigRed2CFLAG = -c
+BigRed2OFLAG = -o
 
-LFLAG = -lgsl -lgslcblas
-
+# General purpose flags.
+CC = mpicxx -O3 -g -Wall -fopenmp
+LFLAG = -lgsl -lgslcblas -lm -L${BOOST_LIBDIR} -lboost_program_options -lboost_mpi -lboost_serialization
 CFLAG = -c
-
 OFLAG = -o
 
 all: $(PROG)
@@ -19,20 +21,21 @@ all: $(PROG)
 install: all
 	@echo "creating output files folder: outfiles/"; mkdir $(HOME)outfiles
 
+cluster-install:
+	module swap PrgEnv-cray PrgEnv-gnu && module load boost/1.65.0 && module load gsl; make CCF=BigRed2 all
+	@echo "Installing $(PROG) into $(HOME) directory on your computing cluster"; mkdir $(HOME)outfiles
+
 $(PROG) : $(OBJ)
-	$(CC) $(OFLAG) $(PROG) $(OBJ) $(LIBS) $(LFLAG)
-
-main.o:	md.h
-md.o: initialize.h functions.h md.h energies.h forces.h
-intialize.o: initialize.h rand_gen.h
-function.o: functions.h bead.h subunit.h LJpair.h edge.h face.h
-forces.o: forces.h bead.h LJpair.h subunit.h edge.h face.h functions.h
-bead.o: bead.h edge.h
-edge.o: edge.h bead.h face.h functions.h
-energies.o: energies.h bead.h LJpair.h subunit.h edge.h face.h functions.h	
-face.o: face.h bead.h edge.h functions.h
-subunit.o: subunit.h bead.h
-
+ifeq ($(CCF),BigRed2)	
+	$(BigRed2CC) $(BigRed2OFLAG) $(PROG) $(OBJ) $(BigRed2LFLAG)
+%.o : %.cpp
+	$(BigRed2CC) -c $(BigRed2CFLAG) $< -o $@
+else
+	$(CC) $(OFLAG) $(PROG) $(OBJ) $(LFLAG)
+%.o : %.cpp
+	$(CC) -c $(CFLAG) $< -o $@	
+endif
+	
 clean:
 	rm -f *.o
 
