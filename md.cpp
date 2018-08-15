@@ -161,9 +161,13 @@ int run_simulation(int argc, char *argv[]) {
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////   
 
-    update_ES_forces(protein, lb, ni, qs);        //ALSO INTRA-MOLECULAR
+   // update_ES_forces(protein, lb, ni, qs);        //ALSO INTRA-MOLECULAR
+	
+	update_ES_forces_intra(protein, lb, ni, qs);
 
-    update_LJ_forces(protein, ecut, lj_pairlist);
+	update_ES_forces_pairlist(subunit_bead, lb, ni, qs, lj_pairlist);
+
+    update_LJ_forces_pairlist(protein, ecut, lj_pairlist);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -267,9 +271,13 @@ int run_simulation(int argc, char *argv[]) {
 /*									INTER MOLECULAR FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        update_ES_forces(protein, lb, ni, qs);        //ALSO INTRAMOLECULAR
+       // update_ES_forces(protein, lb, ni, qs);        //ALSO INTRAMOLECULAR
+		
+		update_ES_forces_intra(protein, lb, ni, qs);
 
-        update_LJ_forces(protein, ecut, lj_pairlist);
+		update_ES_forces_pairlist(subunit_bead, lb, ni, qs, lj_pairlist);
+
+        update_LJ_forces_pairlist(protein, ecut, lj_pairlist);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
