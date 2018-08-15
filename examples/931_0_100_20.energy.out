@@ -1,4 +1,4 @@
-netic     stretching        bending             LJ electrostatics          total      potential    temperature
+time        kinetic     stretching        bending             LJ electrostatics          total      potential    temperature
 0         1.5533        2.47049    7.76485e-05              0              0        4.02387        2.47057        1.03553   -1.80059e-05    1.98345e-05
 0.2        1.31564        1.06836       0.223693              0              0        4.02053        1.29205       0.877094        1.28868       0.124163
 0.4        1.49657       0.748172        0.46221              0              0        4.01879        1.21038       0.997713        1.29929      0.0125504
