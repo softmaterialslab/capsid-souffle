@@ -5,9 +5,9 @@
 using namespace std;
 
 
-int main() {
+int main(int argc, char *argv[]) {
 
-	run_simulation();
+	run_simulation(argc,argv);
 }
 
 
