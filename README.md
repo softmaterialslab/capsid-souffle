@@ -2,9 +2,9 @@
 
 ## Testing instructions
 
-* load the necessary modules; module load gsl
+* load the necessary modules; module load gsl, module load boost
 
-* make dataclean; make install; make clean
+* make dataclean; make install OR make cluster-install; make clean; 
 
 * if testing on a separate folder, copy 41part and/or 41part_c
 
