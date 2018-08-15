@@ -12,7 +12,42 @@
 
 using namespace std;
 
+void update_ES_forces_pairlist(vector<BEAD>& subunit_bead, double lb, double ni, double qs, vector<PAIR>& lj_pairlist){
+	for (int i=0; i<subunit_bead.size(); i++){
+		subunit_bead[i].eforce = VECTOR3D(0,0,0);
+	}
+	
+	for (int i=0; i<lj_pairlist.size(); i++){
+		VECTOR3D r_vec = dist( lj_pairlist[i].itsB[0] , lj_pairlist[i].itsB[1] );
+		long double r = r_vec.GetMagnitude();
+		double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+		VECTOR3D ff = r_vec ^ ( ( lj_pairlist[i].itsB[0]->q * lj_pairlist[i].itsB[1]->q * lb * exp(-kappa * r )
+		/ (r * r) ) * (kappa + 1/r) );
+		
+		lj_pairlist[i].itsB[0]->eforce += ff;
+		lj_pairlist[i].itsB[1]->eforce -= ff;
+	}
+	
+}
 
+void update_ES_forces_intra(vector<SUBUNIT>& protein, double lb, double ni, double qs){
+	for (int i = 0; i < protein.size(); i++){
+		for (int ii = 0; ii < protein[i].itsB.size(); ii++)							//intramolecular forces loop
+		{
+			for (int kk = ii + 1; kk < protein[i].itsB.size(); kk++)
+			{
+				double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+				VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[i].itsB[kk] );
+				long double r = r_vec.GetMagnitude();
+				VECTOR3D ff = r_vec ^ ( ( protein[i].itsB[ii]->q * protein[i].itsB[kk]->q * lb * exp(-kappa * r )
+                          / (r*r) ) * (kappa + 1/r ) );
+
+				protein[i].itsB[ii]->eforce += ff;
+				protein[i].itsB[kk]->eforce -= ff;
+			}
+		}
+	}
+}
 
 void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs){
     for (int i=0; i<protein.size(); i++){
