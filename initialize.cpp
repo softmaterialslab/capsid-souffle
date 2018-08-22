@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, \
+vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, \
                         VECTOR3D bxsz, vector<PAIR> & lj_pairlist)
 {
     /*                                            OPEN FILE                                                            */
@@ -242,6 +242,8 @@ void initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, v
     }
 
     cout << "Done initializing" << endl;
+	
+	return lj_a;
 
 }
 
