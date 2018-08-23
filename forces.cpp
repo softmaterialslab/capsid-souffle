@@ -205,7 +205,7 @@ void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double n
 		 {
 			 if (subunit_bead[i].id != subunit_bead[j].id)
 			 {
-				 double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+				 double kappa = sqrt (8 * 3.1416 * ni * lb * qs*qs);
 				 VECTOR3D r_vec = dist( & subunit_bead[i] , & subunit_bead[j] );
 				 long double r = r_vec.GetMagnitude();
 				 VECTOR3D ff = r_vec ^ ( ( subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r )
@@ -249,7 +249,7 @@ void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double n
 					 r6 = pow((r-del),6);
 					 r12 = r6 * r6;
 					 subunit_bead[i].ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
-				 } else if ( r < ((del+1.12246205*shc)*ecut) && lj_attractive == true ){			//Repulsive
+				 } else if ( r < ((del+1.12246205*shc)) && lj_attractive == true ){			//Repulsive
 					 r6 = pow((r-del),6);
 					 r12 = r6 * r6;
 					 sigma6 = pow(shc,6);

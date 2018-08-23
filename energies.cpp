@@ -24,7 +24,7 @@ void update_ES_energies(vector<SUBUNIT>& protein, double lb, double ni, double q
 			{
 				for (int jj = 0; jj < protein[j].itsB.size(); jj++)
 				{
-					double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+					double kappa = sqrt(8 * 3.1416 * ni * lb * qs*qs);
 					VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[j].itsB[jj] );
 					long double r = r_vec.GetMagnitude();
 					
@@ -40,7 +40,7 @@ void update_ES_energies(vector<SUBUNIT>& protein, double lb, double ni, double q
 		{
 			for (int kk = ii + 1; kk < protein[i].itsB.size(); kk++)
 			{
-				double kappa = 8 * 3.1416 * ni * lb * qs*qs;
+				double kappa = sqrt(8 * 3.1416 * ni * lb * qs*qs);
 				VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[i].itsB[kk] );
 				long double r = r_vec.GetMagnitude();
 				
@@ -131,7 +131,7 @@ void update_LJ_energies(vector<SUBUNIT>& protein, double ecut ){
 						protein[i].itsB[ii]->itsP[n]->lj_calculated = true;
 						protein[i].itsB[ii]->itsP[n]->itsB[0]->ne += 0.5 * ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
 						protein[i].itsB[ii]->itsP[n]->itsB[1]->ne += 0.5 * ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
-					} else if (protein[i].itsB[ii]->itsP[n]->type == 1 && r < ((del+1.12246205*shc)*ecut)){
+					} else if (protein[i].itsB[ii]->itsP[n]->type == 1 && r < ((del+1.12246205*shc))){
 						double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
 						double ecut12 = ecut6 * ecut6;
 						sigma6 = pow(shc,6);
