@@ -364,9 +364,11 @@ int run_simulation(int argc, char *argv[]) {
                 }
             }
             //Intermolecular Energies
-            update_ES_energies(protein, lb, ni, qs);
+            //update_ES_energies(protein, lb, ni, qs);
+			update_ES_energies_simplified( subunit_bead, lb, ni, qs);
 
-            update_LJ_energies(protein, ecut);
+            //update_LJ_energies(protein, ecut);
+			update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
 
             for (unsigned int i = 0; i < protein.size(); i++)        //blanking out energies here
             {

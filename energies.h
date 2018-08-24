@@ -17,6 +17,10 @@ void update_LJ_energies_pairlist(std::vector<SUBUNIT>& protein, double ecut, std
 
 void update_ES_energies(std::vector<SUBUNIT>& protein, double lb, double ni, double qs);
 
+void update_LJ_energies_simplified(std::vector<BEAD>& subunit_bead, double ecut, std::vector<std::vector<int> > lj_a);
+
+void update_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double lb, double ni, double qs);
+
 long double particle_kinetic_energy(std::vector <BEAD> &subunit_bead);
 
 
