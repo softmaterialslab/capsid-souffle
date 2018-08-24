@@ -113,7 +113,8 @@ int run_simulation(int argc, char *argv[]) {
     sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
     sysdata << "Screening length is " << 8.7785 / sqrt(salt_concentration) << " nanometers." << endl;
 
-    initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
+	vector<vector<int> > lj_a;
+    lj_a = initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
 
 
     //user-derived parameters (not edittable)
@@ -163,11 +164,15 @@ int run_simulation(int argc, char *argv[]) {
 
    // update_ES_forces(protein, lb, ni, qs);        //ALSO INTRA-MOLECULAR
 	
-	update_ES_forces_intra(protein, lb, ni, qs);
+	//update_ES_forces_intra(protein, lb, ni, qs);
 
-	update_ES_forces_pairlist(subunit_bead, lb, ni, qs, lj_pairlist);
+	//update_ES_forces_pairlist(subunit_bead, lb, ni, qs, lj_pairlist);
+	
+	update_ES_forces_simplified(subunit_bead,lb,ni,qs);
+	
+	update_LJ_forces_simplified(subunit_bead, ecut, lj_a);
 
-    update_LJ_forces_pairlist(protein, ecut, lj_pairlist);
+    //update_LJ_forces_pairlist(protein, ecut, lj_pairlist);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -273,11 +278,15 @@ int run_simulation(int argc, char *argv[]) {
 
        // update_ES_forces(protein, lb, ni, qs);        //ALSO INTRAMOLECULAR
 		
-		update_ES_forces_intra(protein, lb, ni, qs);
+		//update_ES_forces_intra(protein, lb, ni, qs);
 
-		update_ES_forces_pairlist(subunit_bead, lb, ni, qs, lj_pairlist);
+		//update_ES_forces_pairlist(subunit_bead, lb, ni, qs, lj_pairlist);
+		
+		update_ES_forces_simplified(subunit_bead,lb,ni,qs);
+		
+		update_LJ_forces_simplified(subunit_bead, ecut, lj_a);
 
-        update_LJ_forces_pairlist(protein, ecut, lj_pairlist);
+        //update_LJ_forces_pairlist(protein, ecut, lj_pairlist);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,9 +364,11 @@ int run_simulation(int argc, char *argv[]) {
                 }
             }
             //Intermolecular Energies
-            update_ES_energies(protein, lb, ni, qs);
+            //update_ES_energies(protein, lb, ni, qs);
+			update_ES_energies_simplified( subunit_bead, lb, ni, qs);
 
-            update_LJ_energies(protein, ecut);
+            //update_LJ_energies(protein, ecut);
+			update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
 
             for (unsigned int i = 0; i < protein.size(); i++)        //blanking out energies here
             {

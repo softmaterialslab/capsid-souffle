@@ -115,7 +115,7 @@ void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs)
 		 double r6 ;
 		 double r12;
 		 double sigma6;
-		 double shc = 1;
+		 double shc = 1.2;
 		 double elj = lj_pairlist[i].epsilon;
 		 double sig1 = lj_pairlist[i].itsB[0]->sigma;
 		 double sig2 = lj_pairlist[i].itsB[1]->sigma;
@@ -191,5 +191,79 @@ void update_LJ_forces(vector<SUBUNIT>& protein, double ecut, vector<PAIR>& lj_pa
 		}
 }
 
-
-
+void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double ni, double qs)
+ {
+	 
+	 for (int i=0; i < subunit_bead.size(); i++)
+	 {
+		 subunit_bead[i].eforce = VECTOR3D(0,0,0);
+	 }
+	 
+	 for (int i = 0; i < subunit_bead.size(); i++)
+	 {
+		 for (int j = 0; j < subunit_bead.size(); j++)
+		 {
+			 if (subunit_bead[i].id != subunit_bead[j].id)
+			 {
+				 double kappa = sqrt (8 * 3.1416 * ni * lb * qs*qs);
+				 VECTOR3D r_vec = dist( & subunit_bead[i] , & subunit_bead[j] );
+				 long double r = r_vec.GetMagnitude();
+				 VECTOR3D ff = r_vec ^ ( ( subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r )
+				 / (r * r) ) * (kappa + 1/r) );
+				 
+				 subunit_bead[i].eforce += ff;
+			 }
+		 }
+	 }
+	 
+ }
+ 
+ void update_LJ_forces_simplified(vector<BEAD>& subunit_bead, double ecut, vector<vector<int> > lj_a){
+	 for (int i = 0; i < subunit_bead.size(); i++){
+		 subunit_bead[i].ljforce = VECTOR3D(0,0,0);
+	 }
+	 for (int i = 0; i < subunit_bead.size(); i++){
+		 for (int j = 0; j < subunit_bead.size(); j++){
+			 if (subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id){
+				 VECTOR3D r_vec = dist( &subunit_bead[i] , &subunit_bead[j] );
+				 long double r = r_vec.GetMagnitude();
+				 //double r2 = (r*r);
+				 double r6 ;
+				 double r12;
+				 double sigma6;
+				 double shc = 1.2;
+				 
+				 double sig1 = subunit_bead[i].sigma;
+				 double sig2 = subunit_bead[j].sigma;
+				 double del = (sig1+sig2)/2 - shc;
+				 bool lj_attractive = false;
+				 for (int k = 0; k < lj_a[0].size(); k++){
+					 if ( subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]  ){
+						 lj_attractive = true;
+					 }
+				 }
+				 if ( r < (del+1.12246205*shc) && lj_attractive == false){							//Attractive
+					 sigma6 = pow(shc,6);
+					 double sigma12 = sigma6 * sigma6;
+					 double elj = 1;//subunit_bead[j].epsilon;
+					 r6 = pow((r-del),6);
+					 r12 = r6 * r6;
+					 subunit_bead[i].ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
+				 } else if ( r < ((del+1.12246205*shc)) && lj_attractive == true ){			//Repulsive
+					 r6 = pow((r-del),6);
+					 r12 = r6 * r6;
+					 sigma6 = pow(shc,6);
+					 double sigma12 = sigma6 * sigma6;
+					 double elj = 2;//subunit_bead[j].epsilon;
+					 subunit_bead[i].ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del)))));
+				 } else {
+					 subunit_bead[i].ljforce += 0;
+				 }
+			 }
+		 }
+	 }
+ }
+ 
+ 
+ 
+ 
