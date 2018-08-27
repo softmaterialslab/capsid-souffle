@@ -242,14 +242,14 @@ void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double n
 						 lj_attractive = true;
 					 }
 				 }
-				 if ( r < (del+1.12246205*shc) && lj_attractive == false){							//Attractive
+				 if ( r < (del+1.12246205*shc) && lj_attractive == false){							//Repulsive
 					 sigma6 = pow(shc,6);
 					 double sigma12 = sigma6 * sigma6;
 					 double elj = 1;//subunit_bead[j].epsilon;
 					 r6 = pow((r-del),6);
 					 r12 = r6 * r6;
 					 subunit_bead[i].ljforce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r*(r-del))) ));
-				 } else if ( r < ((del+1.12246205*shc)) && lj_attractive == true ){			//Repulsive
+				 } else if ( r < ((del+1.12246205*shc)*ecut) && lj_attractive == true ){			//Attractive
 					 r6 = pow((r-del),6);
 					 r12 = r6 * r6;
 					 sigma6 = pow(shc,6);

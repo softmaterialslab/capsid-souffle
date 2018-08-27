@@ -131,7 +131,7 @@ void update_LJ_energies(vector<SUBUNIT>& protein, double ecut ){
 						protein[i].itsB[ii]->itsP[n]->lj_calculated = true;
 						protein[i].itsB[ii]->itsP[n]->itsB[0]->ne += 0.5 * ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
 						protein[i].itsB[ii]->itsP[n]->itsB[1]->ne += 0.5 * ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
-					} else if (protein[i].itsB[ii]->itsP[n]->type == 1 && r < ((del+1.12246205*shc))){
+					} else if (protein[i].itsB[ii]->itsP[n]->type == 1 && r < ((del+1.12246205*shc)*ecut)){
 						double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
 						double ecut12 = ecut6 * ecut6;
 						sigma6 = pow(shc,6);
@@ -185,12 +185,12 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 						 lj_attractive = true;
 					 }
 				 }
-				 if ( r < (del+1.12246205*shc) && lj_attractive == false){							//Attractive
+				 if ( r < (del+1.12246205*shc) && lj_attractive == false){							//Repulsive
 					 sigma6 = pow(shc,6);
 					 double elj = 1;//subunit_bead[j].epsilon;
 					 r6 = pow((r-del),6);
 					 subunit_bead[i].ne += ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
-				 } else if ( r < ((del+1.12246205*shc)) && lj_attractive == true ){			//Repulsive
+				 } else if ( r < ((del+1.12246205*shc)*ecut) && lj_attractive == true ){			//Attractive
 					 double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
 					 double ecut12 = ecut6 * ecut6;
 					 r6 = pow((r-del),6);
