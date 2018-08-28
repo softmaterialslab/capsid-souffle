@@ -13,11 +13,11 @@
 using namespace std;
 
 void update_ES_forces_pairlist(vector<BEAD>& subunit_bead, double lb, double ni, double qs, vector<PAIR>& lj_pairlist){
-	for (int i=0; i<subunit_bead.size(); i++){
+	for (unsigned int i=0; i<subunit_bead.size(); i++){
 		subunit_bead[i].eforce = VECTOR3D(0,0,0);
 	}
 	
-	for (int i=0; i<lj_pairlist.size(); i++){
+	for (unsigned int i=0; i<lj_pairlist.size(); i++){
 		VECTOR3D r_vec = dist( lj_pairlist[i].itsB[0] , lj_pairlist[i].itsB[1] );
 		long double r = r_vec.GetMagnitude();
 		double kappa = 8 * 3.1416 * ni * lb * qs*qs;
@@ -31,10 +31,10 @@ void update_ES_forces_pairlist(vector<BEAD>& subunit_bead, double lb, double ni,
 }
 
 void update_ES_forces_intra(vector<SUBUNIT>& protein, double lb, double ni, double qs){
-	for (int i = 0; i < protein.size(); i++){
-		for (int ii = 0; ii < protein[i].itsB.size(); ii++)							//intramolecular forces loop
+	for (unsigned int i = 0; i < protein.size(); i++){
+		for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)							//intramolecular forces loop
 		{
-			for (int kk = ii + 1; kk < protein[i].itsB.size(); kk++)
+			for (unsigned int kk = ii + 1; kk < protein[i].itsB.size(); kk++)
 			{
 				double kappa = 8 * 3.1416 * ni * lb * qs*qs;
 				VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[i].itsB[kk] );
@@ -50,21 +50,21 @@ void update_ES_forces_intra(vector<SUBUNIT>& protein, double lb, double ni, doub
 }
 
 void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs){
-    for (int i=0; i<protein.size(); i++){
-		for (int ii=0; ii<protein[i].itsB.size(); ii++)
+    for (unsigned int i=0; i<protein.size(); i++){
+		for (unsigned int ii=0; ii<protein[i].itsB.size(); ii++)
 		{
 			protein[i].itsB[ii]->eforce = VECTOR3D(0,0,0);
 		}
     }
     
-    for (int i = 0; i < protein.size() ; i++)									//intermolecular forces loop
+    for (unsigned int i = 0; i < protein.size() ; i++)									//intermolecular forces loop
 	{
-		for (int j = 0; j < protein.size(); j++)
+		for (unsigned int j = 0; j < protein.size(); j++)
 		{
 			if (protein[i].id != protein[j].id){
-				for (int ii = 0; ii < protein[i].itsB.size(); ii++)
+				for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)
 				{
-					for (int jj = 0; jj < protein[j].itsB.size(); jj++)
+					for (unsigned int jj = 0; jj < protein[j].itsB.size(); jj++)
 					{
 						double kappa = 8 * 3.1416 * ni * lb * qs*qs;
 						VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[j].itsB[jj] );
@@ -80,9 +80,9 @@ void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs)
 			}
 			
 		}
-		for (int ii = 0; ii < protein[i].itsB.size(); ii++)							//intramolecular forces loop
+		for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++)							//intramolecular forces loop
 		{
-			for (int kk = ii + 1; kk < protein[i].itsB.size(); kk++)
+			for (unsigned int kk = ii + 1; kk < protein[i].itsB.size(); kk++)
 			{
 				double kappa = 8 * 3.1416 * ni * lb * qs*qs;
 				VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[i].itsB[kk] );
@@ -101,13 +101,13 @@ void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs)
  
  void update_LJ_forces_pairlist(vector<SUBUNIT>& protein, double ecut, vector<PAIR>& lj_pairlist){
 	 
-	 for ( int i = 0; i<protein.size(); i++) {
-		 for (int ii = 0; ii < protein[i].itsB.size(); ii++){
+	 for (unsigned int i = 0; i<protein.size(); i++) {
+		 for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
 			 protein[i].itsB[ii]->ljforce = VECTOR3D(0,0,0);
 		 }
 	 }
 	 
-	 for (int i=0; i<lj_pairlist.size(); i++){
+	 for (unsigned int i=0; i<lj_pairlist.size(); i++){
 		 
 		 VECTOR3D r_vec = dist( lj_pairlist[i].itsB[0] , lj_pairlist[i].itsB[1] );
 		 long double r = r_vec.GetMagnitude();
@@ -144,18 +144,18 @@ void update_ES_forces(vector<SUBUNIT>& protein, double lb, double ni, double qs)
 
 void update_LJ_forces(vector<SUBUNIT>& protein, double ecut, vector<PAIR>& lj_pairlist){
 
-	for (int i = 0; i < protein.size(); i++){
-		for (int ii = 0; ii < protein[i].itsB.size(); ii++){
+	for (unsigned int i = 0; i < protein.size(); i++){
+		for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
 			protein[i].itsB[ii]->ljforce = VECTOR3D(0,0,0);
 		}
 	}
 	
 	
-		for (int i=0; i < protein.size(); i++)
+		for (unsigned int i=0; i < protein.size(); i++)
 		{
-			for (int ii=0; ii<protein[i].itsB.size(); ii++)
+			for (unsigned int ii=0; ii<protein[i].itsB.size(); ii++)
 				{
-					for (int n = 0; n < protein[i].itsB[ii]->itsP.size(); n++)
+					for (unsigned int n = 0; n < protein[i].itsB[ii]->itsP.size(); n++)
 						{
 								VECTOR3D r_vec = dist( protein[i].itsB[ii] , protein[i].itsB[ii]->itsP[n]->itsB[1] );
 								if ( r_vec.GetMagnitude() == 0) r_vec = dist( protein[i].itsB[ii] , protein[i].itsB[ii]->itsP[n]->itsB[0] );
@@ -194,14 +194,14 @@ void update_LJ_forces(vector<SUBUNIT>& protein, double ecut, vector<PAIR>& lj_pa
 void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double ni, double qs)
  {
 	 
-	 for (int i=0; i < subunit_bead.size(); i++)
+	 for (unsigned int i=0; i < subunit_bead.size(); i++)
 	 {
 		 subunit_bead[i].eforce = VECTOR3D(0,0,0);
 	 }
 	 
-	 for (int i = 0; i < subunit_bead.size(); i++)
+	 for (unsigned int i = 0; i < subunit_bead.size(); i++)
 	 {
-		 for (int j = 0; j < subunit_bead.size(); j++)
+		 for (unsigned int j = 0; j < subunit_bead.size(); j++)
 		 {
 			 if (subunit_bead[i].id != subunit_bead[j].id)
 			 {
@@ -219,11 +219,11 @@ void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double n
  }
  
  void update_LJ_forces_simplified(vector<BEAD>& subunit_bead, double ecut, vector<vector<int> > lj_a){
-	 for (int i = 0; i < subunit_bead.size(); i++){
+	 for (unsigned int i = 0; i < subunit_bead.size(); i++){
 		 subunit_bead[i].ljforce = VECTOR3D(0,0,0);
 	 }
-	 for (int i = 0; i < subunit_bead.size(); i++){
-		 for (int j = 0; j < subunit_bead.size(); j++){
+	 for (unsigned int i = 0; i < subunit_bead.size(); i++){
+		 for (unsigned int j = 0; j < subunit_bead.size(); j++){
 			 if (subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id){
 				 VECTOR3D r_vec = dist( &subunit_bead[i] , &subunit_bead[j] );
 				 long double r = r_vec.GetMagnitude();
@@ -237,7 +237,7 @@ void update_ES_forces_simplified(vector<BEAD>& subunit_bead, double lb, double n
 				 double sig2 = subunit_bead[j].sigma;
 				 double del = (sig1+sig2)/2 - shc;
 				 bool lj_attractive = false;
-				 for (int k = 0; k < lj_a[0].size(); k++){
+				 for (unsigned int k = 0; k < lj_a[0].size(); k++){
 					 if ( subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]  ){
 						 lj_attractive = true;
 					 }

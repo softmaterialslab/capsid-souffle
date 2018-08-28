@@ -82,10 +82,10 @@ void update_chain_xi(unsigned int j, vector<THERMOSTAT>& bath, double dt, long d
 
 
 void dress_up(vector<EDGE> &subunit_edge, vector<FACE> &subunit_face){
-    for (int i=0; i<subunit_edge.size(); i++){
+    for (unsigned int i=0; i<subunit_edge.size(); i++){
         subunit_edge[i].update_length();
     }
-    for (int i=0; i<subunit_face.size();i++){
+    for (unsigned int i=0; i<subunit_face.size();i++){
         subunit_face[i].update_area_normal();
     }
 }

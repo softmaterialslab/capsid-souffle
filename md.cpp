@@ -74,7 +74,7 @@ int run_simulation(int argc, char *argv[]) {
     double SIsigma;//= 1.67e-9; //m
     double SItime;//= 7.06e-11; //s
     double const Avagadro = 6.022e23; // mol^-1				//useful constants
-    int filenumber = 100000;                                //used in pair correlation file generation
+    //int filenumber = 100000;                                //used in pair correlation file generation
 
     vector<BEAD> subunit_bead;                              //Create particles, named subunit_bead
     vector<EDGE> subunit_edge;                              //create edges between subunit_bead's
@@ -188,7 +188,7 @@ int run_simulation(int argc, char *argv[]) {
     initialize_constant_bead_velocities(protein, subunit_bead, T);
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
-    double expfac_real;
+    double expfac_real ;//= exp(-0.5 * delta_t * real_bath[0].xi);
 
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                    //setting up random seed for brownian
     unsigned long int Seed = 23410981;
@@ -471,11 +471,11 @@ int run_simulation(int argc, char *argv[]) {
                         oldsize = oligomers_list[index].itsS.size();           //see how much the oligomer has grown
                         for (int j = n; j < oldsize; j++) {             //loop over the growth from last round
                             int g = oligomers_list[index].itsS[j]->id;
-                            for (int k = i + 1; k < protein.size(); k++) { //look for new growth
+                            for (unsigned int k = i + 1; k < protein.size(); k++) { //look for new growth
                                 if (protein[k].itsO.size() == 0) {  //if it isn't in an oligomer yet...
-                                    for (int m = 0;
+                                    for (unsigned int m = 0;
                                          m < protein[g].itsB.size(); m++) { //check to see if it is in this oligomer
-                                        for (int n = 0; n < protein[k].itsB.size(); n++) {
+                                        for (unsigned int n = 0; n < protein[k].itsB.size(); n++) {
                                             if (dist(protein[g].itsB[m], protein[k].itsB[n]).GetMagnitude() < 1.5) {
                                                 oligomers_list[index].itsS.push_back(
                                                         &protein[k]);   //if it is attached, add it
@@ -496,18 +496,18 @@ int run_simulation(int argc, char *argv[]) {
                 }
             }
             mstime += 1;
-            for (int i = 0; i < oligomers_list.size(); i++) {
+            for (unsigned int i = 0; i < oligomers_list.size(); i++) {
                 if (oligomers_list[i].itsS.size() >= 1) {
                     ms_bin[mstime][(oligomers_list[i].itsS.size() - 1)] += 1;          //fill mass bins
                 }
             }
 
-            for (int j = 0; j < ms_bin[mstime].size(); j++) {
+            for (unsigned int j = 0; j < ms_bin[mstime].size(); j++) {
                 msdata << ms_bin[mstime][j] << setw(15);                //print mass bin data to file
             }
             msdata << endl;
 
-            for (int i = 0; i < protein.size(); i++) {             // clear oligomer pointers from subunit
+            for (unsigned int i = 0; i < protein.size(); i++) {             // clear oligomer pointers from subunit
                 protein[i].itsO.clear();
             }
 
@@ -527,7 +527,7 @@ int run_simulation(int argc, char *argv[]) {
     compute_MD_trust_factor_R(1);                   //computes R
 
 
-
+return 0;
 }
 
 

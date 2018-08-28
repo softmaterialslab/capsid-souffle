@@ -20,7 +20,7 @@ public:
     std::vector<BEAD *> itsB;                        //vector of particles in the pair
     VECTOR3D dummy;                                 //dummy vector
 
-    PAIR(VECTOR3D initial = (0, 0, 0))                  //constructor
+    PAIR(VECTOR3D initial = VECTOR3D(0, 0, 0))                  //constructor
     {
         dummy = initial;                              //dummy vector
     }

@@ -20,7 +20,7 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
         exit(1);
     }
     int charge, index, g1, g2, g3, norm, type;                   //count, charge, index, edge caps
-    unsigned long count;
+    int count;
     long double x, y, z, length,radius, mass, epsilon, sigma;                                //x y z coordinates
     string dummy;                                       //dummy string not imported
 
@@ -59,12 +59,12 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
         vector<int> pog;                                //particles of protein (POG)
         pog.resize((subunit_bead.size()/count));
         crds >> index ;
-                for (int j=0; j<pog.size();j++){
+                for (unsigned int j=0; j<pog.size();j++){
                     crds >> pog[j];
                 }
         crds >> charge;
         protein[index].id=index;
-        for(int j=0;j<(subunit_bead.size()/count);j++)                            //assign particles to subunit and vice versa
+        for(unsigned int j=0;j<(subunit_bead.size()/count);j++)                            //assign particles to subunit and vice versa
         {
             protein[index].itsB.push_back(&subunit_bead[(pog[j])]); //first particle in the subunit, stored in a pointer vector
             subunit_bead[(pog[j])].itsS.push_back(&protein[index]);
@@ -113,7 +113,7 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
         subunit_bead[g3].itsF.push_back(&subunit_face[index]);
 
 
-        for(int j=0;j<(subunit_edge.size());j++)                 //Finding edge between faces and storing the result for later use
+        for(unsigned int j=0;j<(subunit_edge.size());j++)                 //Finding edge between faces and storing the result for later use
         {
                 if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
                 (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id) {
@@ -180,10 +180,10 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
 
     count=0;
 	bool skip_loop = false;
-    for (int i=0; i<subunit_bead.size()-1; i++){
-        for (int j=i+1; j<subunit_bead.size(); j++){
+    for (unsigned int i=0; i<subunit_bead.size()-1; i++){
+        for (unsigned int j=i+1; j<subunit_bead.size(); j++){
             if (subunit_bead[i].unit != subunit_bead[j].unit){
-                for (int k=0; k<lj_a[0].size(); k++){   //make list of LJ pairs to use in simulation. Categorize attractive / repulsive pairs
+                for (unsigned int k=0; k<lj_a[0].size(); k++){   //make list of LJ pairs to use in simulation. Categorize attractive / repulsive pairs
                     if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
                         lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
                         lj_pairlist[count].type=1;
@@ -208,7 +208,7 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
                     }
                 }
                 if (skip_loop == false){
-					for (int k=0; k<lj_r[0].size(); k++){
+					for (unsigned int k=0; k<lj_r[0].size(); k++){
 						if (subunit_bead[i].type == lj_r[1][k] && subunit_bead[j].type == lj_r[2][k]){
 							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
 							lj_pairlist[count].type=0;
@@ -274,7 +274,6 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     }
     //long double SIsigma, SImass, SItime, bondlength;                                //reading in data
     string dummy;
-    double dummy_double;
     crds >> dummy >> dummy >> bondlength >> dummy >> dummy >> SImass >> dummy >> dummy >> SIsigma >> dummy >> dummy >> SItime;
 
     //Determine box size:
@@ -282,16 +281,16 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     VECTOR3D bxsz = VECTOR3D(box_x,box_x,box_x);        //determine box size based on desired concentration
 
     unsigned int num_fill = int(ceil(pow((double(number_capsomeres)), 1.0 / 3.0)));
-    int index = 0;
+    unsigned int index = 0;
 
-    int np;                                             //begin reading in template
+    unsigned int np;                                             //begin reading in template
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> np;
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     long double x,y,z,charge,length,radius, mass;
-    int type,name;
+    unsigned int type,name;
     long double part_template[8][np];
 
-    for (int i=0; i < np; i++){
+    for (unsigned int i=0; i < np; i++){
         crds >> name >> x >> y >> z >> type >> charge >> radius >> mass;
         part_template[0][i] = x;
         part_template[1][i] = y;
@@ -359,12 +358,12 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     inputfile << "# Number of Particles = " << np*number_capsomeres << endl << "Coordinates:" << endl;
     inputfile << "index x y z subunit charge type diameter mass" << endl;
 
-    for (int i = 0; i < num_fill; i++) {
-        for (int j = 0; j < num_fill; j++) {
-            for (int k = 0; k < num_fill; k++) {
+    for (unsigned int i = 0; i < num_fill; i++) {
+        for (unsigned int j = 0; j < num_fill; j++) {
+            for (unsigned int k = 0; k < num_fill; k++) {
                 index += 1;
                 if (number_capsomeres > (index-1)) {
-                    for (int l = 0; l < np; l++) {
+                    for (unsigned int l = 0; l < np; l++) {
 
                         inputfile << index*np-np+l << setw(15) << setprecision(12) <<(((double)i*bxsz.x*(1/(double)num_fill))+part_template[0][l]) << setw(15)
                                   << setprecision(12) <<(((double)j*bxsz.y*(1/(double)num_fill))+part_template[1][l]) << setw(15)
@@ -381,9 +380,9 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     inputfile << endl << endl;
     inputfile << "# Number of Subunits = " << number_capsomeres << endl << endl << "Subunits:" << endl << endl;
     inputfile << "index " << setw(15) << "particles in unit" << setw(15) << "charge" << endl << endl;
-    for (int i=0; i<number_capsomeres; i++){
+    for (unsigned int i=0; i<number_capsomeres; i++){
         inputfile << i << setw(5);
-        for (int j=0; j<np; j++){
+        for (unsigned int j=0; j<np; j++){
             inputfile << (i+1)*np-np+j << setw(5);
         }
         inputfile << 0 << endl;
@@ -391,7 +390,7 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     inputfile << endl <<endl;
     inputfile << "# Number of Edges = " << ne*number_capsomeres << endl << endl << "Edges:" << endl << endl;
     inputfile << "index" << setw(15) << "e1" << setw(15) << "e2" << setw(15) << "type" << setw(15) << "length" << endl << endl;
-    for (int i=0; i<number_capsomeres; i++){
+    for (unsigned int i=0; i<number_capsomeres; i++){
         for (int j=0; j<ne; j++){
             inputfile << index << setw(15) << edge_template[1][j]+np*(double)i << setw(15) <<
                          edge_template[2][j]+np*(double)i << setw(15) << edge_template[3][j] << setw(15) << setprecision(12) <<edge_template[4][j] << endl;
@@ -403,7 +402,7 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     inputfile << endl << endl;
     inputfile << "# Number of Triangles = " << nt*number_capsomeres << endl << endl << "Triangles:" <<endl <<endl;
     inputfile << "index" << setw(15) <<	"t1" <<setw(15) << "t2" << setw(15) << "t3" <<setw(15) << "type" << setw(15) << "normal" <<endl <<endl;
-    for (int i=0; i<number_capsomeres; i++){
+    for (unsigned int i=0; i<number_capsomeres; i++){
         for (int j=0; j<nt; j++){
             inputfile << index << setw(5) << face_template[1][j]+np*(double)i << setw(5) << face_template[2][j]+np*(double)i
                       << setw(5) << face_template[3][j]+np*(double)i << setw(5) << face_template[5][j] << setw(5) << face_template[4][j] << endl;
@@ -429,7 +428,7 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
 void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead, double T){
 	for (unsigned int i = 0; i < protein.size(); i+=4)
 	{
-		for (int j = 0; j < protein[i].itsB.size(); j++) {
+		for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
             protein[i+0].itsB[j]->vel = VECTOR3D(+0.4, -0.2, -0.5);
 			protein[i+1].itsB[j]->vel = VECTOR3D(-0.3, +0.3, -0.4);
 			protein[i+2].itsB[j]->vel = VECTOR3D(-0.2, +0.5, +0.3);
@@ -440,7 +439,7 @@ void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> 
 	// average velocity should be 0; as there is no net flow of the system in any particular direction; we do this next
     VECTOR3D average_velocity_vector = VECTOR3D(0,0,0);
     for (unsigned int i = 0; i < protein.size(); i++) {
-        for (int j=0;j<protein[i].itsB.size();j++) {
+        for (unsigned int j=0;j<protein[i].itsB.size();j++) {
             average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
         }
     }
@@ -478,7 +477,7 @@ void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> 
 
 
 void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead, double T){ //VIKRAM MANY_PARTICLE CODE BLOCK *editted*
-    double sigma = sqrt(T);// a rough estimate of how large is the spread in the velocities of the particles at a given temperature
+    //double sigma = sqrt(T);// a rough estimate of how large is the spread in the velocities of the particles at a given temperature
     // Maxwell distribution width
     // assumes all lj atoms have the same mass
     RAND_GEN ugsl;
@@ -494,7 +493,7 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
         double uy = 0.5 * (rnumber) + (-0.5) * (1 - rnumber); // scale to get the number between -0.5 and 0.5
         rnumber = gsl_rng_uniform(ugsl.r);
         double uz = 0.5 * (rnumber) + (-0.5) * (1 - rnumber); // scale to get the number between -0.5 and 0.5
-        for (int j=0;j<protein[i].itsB.size();j++) {
+        for (unsigned int j=0;j<protein[i].itsB.size();j++) {
             protein[i].itsB[j]->vel = VECTOR3D(ux, uy, uz);
         }
     }
@@ -502,7 +501,7 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
     // average velocity should be 0; as there is no net flow of the system in any particular direction; we do this next
     VECTOR3D average_velocity_vector = VECTOR3D(0,0,0);
     for (unsigned int i = 0; i < protein.size(); i++) {
-        for (int j=0;j<protein[i].itsB.size();j++) {
+        for (unsigned int j=0;j<protein[i].itsB.size();j++) {
             average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
         }
     }
