@@ -191,7 +191,7 @@ int run_simulation(int argc, char *argv[]) {
     double expfac_real ;//= exp(-0.5 * delta_t * real_bath[0].xi);
 
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                    //setting up random seed for brownian
-    unsigned long int Seed = 23410981;
+   unsigned long int Seed = 23410981;
     gsl_rng_set(r, Seed);
 
 
@@ -367,8 +367,8 @@ int run_simulation(int argc, char *argv[]) {
             //update_ES_energies(protein, lb, ni, qs);
 			update_ES_energies_simplified( subunit_bead, lb, ni, qs);
 
-            update_LJ_energies(protein, ecut);
-			//update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
+            //update_LJ_energies(protein, ecut);
+			update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
 
             for (unsigned int i = 0; i < protein.size(); i++)        //blanking out energies here
             {
@@ -454,7 +454,7 @@ int run_simulation(int argc, char *argv[]) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								MASS SPECTRUM ANALYSIS													*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
             for (unsigned int i = 0; i < protein.size(); i++)           //Create oligomers for mass spectrum analysis
             {
                 double oldsize = 0;
@@ -512,7 +512,7 @@ int run_simulation(int argc, char *argv[]) {
             }
 
             oligomers_list.erase(oligomers_list.begin(),
-                                 oligomers_list.end());                 //erases oligomer objects
+                                 oligomers_list.end());                 //erases oligomer objects*/
 
 
         }//end of energy analysis loop

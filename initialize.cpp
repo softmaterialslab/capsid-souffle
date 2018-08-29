@@ -185,23 +185,23 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
             if (subunit_bead[i].unit != subunit_bead[j].unit){
                 for (unsigned int k=0; k<lj_a[0].size(); k++){   //make list of LJ pairs to use in simulation. Categorize attractive / repulsive pairs
                     if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
-                        lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-                        lj_pairlist[count].type=1;
-                        lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
-                        lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
-                        lj_pairlist[count].epsilon=lj_a[3][k];
-                        lj_pairlist[count].sigma=lj_a[4][k];
-						PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
-						subunit_bead[i].itsP.push_back(new_pair);
-						subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
-						subunit_bead[i].itsP.back()->type = 1;
-						subunit_bead[i].itsP.back()->epsilon = lj_a[3][k];
-						subunit_bead[i].itsP.back()->sigma = lj_a[4][k];
-						subunit_bead[j].itsP.push_back(new_pair);
-						subunit_bead[j].itsP.back()->itsB.push_back(&subunit_bead[i]);
-						subunit_bead[j].itsP.back()->type = 1;
-						subunit_bead[j].itsP.back()->epsilon = lj_a[3][k];
-						subunit_bead[j].itsP.back()->sigma = lj_a[4][k];
+//                         lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+//                         lj_pairlist[count].type=1;
+//                         lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
+//                         lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
+//                         lj_pairlist[count].epsilon=lj_a[3][k];
+//                         lj_pairlist[count].sigma=lj_a[4][k];
+// 						PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
+// 						subunit_bead[i].itsP.push_back(new_pair);
+// 						subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
+// 						subunit_bead[i].itsP.back()->type = 1;
+// 						subunit_bead[i].itsP.back()->epsilon = lj_a[3][k];
+// 						subunit_bead[i].itsP.back()->sigma = lj_a[4][k];
+// 						subunit_bead[j].itsP.push_back(new_pair);
+// 						subunit_bead[j].itsP.back()->itsB.push_back(&subunit_bead[i]);
+// 						subunit_bead[j].itsP.back()->type = 1;
+// 						subunit_bead[j].itsP.back()->epsilon = lj_a[3][k];
+// 						subunit_bead[j].itsP.back()->sigma = lj_a[4][k];
                         count+=1;
 						skip_loop = true;
 						break;
@@ -210,23 +210,23 @@ vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> 
                 if (skip_loop == false){
 					for (unsigned int k=0; k<lj_r[0].size(); k++){
 						if (subunit_bead[i].type == lj_r[1][k] && subunit_bead[j].type == lj_r[2][k]){
-							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-							lj_pairlist[count].type=0;
-							lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
-							lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
-							lj_pairlist[count].epsilon=lj_r[3][k];
-							lj_pairlist[count].sigma=lj_r[4][k];
-							PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
-							subunit_bead[i].itsP.push_back(new_pair);
-							subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
-							subunit_bead[i].itsP.back()->type = 0;
-							subunit_bead[i].itsP.back()->epsilon = lj_r[3][k];
-							subunit_bead[i].itsP.back()->sigma = lj_r[4][k];
-							subunit_bead[j].itsP.push_back(new_pair);
-							subunit_bead[j].itsP.back()->itsB.push_back(&subunit_bead[i]);
-							subunit_bead[j].itsP.back()->type = 0;
-							subunit_bead[j].itsP.back()->epsilon = lj_r[3][k];
-							subunit_bead[j].itsP.back()->sigma = lj_r[4][k];
+// 							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
+// 							lj_pairlist[count].type=0;
+// 							lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
+// 							lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
+// 							lj_pairlist[count].epsilon=lj_r[3][k];
+// 							lj_pairlist[count].sigma=lj_r[4][k];
+// 							PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
+// 							subunit_bead[i].itsP.push_back(new_pair);
+// 							subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
+// 							subunit_bead[i].itsP.back()->type = 0;
+// 							subunit_bead[i].itsP.back()->epsilon = lj_r[3][k];
+// 							subunit_bead[i].itsP.back()->sigma = lj_r[4][k];
+// 							subunit_bead[j].itsP.push_back(new_pair);
+// 							subunit_bead[j].itsP.back()->itsB.push_back(&subunit_bead[i]);
+// 							subunit_bead[j].itsP.back()->type = 0;
+// 							subunit_bead[j].itsP.back()->epsilon = lj_r[3][k];
+// 							subunit_bead[j].itsP.back()->sigma = lj_r[4][k];
 							count+=1;
 							skip_loop = true;
 							break;

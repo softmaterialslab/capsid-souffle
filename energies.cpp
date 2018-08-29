@@ -189,15 +189,15 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 					 sigma6 = pow(shc,6);
 					 double elj = 1;//subunit_bead[j].epsilon;
 					 r6 = pow((r-del),6);
-					 subunit_bead[i].ne += ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
+					 subunit_bead[i].ne += 0.5*((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
 				 } else if ( r < ((del+1.12246205*shc)*ecut) && lj_attractive == true ){			//Attractive
 					 double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
 					 double ecut12 = ecut6 * ecut6;
 					 r6 = pow((r-del),6);
 					 sigma6 = pow(shc,6);
 					 double elj = 2;//subunit_bead[j].epsilon;
-					 subunit_bead[i].ne += ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) -
-															 (4 * elj * ((1 / ecut12) - (1 / ecut6))));
+					 subunit_bead[i].ne += 0.5* (((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) -
+															 (4 * elj * ((1 / ecut12) - (1 / ecut6)))));
 				 } else {
 					 subunit_bead[i].ne += 0;
 				 }
