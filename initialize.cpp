@@ -8,245 +8,6 @@
 
 using namespace std;
 
-vector<vector<int> > initialize_system(vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, \
-                        VECTOR3D bxsz, vector<PAIR> & lj_pairlist)
-{
-    /*                                            OPEN FILE                                                            */
-
-    ifstream crds;                                      //open coordinates file
-    crds.open("outfiles/input.GEN.out");
-    if (!crds) {                                        //check to make sure file is there
-        cerr << "ERR: FILE NOT OPENED. Check directory and/or filename.";
-        exit(1);
-    }
-    int charge, index, g1, g2, g3, norm, type;                   //count, charge, index, edge caps
-    int count;
-    long double x, y, z, length,radius, mass, epsilon, sigma;                                //x y z coordinates
-    string dummy;                                       //dummy string not imported
-
-
-
-
-
-
-
-
-/*                                                 PARTICLES                                                        */
-
-    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    cout << "There are " << count << " beads in the system." << endl;
-    for(int i=0;i<count;i++)
-    {                                                   //Read file and initialize positions, id and charge
-        crds >> index >> x >> y >> z >> dummy >> charge >> type >> radius >> mass;
-        subunit_bead.push_back(BEAD(VECTOR3D(x,y,z)));
-        subunit_bead[index].id = index;
-        subunit_bead[index].q = charge;
-        subunit_bead[index].type = type;
-        subunit_bead[index].sigma = radius;
-        subunit_bead[index].m = mass;                           //assign mass (clone of user value)
-        subunit_bead[index].bx=bxsz;
-    }
-
-
-
-/*                                                   SUBSUBUNITS                                                        */
-
-    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    cout << "There is(are) " << count << " subunit(s) in the system." << endl;
-    protein.resize(count);
-    for(int i=0;i<count;i++)
-    {
-        vector<int> pog;                                //particles of protein (POG)
-        pog.resize((subunit_bead.size()/count));
-        crds >> index ;
-                for (unsigned int j=0; j<pog.size();j++){
-                    crds >> pog[j];
-                }
-        crds >> charge;
-        protein[index].id=index;
-        for(unsigned int j=0;j<(subunit_bead.size()/count);j++)                            //assign particles to subunit and vice versa
-        {
-            protein[index].itsB.push_back(&subunit_bead[(pog[j])]); //first particle in the subunit, stored in a pointer vector
-            subunit_bead[(pog[j])].itsS.push_back(&protein[index]);
-            subunit_bead[(pog[j])].unit = protein[index].id;
-        }
-    }
-
-
-
-/*                                                      EDGES                                                       */
-
-    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    cout << "There are " << count << " edges in the system." << endl;
-    subunit_edge.resize(count);
-    for(int i=0;i<count;i++)
-    {                                                   //Read file and initialize positions, id and charge
-        crds >> index >> g1 >> g2 >> type >> length;
-        subunit_edge[index].id=index;
-        subunit_edge[index].type=type;
-        subunit_edge[index].len0=length;
-        subunit_edge[index].itsB.push_back(&subunit_bead[g1]);     //first particle in the edge (stored in pointer vector in EDGE class)
-        subunit_edge[index].itsB.push_back(&subunit_bead[g2]);
-        subunit_bead[g1].itsE.push_back(&subunit_edge[index]);     //the edge on g1 (stored in pointer vector in PARTICLE class)
-        subunit_bead[g2].itsE.push_back(&subunit_edge[index]);
-		subunit_bead[g1].itsS[0]->itsE.push_back(&subunit_edge[index]);
-    }
-
-
-
-
-/*                                                      PARTICLE FACES                                              */
-
-
-    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    cout << "There are " << count << " bead faces in the system." << endl;
-    subunit_face.resize(count);
-    for(int i=0;i<count;i++) {
-        crds >> index >> g1 >> g2 >> g3 >> type >>norm;
-        subunit_face[index].id = index;
-        subunit_face[index].type = type;
-        subunit_face[index].itsB.push_back(&subunit_bead[g1]);
-        subunit_face[index].itsB.push_back(&subunit_bead[g2]);
-        subunit_face[index].itsB.push_back(&subunit_bead[g3]);
-        subunit_bead[g1].itsF.push_back(&subunit_face[index]);
-        subunit_bead[g2].itsF.push_back(&subunit_face[index]);
-        subunit_bead[g3].itsF.push_back(&subunit_face[index]);
-
-
-        for(unsigned int j=0;j<(subunit_edge.size());j++)                 //Finding edge between faces and storing the result for later use
-        {
-                if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
-                (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id) {
-                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
-                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
-                } else if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[1]).id && \
-                       (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[0]).id) {
-                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
-                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
-                }
-
-                if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
-                (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[1]).id) {
-                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
-                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
-                } else if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[1]).id && \
-                       (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[0]).id) {
-                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
-                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
-                }
-
-                if ((*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id && \
-                (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[0]).id) {
-                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
-                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
-                } else if ((*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[0]).id && \
-                       (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[1]).id) {
-                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
-                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
-                }
-        }                                               //edge_btw function --assigning edges/faces to each other
-
-
-    }
-
-/*                                                  LJ PAIR                                                         */
-    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy;
-    cout << "There are " << count << " types of LJ attractive pairs." << endl;
-    vector<vector<int> > lj_a(5,vector<int>(count));
-    for (int i=0; i<count; i++){
-        crds >> index >> g1 >> g2 >> epsilon >> sigma;
-        lj_a[0][i] = index;
-        lj_a[1][i] = g1;
-        lj_a[2][i] = g2;
-        lj_a[3][i] = epsilon;
-        lj_a[4][i] = sigma;
-    }
-    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> count >> dummy >> dummy >> dummy >> dummy >> dummy;
-    cout << "There are " << count << " types of LJ repulsive pairs." << endl;
-    vector<vector<int> > lj_r(5,vector<int>(count));
-    for (int i=0; i<count; i++){
-        crds >> index >> g1 >> g2 >> epsilon >> sigma;
-        lj_r[0][i] = index;
-        lj_r[1][i] = g1;
-        lj_r[2][i] = g2;
-        lj_r[3][i] = epsilon;
-        lj_r[4][i] = sigma;
-    }
-
-    crds.close();                                       //closing file
-
-
-/*                                                  MAKING LJ PAIRS                                                   */
-
-    count=0;
-	bool skip_loop = false;
-    for (unsigned int i=0; i<subunit_bead.size()-1; i++){
-        for (unsigned int j=i+1; j<subunit_bead.size(); j++){
-            if (subunit_bead[i].unit != subunit_bead[j].unit){
-                for (unsigned int k=0; k<lj_a[0].size(); k++){   //make list of LJ pairs to use in simulation. Categorize attractive / repulsive pairs
-                    if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
-//                         lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-//                         lj_pairlist[count].type=1;
-//                         lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
-//                         lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
-//                         lj_pairlist[count].epsilon=lj_a[3][k];
-//                         lj_pairlist[count].sigma=lj_a[4][k];
-// 						PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
-// 						subunit_bead[i].itsP.push_back(new_pair);
-// 						subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
-// 						subunit_bead[i].itsP.back()->type = 1;
-// 						subunit_bead[i].itsP.back()->epsilon = lj_a[3][k];
-// 						subunit_bead[i].itsP.back()->sigma = lj_a[4][k];
-// 						subunit_bead[j].itsP.push_back(new_pair);
-// 						subunit_bead[j].itsP.back()->itsB.push_back(&subunit_bead[i]);
-// 						subunit_bead[j].itsP.back()->type = 1;
-// 						subunit_bead[j].itsP.back()->epsilon = lj_a[3][k];
-// 						subunit_bead[j].itsP.back()->sigma = lj_a[4][k];
-                        count+=1;
-						skip_loop = true;
-						break;
-                    }
-                }
-                if (skip_loop == false){
-					for (unsigned int k=0; k<lj_r[0].size(); k++){
-						if (subunit_bead[i].type == lj_r[1][k] && subunit_bead[j].type == lj_r[2][k]){
-// 							lj_pairlist.push_back(PAIR(VECTOR3D(0,0,0)));
-// 							lj_pairlist[count].type=0;
-// 							lj_pairlist[count].itsB.push_back(&subunit_bead[i]);
-// 							lj_pairlist[count].itsB.push_back(&subunit_bead[j]);
-// 							lj_pairlist[count].epsilon=lj_r[3][k];
-// 							lj_pairlist[count].sigma=lj_r[4][k];
-// 							PAIR* new_pair = new PAIR(VECTOR3D(0,0,0));
-// 							subunit_bead[i].itsP.push_back(new_pair);
-// 							subunit_bead[i].itsP.back()->itsB.push_back(&subunit_bead[j]);
-// 							subunit_bead[i].itsP.back()->type = 0;
-// 							subunit_bead[i].itsP.back()->epsilon = lj_r[3][k];
-// 							subunit_bead[i].itsP.back()->sigma = lj_r[4][k];
-// 							subunit_bead[j].itsP.push_back(new_pair);
-// 							subunit_bead[j].itsP.back()->itsB.push_back(&subunit_bead[i]);
-// 							subunit_bead[j].itsP.back()->type = 0;
-// 							subunit_bead[j].itsP.back()->epsilon = lj_r[3][k];
-// 							subunit_bead[j].itsP.back()->sigma = lj_r[4][k];
-							count+=1;
-							skip_loop = true;
-							break;
-						}
-					}
-				}
-                if (skip_loop == false) 
-				{ 
-					cout << "ERROR!!! Beads " << subunit_bead[i].id << " and " << subunit_bead[j].id << " are not an LJ pair!" << endl;
-				} else skip_loop = false;
-            }
-        }
-    }
-
-    cout << "Done initializing" << endl;
-	
-	return lj_a;
-
-}
-
 
 
 
@@ -256,13 +17,13 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile)
     reftraj << "time" << setw(15) << "kinetic" << setw(15) << "stretching" << setw(15) << "bending" << setw(15) << "LJ" <<
                setw(15) <<  "electrostatics" << setw(15) << "total" \
             << setw(15) << "potential" << setw(15) << "temperature" << endl;
-
-
-
 }
 
 
-void generate_lattice (double capsomere_concentration,unsigned int number_capsomeres, string file_name, double &bondlength,  double &SIsigma,  double &SImass, double &SItime) {
+
+
+
+vector<vector<int> > generate_lattice (double capsomere_concentration,unsigned int number_capsomeres, string file_name, double &bondlength,  double &SIsigma,  double &SImass, double &SItime, vector<BEAD> &subunit_bead, vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face) {
 
     ofstream inputfile("outfiles/input.GEN.out", ios::out);
 
@@ -332,7 +93,8 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     double epsilon,sigma;
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> na;
     crds >> dummy >> dummy >> dummy >> dummy >> dummy;
-    long double lj_a_template[5][na];
+    //long double lj_a_template[5][na];
+	vector<vector<int> > lj_a_template(5,vector<int>(na));
     for (int i=0; i<na; i++){
         crds >> name >> e1 >> e2 >> epsilon >> sigma;
         lj_a_template[0][i] = name;
@@ -343,7 +105,7 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     }
     int nr=0;
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> nr >> dummy >> dummy >> dummy >> dummy >> dummy;
-    long double lj_r_template[5][nr];
+    int lj_r_template[5][nr];
     for (int i=0; i<nr; i++){
         crds >> name >> e1 >> e2 >> epsilon >> sigma;
         lj_r_template[0][i] = name;
@@ -358,70 +120,158 @@ void generate_lattice (double capsomere_concentration,unsigned int number_capsom
     inputfile << "# Number of Particles = " << np*number_capsomeres << endl << "Coordinates:" << endl;
     inputfile << "index x y z subunit charge type diameter mass" << endl;
 
+	int myindex = 0;
+	
+	
     for (unsigned int i = 0; i < num_fill; i++) {
         for (unsigned int j = 0; j < num_fill; j++) {
             for (unsigned int k = 0; k < num_fill; k++) {
                 index += 1;
                 if (number_capsomeres > (index-1)) {
                     for (unsigned int l = 0; l < np; l++) {
-
-                        inputfile << index*np-np+l << setw(15) << setprecision(12) <<(((double)i*bxsz.x*(1/(double)num_fill))+part_template[0][l]) << setw(15)
-                                  << setprecision(12) <<(((double)j*bxsz.y*(1/(double)num_fill))+part_template[1][l]) << setw(15)
-                                  << setprecision(12) <<(((double)k*bxsz.z*(1/(double)num_fill))+part_template[2][l]) << setw(15) << index << setw(15)
-                                  << part_template[4][l] << setw(15) << part_template[3][l] << setw(15) << setprecision(12) <<part_template[6][l]
-                                  << setw(20) << part_template[7][l] << endl;
+						x = (((double)i*bxsz.x*(1/(double)num_fill))+part_template[0][l]);
+						y = (((double)j*bxsz.y*(1/(double)num_fill))+part_template[1][l]);
+						z = (((double)k*bxsz.z*(1/(double)num_fill))+part_template[2][l]);
+						myindex = index*np-np+l;
+						subunit_bead.push_back(BEAD(VECTOR3D(x,y,z)));
+						subunit_bead[myindex].id = myindex;
+						subunit_bead[myindex].q = part_template[4][l];
+						subunit_bead[myindex].type = part_template[3][l];
+						subunit_bead[myindex].sigma = part_template[6][l];
+						subunit_bead[myindex].m = part_template[7][l];                           //assign mass (clone of user value)
+						subunit_bead[myindex].bx=bxsz;
+						subunit_bead[myindex].unit = index;
+						
+						inputfile << subunit_bead[myindex].id << setw(15) << setprecision(12) << subunit_bead[myindex].pos.x << setw(15) << setprecision(12) << subunit_bead[myindex].pos.y << setw(15) << setprecision(12) << subunit_bead[myindex].pos.z << setw(15) << subunit_bead[myindex].unit  << setw(15) << subunit_bead[myindex].q << setw(15) << subunit_bead[myindex].type << setw(15) << subunit_bead[myindex].sigma << setw(20)  << setprecision(12) << subunit_bead[myindex].m << endl;
 
                     }
                 }
             }
         }
     }
+    
+    
     index=0;
     inputfile << endl << endl;
     inputfile << "# Number of Subunits = " << number_capsomeres << endl << endl << "Subunits:" << endl << endl;
     inputfile << "index " << setw(15) << "particles in unit" << setw(15) << "charge" << endl << endl;
+	protein.resize(number_capsomeres);
     for (unsigned int i=0; i<number_capsomeres; i++){
-        inputfile << i << setw(5);
+
+		protein[i].id = i;
+		inputfile << protein[i].id << setw(5) ;
         for (unsigned int j=0; j<np; j++){
-            inputfile << (i+1)*np-np+j << setw(5);
+			
+			protein[i].itsB.push_back(&subunit_bead[((i+1)*np-np+j)]); //first particle in the subunit, stored in a pointer vector
+            subunit_bead[((i+1)*np-np+j)].itsS.push_back(&protein[i]);
+			
+			inputfile << subunit_bead[(i+1)*np-np+j].id << setw(5);
+			
         }
-        inputfile << 0 << endl;
+		inputfile << -11 << endl;
     }
+    
+    
     inputfile << endl <<endl;
     inputfile << "# Number of Edges = " << ne*number_capsomeres << endl << endl << "Edges:" << endl << endl;
     inputfile << "index" << setw(15) << "e1" << setw(15) << "e2" << setw(15) << "type" << setw(15) << "length" << endl << endl;
+	subunit_edge.resize(ne*number_capsomeres);
     for (unsigned int i=0; i<number_capsomeres; i++){
         for (int j=0; j<ne; j++){
-            inputfile << index << setw(15) << edge_template[1][j]+np*(double)i << setw(15) <<
-                         edge_template[2][j]+np*(double)i << setw(15) << edge_template[3][j] << setw(15) << setprecision(12) <<edge_template[4][j] << endl;
+			
+			int g1 = edge_template[1][j]+np*(double)i;
+			int g2 = edge_template[2][j]+np*(double)i;
+			
+			
+			subunit_edge[index].id=index;
+			subunit_edge[index].type=edge_template[3][j];
+			subunit_edge[index].len0=edge_template[4][j];
+			subunit_edge[index].itsB.push_back(&subunit_bead[g1]);     //first particle in the edge (stored in pointer vector in EDGE class)
+			subunit_edge[index].itsB.push_back(&subunit_bead[g2]);
+			subunit_bead[g1].itsE.push_back(&subunit_edge[index]);     //the edge on g1 (stored in pointer vector in PARTICLE class)
+			subunit_bead[g2].itsE.push_back(&subunit_edge[index]);
+			subunit_bead[g1].itsS[0]->itsE.push_back(&subunit_edge[index]);
+			
+			inputfile << subunit_edge[index].id << setw(15) << subunit_edge[index].itsB[0]->id << setw(15) << subunit_edge[index].itsB[1]->id << setw(15) << subunit_edge[index].type << setw(15) << setprecision(12) << subunit_edge[index].len0 << endl;
+			
             index +=1;
 
         }
     }
+    
     index =0;
     inputfile << endl << endl;
     inputfile << "# Number of Triangles = " << nt*number_capsomeres << endl << endl << "Triangles:" <<endl <<endl;
     inputfile << "index" << setw(15) <<	"t1" <<setw(15) << "t2" << setw(15) << "t3" <<setw(15) << "type" << setw(15) << "normal" <<endl <<endl;
+	subunit_face.resize(nt*number_capsomeres);
     for (unsigned int i=0; i<number_capsomeres; i++){
         for (int j=0; j<nt; j++){
-            inputfile << index << setw(5) << face_template[1][j]+np*(double)i << setw(5) << face_template[2][j]+np*(double)i
-                      << setw(5) << face_template[3][j]+np*(double)i << setw(5) << face_template[5][j] << setw(5) << face_template[4][j] << endl;
-            index+=1;
+			
+			int g1 = face_template[1][j]+np*(double)i;
+			int g2 = face_template[2][j]+np*(double)i;
+			int g3 = face_template[3][j]+np*(double)i;
+			
+			subunit_face[index].id = index;
+			subunit_face[index].type = face_template[5][j];
+			subunit_face[index].itsB.push_back(&subunit_bead[g1]);
+			subunit_face[index].itsB.push_back(&subunit_bead[g2]);
+			subunit_face[index].itsB.push_back(&subunit_bead[g3]);
+			subunit_bead[g1].itsF.push_back(&subunit_face[index]);
+			subunit_bead[g2].itsF.push_back(&subunit_face[index]);
+			subunit_bead[g3].itsF.push_back(&subunit_face[index]);
+			
+			inputfile << subunit_face[index].id << setw(5) << subunit_face[index].itsB[0]->id << setw(5) << subunit_face[index].itsB[1]->id << setw(5) << subunit_face[index].itsB[2]->id << setw(5) << subunit_face[index].type << setw(5) << 1 << endl;
+			
+			
+			 for(unsigned int j=0;j<(subunit_edge.size());j++)                 //Finding edge between faces and storing the result for later use
+        {
+                if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
+                (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                } else if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[1]).id && \
+                       (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[0]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                }
+
+                if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
+                (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[1]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                } else if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[1]).id && \
+                       (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[0]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                }
+
+                if ((*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id && \
+                (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[0]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                } else if ((*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[0]).id && \
+                       (*subunit_face[index].itsB[2]).id == (*subunit_edge[j].itsB[1]).id) {
+                    subunit_face[index].itsE.push_back(&subunit_edge[j]);
+                    subunit_edge[j].itsF.push_back(&subunit_face[index]);
+                }
+        }                                               //edge_btw function --assigning edges/faces to each other
+        index+=1;
         }
     }
-    inputfile << endl << endl << "# Number of LJ Attractions = " << na << endl << endl;
-    inputfile << "index" << setw(15) << "p1" << setw(15) << "p2" << setw(15) << "epsilon" << setw(15) << "sigmaHC" << endl;
-    for (int i=0; i<na; i++){
-        inputfile << lj_a_template[0][i] << setw(15) << lj_a_template[1][i] << setw(15) << lj_a_template[2][i] <<
-                     setw(15) << lj_a_template[3][i] << setw(15) << lj_a_template[4][i] << endl;
-    }
-    inputfile << endl << endl << "# Number of LJ Repulsers = " << nr << endl << endl;
-    inputfile << "index" << setw(15) << "p1" << setw(15) << "p2" << setw(15) << "epsilon" << setw(15) << "sigmaHC" << endl;
-    for (int i=0; i<nr; i++){
-        inputfile << lj_r_template[0][i] << setw(15) << lj_r_template[1][i] << setw(15) << lj_r_template[2][i] <<
-                     setw(15) << lj_r_template[3][i] << setw(15) << lj_r_template[4][i] << endl;
-    }
+    
+
+	return lj_a_template;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -474,6 +324,17 @@ void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> 
     double set_T = scaled_ke / (1.5*subunit_bead.size());
     cout << "initial velocities corrrespond to this set temperature " << set_T << endl;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead, double T){ //VIKRAM MANY_PARTICLE CODE BLOCK *editted*

@@ -90,9 +90,11 @@ int run_simulation(int argc, char *argv[]) {
     double T = 1;                                            //set temperature (reduced units)
     double chain_length_real = 5;                           //nose hoover chain length
     double Q = 1;                                           //nose hoover mass (reduced units)
-
-    generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass,
-                     SItime);     //Setting up the input file (uses user specified file to generate lattice)
+    
+    
+	vector<vector<int> > lj_a;
+    lj_a = generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass,
+                     SItime, subunit_bead, subunit_edge, protein, subunit_face);     //Setting up the input file (uses user specified file to generate lattice)
 
     sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
             << delta_t * SItime / (1e-12) << " picosecond timestep." << endl;
@@ -113,8 +115,6 @@ int run_simulation(int argc, char *argv[]) {
     sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
     sysdata << "Screening length is " << 8.7785 / sqrt(salt_concentration) << " nanometers." << endl;
 
-	vector<vector<int> > lj_a;
-    lj_a = initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
 
 
     //user-derived parameters (not edittable)
