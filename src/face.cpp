@@ -33,7 +33,7 @@ void FACE::update_area(){                                                   //up
 
 BEAD* FACE::across(EDGE* theE)                                              //finds the face across from an edge
 {
-    for(int i=0;i<itsB.size();i++)
+    for(unsigned int i=0;i<itsB.size();i++)
     {
         if (this->itsB[i] != theE->itsB[0] && this->itsB[i] != theE->itsB[1])
         {

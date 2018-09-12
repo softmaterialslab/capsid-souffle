@@ -25,12 +25,12 @@ class BEAD
 public:
 
 //member variables
-    int id;                             //particle ID
+    int id ;                         //particle ID
     double m;                           //mass of the particle (amu)
     double sigma;                       //diameter of particle (unitless)
     VECTOR3D bx;
-    int unit;
-    int type;
+    int unit ;
+    int type ;
     VECTOR3D pos;                       //position of the particle (xyz) (unitless)
     VECTOR3D vel;                       //velocity of the particle (xyz) (delt^-1)
     VECTOR3D sforce;                    //force on the particle (xyz) (amu/delt^2)
@@ -54,10 +54,14 @@ public:
 
 //member functions
 
-    BEAD(VECTOR3D position_i=(0,0,0),double mi=0)
+    BEAD(VECTOR3D position_i=VECTOR3D(0,0,0),double mi=0, int id_i=0, int unit_i=0, int type_i=0, OLIGOMER* itsO_i=NULL)
     {                                                       //constructor fxn
         m = mi;
         pos = position_i;
+		id = id_i;
+		unit = unit_i;
+		type = type_i;
+		itsO = itsO_i;
     }
 
     void update_position(double delt)                       //position updated full timestep
@@ -80,21 +84,21 @@ public:
 
     void update_velocity(double delt)                       //velocity updated half timestep (No thermostat)
     {
-        tforce = sforce + bforce + ljforce + eforce;
+        //tforce = sforce + bforce + ljforce + eforce;
         vel = ( vel + ( (tforce) ^ (0.5*delt/m) ) );
     }
 
     // update velocity with integrator that unifies velocity verlet and Nose-Hoover
     void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac)
     {
-        tforce = sforce + bforce + ljforce + eforce;
+        //tforce = sforce + bforce + ljforce + eforce;
         vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * std::sqrt(expfac) / m) ) );
         return;
     }
 
     void brownian_update_velocity(double delt, double fric_zeta){
         RAND_GEN ugsl;
-        tforce = sforce + bforce + ljforce + eforce;
+        //tforce = sforce + bforce + ljforce + eforce;
         vel.x += (vel.x*(-0.5*fric_zeta*delt)) + (tforce.x*(0.5*delt/m)) +
                          sqrt(2*6*delt*fric_zeta/m)*(gsl_rng_uniform(ugsl.r)-0.5);
         vel.y += (vel.y*(-0.5*fric_zeta*delt)) + (tforce.y*(0.5*delt/m)) +

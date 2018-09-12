@@ -5,9 +5,21 @@
 #ifndef LEMONSOUFFLE_VECTOR3D_H
 #define LEMONSOUFFLE_VECTOR3D_H
 #include <cmath>
+#include "utility.h"
 
 class VECTOR3D
 {
+private:
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar & x;
+        ar & y;
+        ar & z;
+    }
+
 public:
     long double x, y, z; // component along each axis (cartesian)
     // make a 3d vector-- this is the constructor, used a lot to make 3D vectors.

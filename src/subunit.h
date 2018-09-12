@@ -31,7 +31,7 @@ public:
     double vsum;                            // magnitude of average velocity
 
     //member fxns
-    SUBUNIT(VECTOR3D initial=(0,0,0))       //constructor
+    SUBUNIT(VECTOR3D initial=VECTOR3D(0,0,0))       //constructor
     {
         vsumvec=initial;
     }

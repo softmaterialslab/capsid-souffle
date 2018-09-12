@@ -27,7 +27,7 @@ public:
     std::vector<EDGE*> itsE;               //bending edges on the face
 
     //member fxns
-    FACE(VECTOR3D initial=(0,0,0), int id_i=0)          //constructor
+    FACE(VECTOR3D initial=VECTOR3D(0,0,0), int id_i=0)          //constructor
     {
         normvec=initial;
         id = id_i;

@@ -11,10 +11,20 @@
 #include "energies.h"
 #include "forces.h"
 #include "md.h"
-#include <boost/program_options.hpp>
+
 
 using namespace std;
 using namespace boost::program_options;
+
+
+//MPI boundary parameters
+unsigned int lowerBound;
+unsigned int upperBound;
+unsigned int sizFVec;
+unsigned int extraElements;
+
+mpi::environment env;
+mpi::communicator world;
 
 int run_simulation(int argc, char *argv[]) {
 
@@ -32,16 +42,20 @@ int run_simulation(int argc, char *argv[]) {
     options_description desc("Usage:\nrandom_mesh <options>");
     desc.add_options()
             ("help,h", "print usage message")
-            ("Dynamics Response,D", value<char>(&response)->default_value('m'), "To run brownian dynamics (overdamped langevin) enter 'b'. Otherwise, to run molecular dynamics with nose' hoover thermostat enter 'm'. [b/m]")
+            ("Dynamics Response,D", value<char>(&response)->default_value('m'),
+             "To run brownian dynamics (overdamped langevin) enter 'b'. Otherwise, to run molecular dynamics with nose' hoover thermostat enter 'm'. [b/m]")
             ("filename,f", value<string>(&file_name)->default_value("41part"), "Filename?")
-            ("capsomere concentration,C", value<double>(&capsomere_concentration)->default_value(931), "capsomere concentration (micromolar)")
-            ("salt concentration,c", value<double>(&salt_concentration)->default_value(0), "salt concentration (millimolar)")
+            ("capsomere concentration,C", value<double>(&capsomere_concentration)->default_value(931),
+             "capsomere concentration (micromolar)")
+            ("salt concentration,c", value<double>(&salt_concentration)->default_value(0),
+             "salt concentration (millimolar)")
             ("stretching constant,s", value<double>(&ks)->default_value(100), "stretching constant (KbT)")
             ("bending constant,b", value<double>(&kb)->default_value(20), "bending constant (KbT)")
             ("total time,T", value<double>(&totaltime)->default_value(100), "total time (MD steps)")
             ("timestep,t", value<double>(&delta_t)->default_value(0.002), "timestep (MD steps)")
-            ("friction coefficient,r", value<double>(&fric_zeta)->default_value(1), "friction coefficient (reduced unit)")
-            ("verbose,V", value<bool>(&verbose)->default_value(true),"verbose true: provides detailed output");
+            ("friction coefficient,r", value<double>(&fric_zeta)->default_value(1),
+             "friction coefficient (reduced unit)")
+            ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output");
 
 
     variables_map vm;
@@ -63,10 +77,12 @@ int run_simulation(int argc, char *argv[]) {
 
     if (response == 'b') {                    //set flag for brownian vs. molecular dynamics
         brownian = true;
-        sysdata << "Running brownian dynamics." << endl;
+        if (world.rank() == 0)
+            sysdata << "Running brownian dynamics." << endl;
     } else if (response == 'm') {
         brownian = false;
-        sysdata << "Running molecular dynamics with Nose Hoover thermostat." << endl;
+        if (world.rank() == 0)
+            sysdata << "Running molecular dynamics with Nose Hoover thermostat." << endl;
     }
 
     double bondlength;//= pow(2, 0.166666666667);       //System specific paramters (modelled for HBV)
@@ -74,7 +90,7 @@ int run_simulation(int argc, char *argv[]) {
     double SIsigma;//= 1.67e-9; //m
     double SItime;//= 7.06e-11; //s
     double const Avagadro = 6.022e23; // mol^-1				//useful constants
-    int filenumber = 100000;                                //used in pair correlation file generation
+    //int filenumber = 100000;                                //used in pair correlation file generation
 
     vector<BEAD> subunit_bead;                              //Create particles, named subunit_bead
     vector<EDGE> subunit_edge;                              //create edges between subunit_bead's
@@ -91,29 +107,33 @@ int run_simulation(int argc, char *argv[]) {
     double chain_length_real = 5;                           //nose hoover chain length
     double Q = 1;                                           //nose hoover mass (reduced units)
 
-    generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass,
-                     SItime);     //Setting up the input file (uses user specified file to generate lattice)
 
-    sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
-            << delta_t * SItime / (1e-12) << " picosecond timestep." << endl;
-    sysdata << "Capsomere concentration: " << capsomere_concentration << " micromolar" << endl;
-    sysdata << "Salt concentration: " << salt_concentration << " millimolar" << endl;
-    sysdata << "Stretching constant: " << ks << " KbT" << endl;
-    sysdata << "Bending constant: " << kb << " KbT" << endl;
-    sysdata << "Bondlength between beads is " << bondlength << " LJ reduced units, which is "
-            << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
-    sysdata << "Mass of a bead is " << SImass << " kg." << endl;
-    sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
+    vector<vector<int> > lj_a;
+    lj_a = generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass,
+                            SItime, subunit_bead, subunit_edge, protein,
+                            subunit_face);     //Setting up the input file (uses user specified file to generate lattice)
 
+    if (world.rank() == 0) {
+        sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
+                << delta_t * SItime / (1e-12) << " picosecond timestep." << endl;
+        sysdata << "Capsomere concentration: " << capsomere_concentration << " micromolar" << endl;
+        sysdata << "Salt concentration: " << salt_concentration << " millimolar" << endl;
+        sysdata << "Stretching constant: " << ks << " KbT" << endl;
+        sysdata << "Bending constant: " << kb << " KbT" << endl;
+        sysdata << "Bondlength between beads is " << bondlength << " LJ reduced units, which is "
+                << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
+        sysdata << "Mass of a bead is " << SImass << " kg." << endl;
+        sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
 
+    }
     double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),
                        1.0 / 3.0);    //calculating box size
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
 
-    sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
-    sysdata << "Screening length is " << 8.7785 / sqrt(salt_concentration) << " nanometers." << endl;
-
-    initialize_system(subunit_bead, subunit_edge, protein, subunit_face, bxsz, lj_pairlist);
+    if (world.rank() == 0) {
+        sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
+        sysdata << "Screening length is " << 8.7785 / sqrt(salt_concentration) << " nanometers." << endl;
+    }
 
 
     //user-derived parameters (not edittable)
@@ -141,29 +161,43 @@ int run_simulation(int argc, char *argv[]) {
     dress_up(subunit_edge,
              subunit_face);                                                                    // Calculate initial forces
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*									INTRA MOLECULAR FORCES												*/
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    for (unsigned int i = 0; i < protein.size(); i++) {
-        for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-            protein[i].itsB[ii]->update_stretching_force(ks, bondlength);
-            protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);        //resetting bending force here
-        }
 
-        for (unsigned int m = 0; m < protein[i].itsE.size(); m++) {
-            if (protein[i].itsE[m]->type != 0)                    //if it is a bending edge...
-                protein[i].itsE[m]->update_bending_forces(kb);
-        }
+    //MPI Boundary calculation for ions
+    unsigned int rangeIons = subunit_bead.size() / world.size() + 1.5;
+    lowerBound = world.rank() * rangeIons;
+    upperBound = (world.rank() + 1) * rangeIons - 1;
+    extraElements = world.size() * rangeIons - subunit_bead.size();
+    sizFVec = upperBound - lowerBound + 1;
+    if (world.rank() == world.size() - 1) {
+        upperBound = subunit_bead.size() - 1;
+        sizFVec = upperBound - lowerBound + 1 + extraElements;
+    }
+    if (world.size() == 1) {
+        lowerBound = 0;
+        upperBound = subunit_bead.size() - 1;
     }
 
+
+    int numOfNodes = world.size();
+    if (world.rank() == 0) {
+#pragma omp parallel default(shared)
+        {
+            if (omp_get_thread_num() == 0) {
+                printf("The app comes with MPI and OpenMP (Hybrid) parallelization)\n");
+                printf("Number of MPI processes used %d\n", numOfNodes);
+                printf("Number of OpenMP threads per MPI process %d\n", omp_get_num_threads());
+                printf("Make sure that number of beads is greater than %d\n",
+                       omp_get_num_threads() * numOfNodes);
+            }
+        }
+    }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*									INTER MOLECULAR FORCES												*/
-//////////////////////////////////////////////////////////////////////////////////////////////////////////   
+/*									Initial Force Calculation												*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    update_ES_forces(protein, lb, ni, qs);        //ALSO INTRA-MOLECULAR
 
-    update_LJ_forces(protein, ecut, lj_pairlist);
+    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -179,7 +213,7 @@ int run_simulation(int argc, char *argv[]) {
     initialize_constant_bead_velocities(protein, subunit_bead, T);
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
-    double expfac_real;
+    double expfac_real;//= exp(-0.5 * delta_t * real_bath[0].xi);
 
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                    //setting up random seed for brownian
     unsigned long int Seed = 23410981;
@@ -222,8 +256,10 @@ int run_simulation(int argc, char *argv[]) {
         } else {            // FOR BROWNIAN DYNAMICS
             for (unsigned int i = 0; i < subunit_bead.size(); i++) {
                 //subunit_bead[i].brownian_update_velocity(delta_t, fric_zeta);  //update velocity half step
-                subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + subunit_bead[i].ljforce +
-                                         subunit_bead[i].eforce;
+
+                //subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + subunit_bead[i].ljforce +
+                //                         subunit_bead[i].eforce;
+
                 subunit_bead[i].vel.x +=
                         (subunit_bead[i].vel.x * (-0.5 * fric_zeta * delta_t)) +
                         (subunit_bead[i].tforce.x * (0.5 * delta_t / subunit_bead[i].m)) +
@@ -263,13 +299,12 @@ int run_simulation(int argc, char *argv[]) {
             }
         }
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*									INTER MOLECULAR FORCES												*/
+/*									MD LOOP FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        update_ES_forces(protein, lb, ni, qs);        //ALSO INTRAMOLECULAR
-
-        update_LJ_forces(protein, ecut, lj_pairlist);
+        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,8 +329,10 @@ int run_simulation(int argc, char *argv[]) {
         } else {        //FOR BROWNIAN DYNAMICS
             for (unsigned int i = 0; i < subunit_bead.size(); i++) {
                 //subunit_bead[i].brownian_update_velocity(delta_t, fric_zeta);    				//update velocity the other half step
-                subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + subunit_bead[i].ljforce +
-                                         subunit_bead[i].eforce;
+
+                //subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + subunit_bead[i].ljforce +
+                //                         subunit_bead[i].eforce;
+
                 subunit_bead[i].vel.x += (subunit_bead[i].vel.x * (-0.5 * fric_zeta * delta_t)) +
                                          (subunit_bead[i].tforce.x * (0.5 * delta_t / subunit_bead[i].m)) +
                                          sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
@@ -347,9 +384,11 @@ int run_simulation(int argc, char *argv[]) {
                 }
             }
             //Intermolecular Energies
-            update_ES_energies(protein, lb, ni, qs);
+            //update_ES_energies(protein, lb, ni, qs);
+            update_ES_energies_simplified(subunit_bead, lb, ni, qs);
 
-            update_LJ_energies(protein, ecut);
+            //update_LJ_energies(protein, ecut);
+            update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
 
             for (unsigned int i = 0; i < protein.size(); i++)        //blanking out energies here
             {
@@ -378,26 +417,31 @@ int run_simulation(int argc, char *argv[]) {
 /*								STORE ENERGY INFO TO FILE												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
-                  << endl
-                  << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
-                  << setw(15)
-                  << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
+            if (world.rank() == 0) {
+                ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
+                      << endl
+                      << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
+                      << setw(15)
+                      << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
  << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
 
-            traj << a * delta_t << setw(15) << kenergy / subunit_bead.size() << setw(15)
-                 << senergy / subunit_bead.size() << setw(15) <<
-                 benergy / subunit_bead.size() << setw(15) << ljenergy / subunit_bead.size() << setw(15)
-                 << cenergy / subunit_bead.size()
-                 << setw(15) << tenergy / subunit_bead.size()
-                 << setw(15) << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
-                 << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size() << setw(15)
-                 << tkenergy / subunit_bead.size() << endl;
 
-            for (unsigned int b = 0; b < subunit_bead.size(); b++) {
-                ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
-                      << subunit_bead[b].pos.y \
- << setw(15) << subunit_bead[b].pos.z << setw(15) << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
+                traj << a * delta_t << setw(15) << kenergy / subunit_bead.size() << setw(15)
+                     << senergy / subunit_bead.size() << setw(15) <<
+                     benergy / subunit_bead.size() << setw(15) << ljenergy / subunit_bead.size() << setw(15)
+                     << cenergy / subunit_bead.size()
+                     << setw(15) << tenergy / subunit_bead.size()
+                     << setw(15) << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
+                     << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
+                     << setw(15)
+                     << tkenergy / subunit_bead.size() << endl;
+            }
+            if (world.rank() == 0) {
+                for (unsigned int b = 0; b < subunit_bead.size(); b++) {
+                    ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
+                          << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
+                          << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
+                }
 
                 count += 1;
 
@@ -435,7 +479,7 @@ int run_simulation(int argc, char *argv[]) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								MASS SPECTRUM ANALYSIS													*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
             for (unsigned int i = 0; i < protein.size(); i++)           //Create oligomers for mass spectrum analysis
             {
                 double oldsize = 0;
@@ -452,11 +496,11 @@ int run_simulation(int argc, char *argv[]) {
                         oldsize = oligomers_list[index].itsS.size();           //see how much the oligomer has grown
                         for (int j = n; j < oldsize; j++) {             //loop over the growth from last round
                             int g = oligomers_list[index].itsS[j]->id;
-                            for (int k = i + 1; k < protein.size(); k++) { //look for new growth
+                            for (unsigned int k = i + 1; k < protein.size(); k++) { //look for new growth
                                 if (protein[k].itsO.size() == 0) {  //if it isn't in an oligomer yet...
-                                    for (int m = 0;
+                                    for (unsigned int m = 0;
                                          m < protein[g].itsB.size(); m++) { //check to see if it is in this oligomer
-                                        for (int n = 0; n < protein[k].itsB.size(); n++) {
+                                        for (unsigned int n = 0; n < protein[k].itsB.size(); n++) {
                                             if (dist(protein[g].itsB[m], protein[k].itsB[n]).GetMagnitude() < 1.5) {
                                                 oligomers_list[index].itsS.push_back(
                                                         &protein[k]);   //if it is attached, add it
@@ -477,23 +521,23 @@ int run_simulation(int argc, char *argv[]) {
                 }
             }
             mstime += 1;
-            for (int i = 0; i < oligomers_list.size(); i++) {
+            for (unsigned int i = 0; i < oligomers_list.size(); i++) {
                 if (oligomers_list[i].itsS.size() >= 1) {
                     ms_bin[mstime][(oligomers_list[i].itsS.size() - 1)] += 1;          //fill mass bins
                 }
             }
-
-            for (int j = 0; j < ms_bin[mstime].size(); j++) {
-                msdata << ms_bin[mstime][j] << setw(15);                //print mass bin data to file
+            if (world.rank() == 0){
+                for (unsigned int j = 0; j < ms_bin[mstime].size(); j++) {
+                    msdata << ms_bin[mstime][j] << setw(15);                //print mass bin data to file
+                }
+                msdata << endl;
             }
-            msdata << endl;
-
-            for (int i = 0; i < protein.size(); i++) {             // clear oligomer pointers from subunit
+            for (unsigned int i = 0; i < protein.size(); i++) {             // clear oligomer pointers from subunit
                 protein[i].itsO.clear();
             }
 
             oligomers_list.erase(oligomers_list.begin(),
-                                 oligomers_list.end());                 //erases oligomer objects
+                                 oligomers_list.end());                 //erases oligomer objects*/
 
 
         }//end of energy analysis loop
@@ -508,7 +552,7 @@ int run_simulation(int argc, char *argv[]) {
     compute_MD_trust_factor_R(1);                   //computes R
 
 
-
+    return 0;
 }
 
 

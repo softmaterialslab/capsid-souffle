@@ -28,7 +28,7 @@ public:
 
 
     //member fxns
-    EDGE(VECTOR3D initial = (0, 0, 0), int id_i = 0)                  //constructor
+    EDGE(VECTOR3D initial = VECTOR3D(0, 0, 0), int id_i = 0)                  //constructor
     {
         id = id_i;
         lengthvec = initial;
