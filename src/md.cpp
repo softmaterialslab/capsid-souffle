@@ -542,9 +542,10 @@ int run_simulation(int argc, char *argv[]) {
 
         }//end of energy analysis loop
 
-
-        double fraction_completed = ((a + 1) / (totaltime / delta_t));   //progress bar
-        ProgressBar(fraction_completed);
+        if (world.rank() == 0) {
+            double fraction_completed = ((a + 1) / (totaltime / delta_t));   //progress bar
+            ProgressBar(fraction_completed);
+        }
     } //time loop end
 
 
