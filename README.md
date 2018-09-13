@@ -17,6 +17,8 @@
 ```make cluster-submit```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
+* If you want to clean everything and create a new build, use:
+```make clean```
 
 ## Install and run instructions on Local computer
 * Load the necessary modules:
@@ -33,6 +35,8 @@
 ```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_c -C 750 -c 200 -s 100 -b 20 -T 100 -t 0.002```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
+* If you want to clean everything and create a new build, use:
+```make clean```
 
 ## Aditional information about different input parameter settings
 
