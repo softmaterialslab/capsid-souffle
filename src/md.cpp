@@ -38,6 +38,9 @@ int run_simulation(int argc, char *argv[]) {
     double fric_zeta;
     bool verbose;
 
+    //Progress bar paras
+    double percentage = 0, percentagePre = -1;
+
     // Get input values from the user
     options_description desc("Usage:\nrandom_mesh <options>");
     desc.add_options()
@@ -543,11 +546,15 @@ int run_simulation(int argc, char *argv[]) {
         }//end of energy analysis loop
 
         if (world.rank() == 0) {
-            double fraction_completed = ((a + 1) / (totaltime / delta_t));   //progress bar
-            ProgressBar(fraction_completed);
+            percentage = roundf(a / (totaltime / delta_t) * 100 * 10) / 10;
+            //percentage output
+            if (percentage != percentagePre) {
+                double fraction_completed = percentage / 100;
+                ProgressBar(fraction_completed);
+                percentagePre = percentage;
+            }
         }
     } //time loop end
-
 
 
     compute_MD_trust_factor_R(1);                   //computes R
