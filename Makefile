@@ -44,10 +44,11 @@ cluster-test-submit:
 	cp -f $(SCRIPT)/$(TEST) $(BIN)
 	+$(MAKE) -C $(BIN) test
 
-clean:
+clean: dataclean
 	rm -f $(BASE)/*.o
 	rm -f $(BASE)/$(PROG)
 	rm -f $(BIN)/$(PROG)
+	rm -rf $(BIN)/outfiles
 
 dataclean:
 	rm -f $(BIN)/outfiles/*.dat $(BIN)/outfiles/*.xyz  $(BIN)/outfiles/*.lammpstrj
