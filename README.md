@@ -31,6 +31,8 @@
  ```cd capsid-souffle```
 * Then, install the project:
 ```make all```
+* Next, go to the bin directory:
+ ```cd bin```
 * Next, run a test job:
 ```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_c -C 750 -c 200 -s 100 -b 20 -T 100 -t 0.002```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
