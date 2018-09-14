@@ -1,0 +1,19 @@
+#! /bin/bash
+#PBS -l	nodes=4:ppn=16,walltime=0:10:00
+#PBS -q	gpu
+#PBS -m	ae
+#PBS -o	out.log
+#PBS -e	err.log
+#PBS -N	D_m__f_41part_c__C_750__c_200__s_100__b_20__T_100__t_0.002
+
+# below are the modules you will need to compile the code on bigred2 (see README)
+# uncomment the following 3 lines to load the modules at the time of job launch
+module swap PrgEnv-cray PrgEnv-gnu
+module load boost/1.65.0
+module load gsl
+
+cd $PBS_O_WORKDIR
+
+export OMP_NUM_THREADS=16
+# -d refers to number of cores. this should match ppn in Line 2.
+time aprun -n 4 -d 16 ./capsid-souffle -D m -f 41part_c -C 750 -c 200 -s 100 -b 20 -T 100 -t 0.002
