@@ -1,43 +1,58 @@
-# This is a makefile.
+#This make file builds the sub folder make files
+PROG = capsid-souffle
+JOBSCR = iu_cluster_job_script.pbs
+TEST = test.pbs
 
-HOME = ./
-PROG = simulate_capsid_souffle
-OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o energies.o forces.o
+BIN = bin
+BASE = src
+SCRIPT = scripts
 
-# BigRed2 flags. 
-BigRed2CC = CC -O3 -g -Wall -fopenmp
-BigRed2LFLAG = -lgsl -lgslcblas -lm -lboost_program_options -lboost_mpi -lboost_serialization
-BigRed2CFLAG = -c
-BigRed2OFLAG = -o
-
-# General purpose flags.
-CC = mpicxx -O3 -g -Wall -fopenmp
-LFLAG = -lgsl -lgslcblas -lm -L${BOOST_LIBDIR} -lboost_program_options -lboost_mpi -lboost_serialization
-CFLAG = -c
-OFLAG = -o
-
-all: $(PROG)
+all:
+	@echo "Starting build of the $(BASE) directory";
+ifeq ($(CCF),BigRed2)	
+	+$(MAKE) -C $(BASE) cluster-install
+else ifeq ($(CCF),nanoHUB)
+	+$(MAKE) -C $(BASE)
+else
+	+$(MAKE) -C $(BASE)
+endif
+	@echo "Ending the build of the $(BASE) directory";
+	@echo "installing the $(PROG) into $(BIN) directory"; cp -f $(BASE)/$(PROG) $(BIN)
 
 install: all
-	@echo "creating output files folder: outfiles/"; mkdir $(HOME)outfiles
+	create-dirs
 
-cluster-install:
-	module swap PrgEnv-cray PrgEnv-gnu && module load boost/1.65.0 && module load gsl; make CCF=BigRed2 all
-	@echo "Installing $(PROG) into $(HOME) directory on your computing cluster"; mkdir $(HOME)outfiles
+cluster-install: create-dirs
+	make CCF=BigRed2 all
 
-$(PROG) : $(OBJ)
-ifeq ($(CCF),BigRed2)	
-	$(BigRed2CC) $(BigRed2OFLAG) $(PROG) $(OBJ) $(BigRed2LFLAG)
-%.o : %.cpp
-	$(BigRed2CC) -c $(BigRed2CFLAG) $< -o $@
-else
-	$(CC) $(OFLAG) $(PROG) $(OBJ) $(LFLAG)
-%.o : %.cpp
-	$(CC) -c $(CFLAG) $< -o $@	
-endif
-	
-clean:
-	rm -f *.o
+nanoHUB-install: create-dirs
+	make CCF=nanoHUB all
 
-dataclean: 
-	rm -f outfiles/*.out outfiles/*.lammpstrj; rmdir $(HOME)outfiles
+create-dirs:
+	@echo "Checking and creating needed sub-directories in the $(BIN) directory"
+	if ! [ -d $(BIN) ]; then mkdir $(BIN); fi
+	if ! [ -d $(BIN)/outfiles ]; then mkdir $(BIN)/outfiles; fi
+	@echo "Directory creation is over."
+
+cluster-submit:
+	@echo "Installing jobscript into $(BIN) directory"
+	cp -f $(SCRIPT)/$(JOBSCR) $(BIN)
+	+$(MAKE) -C $(BIN) submit
+
+cluster-test-submit:
+	@echo "Installing test jobscript into $(BIN) directory"
+	cp -f $(SCRIPT)/$(TEST) $(BIN)
+	+$(MAKE) -C $(BIN) test
+
+clean: dataclean
+	rm -f $(BASE)/*.o
+	rm -f $(BASE)/$(PROG)
+	rm -f $(BIN)/$(PROG)
+	rm -rf $(BIN)/outfiles
+
+dataclean:
+	rm -f $(BIN)/outfiles/*.dat $(BIN)/outfiles/*.xyz  $(BIN)/outfiles/*.lammpstrj
+	rm -f $(BIN)/*.log
+	rm -f $(BIN)/*.pbs
+
+.PHONY: all clean
