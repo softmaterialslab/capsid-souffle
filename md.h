@@ -6,7 +6,6 @@
 #define LEMONSOUFFLE_MD_H
 
 
-void run_simulation();
-
+int run_simulation(int, char **);
 
 #endif //LEMONSOUFFLE_MD_H
