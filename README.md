@@ -34,7 +34,7 @@
 * Next, go to the bin directory:
  ```cd bin```
 * Next, run a test job:
-```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_c -C 750 -c 200 -s 100 -b 20 -T 100 -t 0.002```
+```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_c -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
 * If you want to clean everything and create a new build, use:
@@ -42,15 +42,24 @@
 
 ## Aditional information about different input parameter settings
 
-* if testing on a separate folder, copy 41part and/or 41part_c
+* if testing on a separate folder, copy 41part and/or 41part_c and/or 41part_cu
 * run the code for the following set of parameters for nose-hoover controlled md (engine selection, filename, capsomere conc (microM), salt conc (mM), stretching constant (kBT), bending constant (kBT), total time (MD units), timestep (MD units)
 ```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part -C 931 -c 0 -s 100 -b 20 -T 100 -t 0.002```
 * test the results by comparing energies in outfiles/energy.out (column1 is kinetic, col7 is total, col8 is potential)
 * To run with electrostatics w/o salt screening, use:
-```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_c -C 931 -c 9 -s 100 -b 20 -T 100 -t 0.002```
+```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_c -C 75 -c 1 -s 50 -b 20 -T 100 -t 0.001```
 * To run with electrostatics w/ moderate salt screening, use:
-```time mpirun -np 2 -N 10 ./capsid-souffle -D m -f 41part_c -C 931 -c 230 -s 100 -b 20 -T 100 -t 0.002```
+```time mpirun -np 2 -N 10 ./capsid-souffle -D m -f 41part_c -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
 * To run with brownian dynamics w/ moderate salt screening, use:
-```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_c -C 931 -c 230 -s 100 -b 20 -T 100 -t 0.002 -r 1```
+```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_c -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001 -r 1```
 
+## Additional information about changing the number of particles in the simulation
 
+*Currently the simulation is hard coded to 8 particles with constant initial velocities. To change to 27 particles:
+1) modify the number of particles on line 108 in md.cpp
+2) Uncomment line 307 in initialize.cpp
+3) Comment lines 306 & 312 in initialize.cpp 
+
+## Additional information about generating a mass spectrum file
+
+* Mass spectrum file will be generated automatically in outfiles/ms.out, this will contain the number of clusters of each size for all time steps. Equilibrium is identified manually and the ms.out file can be used to generate a histogram for this range.

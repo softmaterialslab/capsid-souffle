@@ -304,6 +304,7 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
 
 void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead, double T) {
     for (unsigned int i = 0; i < protein.size(); i += 4) {
+//for (unsigned int i = 0; i < protein.size(); i += 3) {
         for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
             protein[i + 0].itsB[j]->vel = VECTOR3D(+0.4, -0.2, -0.5);
             protein[i + 1].itsB[j]->vel = VECTOR3D(-0.3, +0.3, -0.4);
