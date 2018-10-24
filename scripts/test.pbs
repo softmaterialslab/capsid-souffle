@@ -16,4 +16,4 @@ cd $PBS_O_WORKDIR
 
 export OMP_NUM_THREADS=16
 # -d refers to number of cores. this should match ppn in Line 2.
-time aprun -n 4 -d 16 ./capsid-souffle -D m -f 41part_c -C 750 -c 200 -s 100 -b 20 -T 100 -t 0.002
+time aprun -n 4 -d 16 ./capsid-souffle -D m -f 41part_cu -n 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001
