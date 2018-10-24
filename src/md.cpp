@@ -33,6 +33,7 @@ int run_simulation(int argc, char *argv[]) {
     char response;
     string file_name;
     double capsomere_concentration, salt_concentration, ks, kb;
+    double number_capsomeres;                            //number of subunits in the box
     double totaltime;                                        //total time in MD units
     double delta_t;;                                //time step in MD units
     double fric_zeta;
@@ -48,14 +49,16 @@ int run_simulation(int argc, char *argv[]) {
             ("Dynamics Response,D", value<char>(&response)->default_value('m'),
              "To run brownian dynamics (overdamped langevin) enter 'b'. Otherwise, to run molecular dynamics with nose' hoover thermostat enter 'm'. [b/m]")
             ("filename,f", value<string>(&file_name)->default_value("41part"), "Filename?")
-            ("capsomere concentration,C", value<double>(&capsomere_concentration)->default_value(931),
+            ("capsomere concentration,C", value<double>(&capsomere_concentration)->default_value(75),
              "capsomere concentration (micromolar)")
-            ("salt concentration,c", value<double>(&salt_concentration)->default_value(0),
+            ("salt concentration,c", value<double>(&salt_concentration)->default_value(200),
              "salt concentration (millimolar)")
-            ("stretching constant,s", value<double>(&ks)->default_value(100), "stretching constant (KbT)")
+	    ("number of subunits,n", value<double>(&number_capsomeres)->default_value(8),
+             "number of subunits")
+            ("stretching constant,s", value<double>(&ks)->default_value(50), "stretching constant (KbT)")
             ("bending constant,b", value<double>(&kb)->default_value(20), "bending constant (KbT)")
             ("total time,T", value<double>(&totaltime)->default_value(100), "total time (MD steps)")
-            ("timestep,t", value<double>(&delta_t)->default_value(0.002), "timestep (MD steps)")
+            ("timestep,t", value<double>(&delta_t)->default_value(0.001), "timestep (MD steps)")
             ("friction coefficient,r", value<double>(&fric_zeta)->default_value(1),
              "friction coefficient (reduced unit)")
             ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output");
@@ -105,7 +108,6 @@ int run_simulation(int argc, char *argv[]) {
 
     double ecut = 2.5;                                        //lennard jones cut-off distance
     double qs = 1;                                            //salt valency
-    double number_capsomeres = 8;                            //number of subunits in the box
     double T = 1;                                            //set temperature (reduced units)
     double chain_length_real = 5;                           //nose hoover chain length
     double Q = 1;                                           //nose hoover mass (reduced units)
