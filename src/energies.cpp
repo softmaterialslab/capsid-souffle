@@ -39,7 +39,7 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 				 
 				 double sig1 = subunit_bead[i].sigma;
 				 double sig2 = subunit_bead[j].sigma;
-				 double shc = (sig1 + sig2)/2
+				 double shc = (sig1 + sig2)/2;
 				 double del = (sig1+sig2)/2 - shc;
 				 bool lj_attractive = false;
 				 for (unsigned int k = 0; k < lj_a[0].size(); k++){
