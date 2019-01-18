@@ -32,7 +32,7 @@
 * Next, go to the bin directory:
  ```cd bin```
 * Next, run a test job:
-```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_cu -n 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
+```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_cu -S 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
 * If you want to clean everything and create a new build, use:

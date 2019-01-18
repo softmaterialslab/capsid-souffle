@@ -70,7 +70,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 
             }
 
-            if (electrostatic)
+            if (electrostatic && subunit_bead[i].q != 0)
                 eForce += r_vec ^ ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)
                                     / (r * r)) * (kappa + 1 / r));
 
@@ -100,7 +100,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                     ljForce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) *
                                          (1 / (r * (r - del)))));
 
-                } else if (r < ((del + 1.12246205 * shc) * ecut) && lj_attractive == true) {            //Repulsive
+                } else if (r < (ecut) && lj_attractive == true) {            //Repulsive
 
                     double r3 = (r - del) * (r - del) * (r - del);
                     double r6 = r3 * r3;
