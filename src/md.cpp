@@ -53,7 +53,7 @@ int run_simulation(int argc, char *argv[]) {
              "capsomere concentration (micromolar)")
             ("salt concentration,c", value<double>(&salt_concentration)->default_value(200),
              "salt concentration (millimolar)")
-	    ("number of subunits,n", value<double>(&number_capsomeres)->default_value(8),
+	    ("number of subunits,S", value<double>(&number_capsomeres)->default_value(8),
              "number of subunits")
             ("stretching constant,s", value<double>(&ks)->default_value(50), "stretching constant (KbT)")
             ("bending constant,b", value<double>(&kb)->default_value(20), "bending constant (KbT)")
@@ -110,7 +110,7 @@ int run_simulation(int argc, char *argv[]) {
     double qs = 1;                                            //salt valency
     double T = 1;                                            //set temperature (reduced units)
     double chain_length_real = 5;                           //nose hoover chain length
-    double Q = 1;                                           //nose hoover mass (reduced units)
+    double Q = 10;                                           //nose hoover mass (reduced units)
 
 
     vector<vector<int> > lj_a;
@@ -214,8 +214,8 @@ int run_simulation(int argc, char *argv[]) {
     double tpenergy = 0;
     double tkenergy = 0;
 
-    //initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
-    initialize_constant_bead_velocities(protein, subunit_bead, T);
+    initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
+//    initialize_constant_bead_velocities(protein, subunit_bead, T);
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
     double expfac_real;//= exp(-0.5 * delta_t * real_bath[0].xi);
