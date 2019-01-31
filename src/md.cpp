@@ -134,10 +134,12 @@ int run_simulation(int argc, char *argv[]) {
     double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),
                        1.0 / 3.0);    //calculating box size
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
+     double screen = 8.7785 / sqrt(salt_concentration); // 8.7785 is a constant (for a given temp)
+    double ecut_el = screen * 20;			// screening length times a constant so that electrostatics is cutoff at approximately 0.015
 
     if (world.rank() == 0) {
         sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
-        sysdata << "Screening length is " << 8.7785 / sqrt(salt_concentration) << " nanometers." << endl;
+        sysdata << "Screening length is " << screen << " nanometers." << endl;
     }
 
 
@@ -145,7 +147,8 @@ int run_simulation(int argc, char *argv[]) {
     double lb = (0.76e-9) / SIsigma;                                        // e^2 / (4 pi Er E0 Kb T)
     double ni = salt_concentration * Avagadro * SIsigma * SIsigma * SIsigma;       //number density (1/sigma*^3)
     int count = 0;                                            //used in mass spectrum analysis
-    int mstime = -1;                                        //parameter for ms_bin filling	
+    int mstime = -1;                                        //parameter for ms_bin filling
+    double kappa = sqrt(8 * 3.1416 * ni * lb * qs * qs);
     vector<int> massbins(protein.size());
     vector<vector<int> > ms_bin(totaltime / (delta_t * 1000), vector<int>(protein.size()));
 
@@ -202,7 +205,7 @@ int run_simulation(int argc, char *argv[]) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a);
+    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -309,7 +312,7 @@ int run_simulation(int argc, char *argv[]) {
 /*									MD LOOP FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a);
+        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,7 +393,7 @@ int run_simulation(int argc, char *argv[]) {
             }
             //Intermolecular Energies
             //update_ES_energies(protein, lb, ni, qs);
-            update_ES_energies_simplified(subunit_bead, lb, ni, qs);
+            update_ES_energies_simplified(subunit_bead, lb, ni, qs, ecut_el, kappa);
 
             //update_LJ_energies(protein, ecut);
             update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
@@ -559,8 +562,8 @@ int run_simulation(int argc, char *argv[]) {
     } //time loop end
 
 
-    compute_MD_trust_factor_R(1);                   //computes R
-
+  //  compute_MD_trust_factor_R(1);                   //computes R
+    gsl_rng_free (r);
 
     return 0;
 }

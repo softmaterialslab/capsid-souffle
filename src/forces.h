@@ -15,7 +15,7 @@ class SUBUNIT;
 
 void forceCalculation(std::vector<SUBUNIT> &protein, double lb, double ni, double qs, std::vector<BEAD> &subunit_bead,
                       std::vector<PAIR> &lj_pairlist, double ecut, double ks, double bondlength, double kb,
-                      std::vector<std::vector<int> > lj_a);
+                      std::vector<std::vector<int> > lj_a, double ecut_el, double kappa);
 
 
 void update_ES_forces(std::vector<SUBUNIT> &protein, double lb, double ni, double qs);
