@@ -19,7 +19,7 @@ void update_ES_energies(std::vector<SUBUNIT>& protein, double lb, double ni, dou
 
 void update_LJ_energies_simplified(std::vector<BEAD>& subunit_bead, double ecut, std::vector<std::vector<int> > lj_a);
 
-void update_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double lb, double ni, double qs);
+void update_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double lb, double ni, double qs, double ecut_el, double kappa);
 
 long double particle_kinetic_energy(std::vector <BEAD> &subunit_bead);
 

@@ -14,7 +14,7 @@ using namespace std;
 
 void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs, vector<BEAD> &subunit_bead,
                       vector<PAIR> &lj_pairlist, double ecut, double ks, double bondlength, double kb,
-                      vector<vector<int> > lj_a) {
+                      vector<vector<int> > lj_a, double ecut_el, double kappa) {
 
     //ofstream forces("outfiles/forces.out", ios::app);
 
@@ -25,7 +25,6 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
     //global variables
     int i, j, k;
     VECTOR3D box = subunit_bead[0].bx;
-    double kappa = sqrt(8 * 3.1416 * ni * lb * qs * qs);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									INTRA MOLECULAR FORCES												*/
@@ -51,7 +50,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
         for (j = 0; j < subunit_bead.size(); j++) {
 
             //Add electrostatic cut offs here.
-            bool electrostatic = (i != j);
+            bool electrostatic = (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0);
             bool lj = subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id;
 
             VECTOR3D r_vec = VECTOR3D(0, 0, 0);
@@ -70,7 +69,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 
             }
 
-            if (electrostatic && subunit_bead[i].q != 0)
+            if (electrostatic && r < ecut_el)
                 eForce += r_vec ^ ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)
                                     / (r * r)) * (kappa + 1 / r));
 

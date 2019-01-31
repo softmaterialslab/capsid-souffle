@@ -68,20 +68,21 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 	 }
  }
  
- void update_ES_energies_simplified(vector<BEAD>& subunit_bead, double lb, double ni, double qs)
+ void update_ES_energies_simplified(vector<BEAD>& subunit_bead, double lb, double ni, double qs, double ecut_el, double kappa)
  {
 	 
 	 for (unsigned int i = 0; i < subunit_bead.size(); i++)
 	 {
 		 for (unsigned int j = 0; j < subunit_bead.size(); j++)
 		 {
-			 if (subunit_bead[i].id != subunit_bead[j].id)
+			 if (subunit_bead[i].id != subunit_bead[j].id && subunit_bead[i].q != 0 && subunit_bead[j].q != 0)
 			 {
-				 double kappa = sqrt (8 * 3.1416 * ni * lb * qs*qs);
-				 VECTOR3D r_vec = dist( & subunit_bead[i] , & subunit_bead[j] );
-				 long double r = r_vec.GetMagnitude();
-				 subunit_bead[i].ce +=  0.5 * (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r);
-				 
+			    VECTOR3D r_vec = dist( & subunit_bead[i] , & subunit_bead[j] );
+			    long double r = r_vec.GetMagnitude();
+			    if ( r < ecut_el ){
+				 subunit_bead[i].ce +=  0.5 * ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) - 
+				                              ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*ecut_el) ) / (ecut_el)) );
+			    }
 				 
 			 }
 		 }
