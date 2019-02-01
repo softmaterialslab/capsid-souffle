@@ -86,7 +86,7 @@ int run_simulation(int argc, char *argv[]) {
 
     double ecut = 2.5;                                        //lennard jones cut-off distance
     double qs = 1;                                            //salt valency
-    double number_capsomeres = 8;                            //number of subunits in the box
+    double number_capsomeres = 1;                            //number of subunits in the box
     double T = 1;                                            //set temperature (reduced units)
     double chain_length_real = 5;                           //nose hoover chain length
     double Q = 1;                                           //nose hoover mass (reduced units)
@@ -184,8 +184,8 @@ int run_simulation(int argc, char *argv[]) {
     double tpenergy = 0;
     double tkenergy = 0;
 
-    //initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
-    initialize_constant_bead_velocities(protein, subunit_bead, T);
+    initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
+    //initialize_constant_bead_velocities(protein, subunit_bead, T);
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
     double expfac_real ;//= exp(-0.5 * delta_t * real_bath[0].xi);
@@ -526,6 +526,7 @@ int run_simulation(int argc, char *argv[]) {
 
     compute_MD_trust_factor_R(1);                   //computes R
 
+    gsl_rng_free (r);
 
 return 0;
 }
