@@ -23,7 +23,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile) {
 
 vector<vector<int> >
 generate_lattice(double capsomere_concentration, unsigned int number_capsomeres, string file_name, double &bondlength,
-                 double &SIsigma, double &SImass, double &SItime, vector<BEAD> &subunit_bead,
+                 double &SIsigma, double &SImass, vector<BEAD> &subunit_bead,
                  vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face) {
 
     ofstream inputfile("outfiles/input.GEN.out", ios::out);
@@ -35,14 +35,13 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
             cerr << "ERR: FILE " << file_name << " NOT OPENED. Check directory and/or filename.";
         exit(1);
     }
-    //long double SIsigma, SImass, SItime, bondlength;                                //reading in data
+    //long double SIsigma, SImass, bondlength;                                //reading in data
     string dummy;
-    crds >> dummy >> dummy >> bondlength >> dummy >> dummy >> SImass >> dummy >> dummy >> SIsigma >> dummy >> dummy
-         >> SItime;
+    crds >> dummy >> dummy >> bondlength >> dummy >> dummy >> SImass >> dummy >> dummy >> SIsigma;
 
     //Determine box size:
     long double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * 6.022e23)),
-                            1.0 / 3.0);
+                            1.0 / 3.0); // pre factor of 1000 accounts for units
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);        //determine box size based on desired concentration
 
     unsigned int num_fill = int(ceil(pow((double(number_capsomeres)), 1.0 / 3.0)));

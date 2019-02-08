@@ -10,17 +10,31 @@ int main(int argc, char *argv[]) {
 	run_simulation(argc,argv);
 }
 
+/*                               41 bead structure parameters                                */
+
+/*  QUANTITY          SI UNITS           OTHER UNITS      CONVERSION               CODE/REDUCED UNIT
+ *
+ * mass             1.05e-24 kg           632 amu           m* => m                      1 m*
+ *
+ * diameter           1e-9 m                  1 A        L* = L(m)/d(m)                  1 L*
+ *
+ * energy           4.14E-21 J (Kb*~T)                    E* = E/KbT                     1 KbT
+ *
+ * ks                                                     k = E/L^2                      1 KbT
+ *
+ * time             1.54e-11 s                         t* = sqrt(m*d^2/E)                1 steps
+ *
+ * temperature       298K                                T* = (T*Kb)/E                   1 T*
+ *
+ * charge            1 e-                                  q* => q                       1 q*
+ *
+ */
 
 
 
 
 
-
-
-
-
-
-
+/*                               9 bead structure parameters                                */
 
 /*  QUANTITY          SI UNITS           OTHER UNITS      CONVERSION               CODE/REDUCED UNIT
  *
