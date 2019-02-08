@@ -132,8 +132,9 @@ int run_simulation(int argc, char *argv[]) {
                 << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
         sysdata << "Mass of a bead is " << SImass << " kg." << endl;
         sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
-	sysdata << "Total number of subunits is " << number_capsomeres << endl;
-	sysdata << "Temperature is " << temperature << " K" << endl;
+	      sysdata << "Total number of subunits is " << number_capsomeres << endl;
+	      sysdata << "Temperature is " << temperature << " K" << endl;
+
 
     }
     double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),
