@@ -1,0 +1,13 @@
+Running molecular dynamics with Nose Hoover thermostat.
+Simulation will run for 159.754 nanoseconds with a 0.159754 picosecond timestep.
+Capsomere concentration: 75 micromolar
+Salt concentration: 200 millimolar
+Stretching constant: 50 KbT
+Bending constant: 20 KbT
+Bondlength between beads is 1.12246 LJ reduced units, which is 1.12246 nanometers.
+Mass of a bead is 1.05e-24 kg.
+Diameter of a bead is 1 nanometers.
+Total number of subunits is 27
+Temperature is 298 K
+Box length is 84.2404 nanometers.
+Screening length is 0.688954 nanometers.

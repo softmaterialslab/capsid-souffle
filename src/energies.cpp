@@ -79,10 +79,10 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 			 {
 			    VECTOR3D r_vec = dist( & subunit_bead[i] , & subunit_bead[j] );
 			    long double r = r_vec.GetMagnitude();
-			    if ( r < ecut_el ){
-				 subunit_bead[i].ce +=  0.5 * ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) - 
-				                              ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*ecut_el) ) / (ecut_el)) );
-			    }
+			   // if ( r < ecut_el ){
+				 subunit_bead[i].ce +=  0.5 * ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) );//- 
+				                             // ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*ecut_el) ) / (ecut_el)) );
+			   // }
 				 
 			 }
 		 }
