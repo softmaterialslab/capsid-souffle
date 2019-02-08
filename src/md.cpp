@@ -139,7 +139,7 @@ int run_simulation(int argc, char *argv[]) {
     double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),
                        1.0 / 3.0);    							//calculating box size, prefactor of 1000 used to combine units
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
-    double lb = (0.696e-9) / SIsigma; // at 300 K only!!!                            	// e^2 / (4 pi Er E0 Kb T)
+    double lb = (0.701e-9) / SIsigma; // at 300 K only!!!                            	// e^2 / (4 pi Er E0 Kb T)
     double ni = salt_concentration * Avagadro * SIsigma * SIsigma * SIsigma;      	//number density (1/sigma*^3)
     double screen = 1 / (sqrt(8*Pi*lb*Avagadro*1e-27) * sqrt(salt_concentration)); 	// 1e-24 is used to combine units
     double ecut_el = screen * ecut_c;							// screening length times a constant so that electrostatics is cutoff at approximately 0.015
