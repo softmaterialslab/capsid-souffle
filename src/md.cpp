@@ -96,8 +96,8 @@ int run_simulation(int argc, char *argv[]) {
     double SItime;
     double const Avagadro = 6.022e23; // mol^-1			//useful constants
     double const Boltzmann = 1.3806e-23; // m2kg/s2K
-    double const e0 = 8.854187e-12; // c2/Nm2
-    double const q_electron = 1.602e-19; // C
+    //double const e0 = 8.854187e-12; // c2/Nm2
+    //double const q_electron = 1.602e-19; // C
     double const Pi = 3.14159;
 
     vector<BEAD> subunit_bead;                              //Create particles, named subunit_bead
@@ -256,10 +256,8 @@ int run_simulation(int argc, char *argv[]) {
             for (unsigned int i = 0; i < protein.size(); i++)                //velocity verlet loop
             {
                 for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-                    protein[i].itsB[ii]->therm_update_velocity(delta_t, real_bath[0],
-                                                               expfac_real);  //update velocity half step
-                    protein[i].itsB[ii]->update_position(
-                            delta_t);                                      //update position full step
+                    protein[i].itsB[ii]->therm_update_velocity(delta_t, real_bath[0], expfac_real);  //update velocity half step
+                    protein[i].itsB[ii]->update_position(delta_t);                                   //update position full step
                 }
             }
         } else {            // FOR BROWNIAN DYNAMICS
@@ -286,23 +284,6 @@ int run_simulation(int argc, char *argv[]) {
         }
 
         dress_up(subunit_edge, subunit_face);                              //update edge and face properties
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*									INTRA MOLECULAR FORCES												*/
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        for (unsigned int i = 0; i < protein.size(); i++) {
-            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-                protein[i].itsB[ii]->update_stretching_force(ks, bondlength);
-                protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);            //zeroing bending force here
-            }
-
-            for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
-                if (protein[i].itsE[kk]->type != 0)                        //if it is a bending edge...
-                    protein[i].itsE[kk]->update_bending_forces(kb);
-            }
-        }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									MD LOOP FORCES												*/
@@ -354,7 +335,7 @@ int run_simulation(int argc, char *argv[]) {
  *    |    |   |   \ |   |    |   |         |            \        |            \
  *    |    |   |    \|   |    |   |_____    |       \____/    ____|____   \____/                                */
 
-        if (a % 100 == 0) {                                           //analysis loop
+        if (a % 1000 == 0) {                                           //analysis loop
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								ANALYZE ENERGIES														*/
