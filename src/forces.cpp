@@ -69,10 +69,11 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 
             }
 
-            if (electrostatic && r < ecut_el)
+            if (electrostatic ) {//&& r < ecut_el)
                 eForce += r_vec ^ ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)
                                     / (r * r)) * (kappa + 1 / r));
-
+	    }
+	    
             if (lj) {
 
                // double shc = 1.2;

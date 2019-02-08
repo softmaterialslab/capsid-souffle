@@ -21,7 +21,7 @@
 
 void initialize_outputfile(std::ofstream & reftraj, std::ofstream & refofile);
 
-std::vector<std::vector<int> > generate_lattice (double capsomere_concentration ,unsigned int number_capsomeres, std::string file_name, double  &bondlength,  double &SIsigma,  double &SImass, double &SItime, std::vector<BEAD> &subunit_bead, std::vector<EDGE> &subunit_edge, std::vector<SUBUNIT> &protein, std::vector<FACE> &subunit_face);
+std::vector<std::vector<int> > generate_lattice (double capsomere_concentration ,unsigned int number_capsomeres, std::string file_name, double  &bondlength,  double &SIsigma,  double &SImass, std::vector<BEAD> &subunit_bead, std::vector<EDGE> &subunit_edge, std::vector<SUBUNIT> &protein, std::vector<FACE> &subunit_face);
 
 void initialize_bead_velocities(std::vector<SUBUNIT> &protein, std::vector<BEAD> &subunit_bead, double T);
 
