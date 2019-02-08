@@ -92,7 +92,7 @@ public:
     void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac)
     {
         //tforce = sforce + bforce + ljforce + eforce;
-        vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * std::sqrt(expfac) / m) ) );
+        vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
         return;
     }
 
