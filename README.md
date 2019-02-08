@@ -32,7 +32,7 @@
 * Next, go to the bin directory:
  ```cd bin```
 * Next, run a test job:
-```time mpirun -np 2 -N 16 ./capsid-souffle -D m -f 41part_cu -S 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
+```time mpirun -np 2 -N 16 ./capsid-souffle -f 41part_cu -T 1000 -t 0.01 -q 1 -e 0 ```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
 * If you want to clean everything and create a new build, use:
@@ -41,12 +41,22 @@
 ## Aditional information about different input parameter settings
 
 * if testing on a separate folder, copy 41part and/or 41part_c and/or 41part_cu
-* run the code for the following set of parameters for nose-hoover controlled md (engine selection, filename, capsomere conc (microM), salt conc (mM), stretching constant (kBT), bending constant (kBT), total time (MD units), timestep (MD units)
-```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_cu -n 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
-* test the results by comparing energies in outfiles/energy.out (column1 is kinetic, col7 is total, col8 is potential)
-* To run with electrostatics w/o salt screening, use:
-```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_cu -n 8 -C 75 -c 1 -s 50 -b 20 -T 100 -t 0.001```
-* To run with electrostatics w/ moderate salt screening, use:
-```time mpirun -np 1 -N 10 ./capsid-souffle -D m -f 41part_cu -n 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001```
-* To run with brownian dynamics w/ moderate salt screening, use:
-```time mpirun -np 1 -N 10 ./capsid-souffle -D b -f 41part_cu -n 8 -C 75 -c 200 -s 50 -b 20 -T 100 -t 0.001 -r 1```
+
+OPTIONS                           FLAG  DEFAULT     EXTRA INFO
+engine selection,                   -D  m         set to 'b' for brownian
+filename,                           -f  41part
+capsomere conc (microM),            -C  75
+salt conc (mM),                     -c  200
+stretching constant (kBT),          -s  50
+bending constant (kBT),             -S  20
+total time (MD units),              -T  100       # of MD steps = T/t
+timestep (MD units),                -t  .001
+number subunits,                    -S  8         must be a cubic number
+temperature (K),                    -K  298
+nose-hoover chain length,           -q  5         to turn off thermostat set to 1
+electrostatics cut-off coefficient, -e  20        to turn off electrostatics set to 0
+friction coefficient,               -r  1
+
+verbose                             -v
+help                                -h
+
