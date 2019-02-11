@@ -300,8 +300,7 @@ int run_simulation(int argc, char *argv[]) {
         if (brownian == false) {        //FOR MOLECULAR DYNAMICS
             for (unsigned int i = 0; i < protein.size(); i++) {
                 for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-                    protein[i].itsB[ii]->therm_update_velocity(delta_t, real_bath[0],
-                                                               expfac_real);  //update velocity the other half step
+                    protein[i].itsB[ii]->therm_update_velocity(delta_t, real_bath[0], expfac_real);  //update velocity the other half step
                 }
             }
 
