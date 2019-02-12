@@ -142,9 +142,10 @@ int run_simulation(int argc, char *argv[]) {
     VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
     double lb = (0.701e-9) / SIsigma; // at 300 K only!!!                            	// e^2 / (4 pi Er E0 Kb T)
     double ni = salt_concentration * Avagadro * SIsigma * SIsigma * SIsigma;      	//number density (1/sigma*^3)
-    double screen = 1 / (sqrt(8*Pi*lb*Avagadro*1e-27) * sqrt(salt_concentration)); 	// 1e-24 is used to combine units
-    double ecut_el = screen * ecut_c;							// screening length times a constant so that electrostatics is cutoff at approximately 0.015
     double kappa = sqrt(8 * Pi * ni * lb * qs * qs);					//electrostatics parameter
+    double screen = 1 / kappa;							 	// 
+    double ecut_el = screen * ecut_c;							// screening length times a constant so that electrostatics is cutoff at approximately 0.015
+    
    
 
     
