@@ -83,7 +83,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 	    double shc = (sig1 +sig2)/2;
 	    double del = (sig1 + sig2) / 2 - shc;
 	
-	    if (r > ecut && r > del + 1.12246205 * shc)
+	    if (r >= ecut && r >= del + 1.12246205 * shc)
 	      continue;
 	    
             if (lj) {
@@ -95,7 +95,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                     }
                 }
                 
-	    if (lj_attractive == false && subunit_bead[i].type != 5 && subunit_bead[j].type != 5 && subunit_bead[i].type != 6 && subunit_bead[i].type != 6 && r < (del + 1.12246205 * shc)) {
+	    if (lj_attractive == false && subunit_bead[i].type != 5 && subunit_bead[j].type != 5 && subunit_bead[i].type != 6 && subunit_bead[j].type != 6 && r < (del + 1.12246205 * shc)) {
 		    double r3 = r * r * r;
                     double r6 = r3 * r3;
                     double r12 = r6 * r6;
