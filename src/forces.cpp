@@ -23,7 +23,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
     vector<VECTOR3D> forvecGather(subunit_bead.size() + extraElements, VECTOR3D(0, 0, 0));
 
     //global variables
-    int i, j, k;
+    unsigned int i, j, k;
     VECTOR3D box = subunit_bead[0].bx;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,11 +36,12 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);        //resetting bending force here
         }
 
-        for (unsigned int m = 0; m < protein[i].itsE.size(); m++) {
-            if (protein[i].itsE[m]->type != 0)                    //if it is a bending edge...
-                protein[i].itsE[m]->update_bending_forces(kb);
+        for (unsigned int mm = 0; mm < protein[i].itsE.size(); mm++) {
+            if (protein[i].itsE[mm]->type != 0)                    //if it is a bending edge...
+                protein[i].itsE[mm]->update_bending_forces(kb);
         }
     }
+    
 
     //LJ forces calculation and update ES forces between subunits
 #pragma omp parallel for schedule(dynamic) default(shared) private(i, j, k)
@@ -77,13 +78,15 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                                     / (r * r)) * (kappa + 1 / r));
 	    }
 	    
+	    double sig1 = subunit_bead[i].sigma;
+	    double sig2 = subunit_bead[j].sigma;
+	    double shc = (sig1 +sig2)/2;
+	    double del = (sig1 + sig2) / 2 - shc;
+	
+	    if (r >= ecut && r >= del + 1.12246205 * shc)
+	      continue;
+	    
             if (lj) {
-
-               // double shc = 1.2;
-                double sig1 = subunit_bead[i].sigma;
-                double sig2 = subunit_bead[j].sigma;
-		double shc = (sig1 +sig2)/2;
-                double del = (sig1 + sig2) / 2 - shc;
 
                 bool lj_attractive = false;
                 for (k = 0; k < lj_a[0].size(); k++) {
@@ -91,7 +94,22 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                         lj_attractive = true;
                     }
                 }
-                if (r < (del + 1.12246205 * shc) && lj_attractive == false) {                            //Attractive
+                
+	    if (lj_attractive == false && subunit_bead[i].type != 5 && subunit_bead[j].type != 5 && subunit_bead[i].type != 6 && subunit_bead[j].type != 6 && r < (del + 1.12246205 * shc)) {
+		    double r3 = r * r * r;
+                    double r6 = r3 * r3;
+                    double r12 = r6 * r6;
+                    double elj = 1;//subunit_bead[j].epsilon;
+                    ljForce += (r_vec ^ (48 * elj * ((1.0 / r12) - 0.5 * (1.0 / r6)) * (1 / (r * r))));
+                }      
+                else if (lj_attractive == true && r < (ecut)) {
+                    double r3 = r * r * r;
+                    double r6 = r3 * r3;
+                    double r12 = r6 * r6;
+                    double elj = 2;	//subunit_bead[j].epsilon;
+                    ljForce += (r_vec ^ (48 * elj * ((1.0 / r12) - 0.5 * (1.0 / r6)) * (1 / (r * r))));
+                }
+                else if (lj_attractive == false && r < (del + 1.12246205 * shc)) {
                     double r3 = (r - del) * (r - del) * (r - del);
                     double r6 = r3 * r3;
                     double r12 = r6 * r6;
@@ -99,22 +117,9 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                     double sigma6 = sigma3 * sigma3;
                     double sigma12 = sigma6 * sigma6;
                     double elj = 1;//subunit_bead[j].epsilon;
-
                     ljForce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) *
                                          (1 / (r * (r - del)))));
-
-                } else if (r < (ecut) && lj_attractive == true) {            //Repulsive
-
-                    double r3 = (r - del) * (r - del) * (r - del);
-                    double r6 = r3 * r3;
-                    double r12 = r6 * r6;
-                    double sigma3 = shc * shc * shc;
-                    double sigma6 = sigma3 * sigma3;
-                    double sigma12 = sigma6 * sigma6;
-                    double elj = 2;//subunit_bead[j].epsilon;
-                    ljForce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) *
-                                         (1 / (r * (r - del)))));
-                }
+                } 
             }
         }
 

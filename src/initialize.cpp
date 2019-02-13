@@ -106,6 +106,8 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
         lj_a_template[3][i] = epsilon;
         lj_a_template[4][i] = sigma;
     }
+    
+    /* not reading repulsive LJ
     int nr = 0;
     crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> nr >> dummy >> dummy >> dummy >> dummy >> dummy;
     int lj_r_template[5][nr];
@@ -117,6 +119,8 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
         lj_r_template[3][i] = epsilon;
         lj_r_template[4][i] = sigma;
     }
+    */
+    
     // Create a master template with copies of original template for each
     // new position of the subunit. This is read in by the original data-reading
     // function, initialize_system
