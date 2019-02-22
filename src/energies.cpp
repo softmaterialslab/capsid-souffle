@@ -24,7 +24,7 @@ long double particle_kinetic_energy(vector <BEAD> &subunit_bead) {          //pa
 	return kinetic_energy;
 }
 
-void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vector<vector<int> > lj_a){
+void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vector<vector<int> > lj_a, double elj_att){
 	 
 	 for (unsigned int i = 0; i < subunit_bead.size(); i++){
 		 for (unsigned int j = 0; j < subunit_bead.size(); j++){
@@ -52,9 +52,10 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 				 } else if ( r < (ecut) && lj_attractive == true ){			//Attractive
 					 double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
 					 double ecut12 = ecut6 * ecut6;
+					 sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
 					 r6 = (r-del) * (r-del) * (r-del) * (r-del) * (r-del) * (r-del);
-					 double elj = 2;//subunit_bead[j].epsilon;
-					 subunit_bead[i].ne += 0.5* (((4 * elj * (1 / r6) * ((1 / r6) - 1)) - (4 * elj * ((1 / ecut12) - (1 / ecut6)))));
+					// double elj = 1.8;//subunit_bead[j].epsilon;
+					 subunit_bead[i].ne += 0.5* (((4 * elj_att * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * elj_att * ((sigma6 / ecut12) - (sigma6 / ecut6)))));
 				 } else {
 					 subunit_bead[i].ne += 0;
 				 }

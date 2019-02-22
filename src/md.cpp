@@ -32,7 +32,7 @@ int run_simulation(int argc, char *argv[]) {
     //parameters from user
     char response;
     string file_name;
-    double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c;					
+    double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att;					
     bool verbose;
 
     //Progress bar paras
@@ -60,7 +60,8 @@ int run_simulation(int argc, char *argv[]) {
 	    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
 	    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
 	    ("ecut_c,e", value<double>(&ecut_c)->default_value(20), "electrostatics cutoff coefficient, input 0 for no cutoff")
-            ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output");
+            ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
+	    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth");
 
 
     variables_map vm;
@@ -132,8 +133,8 @@ int run_simulation(int argc, char *argv[]) {
                 << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
         sysdata << "Mass of a bead is " << SImass << " kg." << endl;
         sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
-	      sysdata << "Total number of subunits is " << number_capsomeres << endl;
-	      sysdata << "Temperature is " << temperature << " K" << endl;
+	sysdata << "Total number of subunits is " << number_capsomeres << endl;
+	sysdata << "Temperature is " << temperature << " K" << endl;
 
 
     }
@@ -207,7 +208,7 @@ int run_simulation(int argc, char *argv[]) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa);
+    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -290,7 +291,7 @@ int run_simulation(int argc, char *argv[]) {
 /*									MD LOOP FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa);
+        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -365,7 +366,7 @@ int run_simulation(int argc, char *argv[]) {
             }
             //Intermolecular Energies
             update_ES_energies_simplified(subunit_bead, lb, ni, qs, ecut_el, kappa);
-            update_LJ_energies_simplified(subunit_bead, ecut, lj_a);
+            update_LJ_energies_simplified(subunit_bead, ecut, lj_a, elj_att);
 
             for (unsigned int i = 0; i < protein.size(); i++)        //blanking out energies here
             {

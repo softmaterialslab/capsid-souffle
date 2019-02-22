@@ -42,21 +42,22 @@
 
 * if testing on a separate folder, copy 41part and/or 41part_c and/or 41part_cu
 
-OPTIONS                           FLAG  DEFAULT     EXTRA INFO
-engine selection,                   -D  m         set to 'b' for brownian
-filename,                           -f  41part
-capsomere conc (microM),            -C  75
-salt conc (mM),                     -c  200
-stretching constant (kBT),          -s  50
-bending constant (kBT),             -S  20
-total time (MD units),              -T  100       # of MD steps = T/t
-timestep (MD units),                -t  .001
-number subunits,                    -S  8         must be a cubic number
-temperature (K),                    -K  298
-nose-hoover chain length,           -q  5         to turn off thermostat set to 1
-electrostatics cut-off coefficient, -e  20        to turn off electrostatics set to 0
-friction coefficient,               -r  1
+# OPTIONS                           FLAG  DEFAULT     EXTRA INFO
+* engine selection,                   -D  m         set to 'b' for brownian
+* filename,                           -f  41part
+* capsomere conc (microM),            -C  75
+* salt conc (mM),                     -c  200
+* stretching constant (kBT),          -s  50
+* bending constant (kBT),             -S  20
+* total time (MD units),              -T  100       # of MD steps = T/t
+* timestep (MD units),                -t  .001
+* number subunits,                    -S  8         must be a cubic number
+* temperature (K),                    -K  298
+* nose-hoover chain length,           -q  5         to turn off thermostat set to 1
+* electrostatics cut-off coefficient, -e  20        to turn off electrostatics set to 0
+* friction coefficient,               -r  1
+* lennard jones attractive E_lj	      -E  2
 
-verbose                             -v
-help                                -h
+* verbose                             -v
+* help                                -h
 
