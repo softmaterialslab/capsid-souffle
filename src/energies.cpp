@@ -33,6 +33,7 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 				 long double r = r_vec.GetMagnitude();
 				 double r6 ;
 				 double sigma6;
+                                 double sigma12;
 				 
 				 double sig1 = subunit_bead[i].sigma;
 				 double sig2 = subunit_bead[j].sigma;
@@ -53,9 +54,10 @@ void update_LJ_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vect
 					 double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
 					 double ecut12 = ecut6 * ecut6;
 					 sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
+                                         sigma12 = sigma6 * sigma6;
 					 r6 = (r-del) * (r-del) * (r-del) * (r-del) * (r-del) * (r-del);
 					// double elj = 1.8;//subunit_bead[j].epsilon;
-					 subunit_bead[i].ne += 0.5* (((4 * elj_att * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * elj_att * ((sigma6 / ecut12) - (sigma6 / ecut6)))));
+					 subunit_bead[i].ne += 0.5* (((4 * elj_att * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * elj_att * ((sigma12 / ecut12) - (sigma6 / ecut6)))));
 				 } else {
 					 subunit_bead[i].ne += 0;
 				 }
