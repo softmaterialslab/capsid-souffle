@@ -11,7 +11,7 @@ class PAIR;
 class SUBUNIT;
 
 
-void update_LJ_energies_simplified(std::vector<BEAD>& subunit_bead, double ecut, std::vector<std::vector<int> > lj_a);
+void update_LJ_energies_simplified(std::vector<BEAD>& subunit_bead, double ecut, std::vector<std::vector<int> > lj_a, double elj_att);
 
 void update_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double lb, double ni, double qs, double ecut_el, double kappa);
 

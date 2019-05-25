@@ -14,7 +14,7 @@ using namespace std;
 
 void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs, vector<BEAD> &subunit_bead,
                       vector<PAIR> &lj_pairlist, double ecut, double ks, double bondlength, double kb,
-                      vector<vector<int> > lj_a, double ecut_el, double kappa) {
+                      vector<vector<int> > lj_a, double ecut_el, double kappa, double elj_att) {
 
     //ofstream forces("outfiles/forces.out", ios::app);
 
@@ -99,15 +99,19 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 		    double r3 = r * r * r;
                     double r6 = r3 * r3;
                     double r12 = r6 * r6;
+		    double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
+		    double sigma12 = sigma6 * sigma6;
                     double elj = 1;//subunit_bead[j].epsilon;
-                    ljForce += (r_vec ^ (48 * elj * ((1.0 / r12) - 0.5 * (1.0 / r6)) * (1 / (r * r))));
+                    ljForce += (r_vec ^ (48 * elj * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r * r))));
                 }      
                 else if (lj_attractive == true && r < (ecut)) {
                     double r3 = r * r * r;
                     double r6 = r3 * r3;
                     double r12 = r6 * r6;
-                    double elj = 2;	//subunit_bead[j].epsilon;
-                    ljForce += (r_vec ^ (48 * elj * ((1.0 / r12) - 0.5 * (1.0 / r6)) * (1 / (r * r))));
+		    double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
+		    double sigma12 = sigma6 * sigma6;
+                    //double elj = 1.8;	//subunit_bead[j].epsilon;
+                    ljForce += (r_vec ^ (48 * elj_att * ((sigma12 / r12) - 0.5 * (sigma6 / r6)) * (1 / (r * r))));
                 }
                 else if (lj_attractive == false && r < (del + 1.12246205 * shc)) {
                     double r3 = (r - del) * (r - del) * (r - del);

@@ -1,0 +1,834 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 93.34  20939.39 20939.39   250221     0.08     0.08  update_ES_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, double, double, double, double)
+  1.91  21367.00   427.61 1812507250     0.00     0.00  EDGE::update_bending_forces(double)
+  1.42  21685.96   318.96 15894983191     0.00     0.00  dist(BEAD*, BEAD*)
+  0.57  21814.00   128.04 14503683000     0.00     0.00  FACE::across(EDGE*)
+  0.42  21907.97    93.98 1343755375     0.00     0.00  BEAD::update_stretching_force(double, double)
+  0.42  22001.55    93.58 2656260625     0.00     0.00  FACE::update_area_normal()
+  0.39  22088.94    87.40   250001     0.00     0.09  forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double)
+  0.38  22173.31    84.37      250     0.34     0.57  update_LJ_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double)
+  0.28  22235.82    62.51 48800079     0.00     0.00  EDGE::update_length()
+  0.27  22295.45    59.62 97600158     0.00     0.00  EDGE::opposite(BEAD*)
+  0.18  22334.74    39.29                             run_simulation(int, char**)
+  0.13  22363.74    29.00 2016008064     0.00     0.00  void std::vector<char, boost::mpi::allocator<char> >::_M_range_insert<char const*>(__gnu_cxx::__normal_iterator<char*, std::vector<char, boost::mpi::allocator<char> > >, char const*, char const*, std::forward_iterator_tag)
+  0.11  22387.65    23.91   250001     0.00     0.00  particle_kinetic_energy(std::vector<BEAD, std::allocator<BEAD> >&)
+  0.06  22400.28    12.63 1343750000     0.00     0.00  BEAD::update_position(double)
+  0.05  22411.08    10.80 1814319750     0.00     0.00  std::vector<BEAD*, std::allocator<BEAD*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, unsigned long, BEAD* const&)
+  0.03  22417.28     6.20                             ProgressBar(double)
+  0.02  22421.56     4.28   250001     0.00     0.00  dress_up(std::vector<EDGE, std::allocator<EDGE> >&, std::vector<FACE, std::allocator<FACE> >&)
+  0.01  22423.83     2.27                             boost::archive::detail::iserializer<boost::mpi::packed_iarchive, VECTOR3D>::load_object_data(boost::archive::detail::basic_iarchive&, void*, unsigned int) const
+  0.01  22426.03     2.20                             FACE::update_area()
+  0.01  22428.11     2.08                             boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::save_object_data(boost::archive::detail::basic_oarchive&, void const*) const
+  0.01  22429.98     1.87        1     1.87     1.87  generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&)
+  0.00  22430.87     0.89                             EDGE::get_grad1(BEAD*, VECTOR3D, VECTOR3D, VECTOR3D)
+  0.00  22431.55     0.68                             FACE::update_normal()
+  0.00  22432.14     0.59                             boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::class_info() const
+  0.00  22432.70     0.56                             EDGE::opposite(FACE*)
+  0.00  22433.10     0.40  1343750     0.00     0.00  BEAD::update_stretching_energy(double, double)
+  0.00  22433.43     0.33                             virtual thunk to boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::mpi::exception> >::clone() const
+  0.00  22433.67     0.24                             boost::serialization::typeid_system::extended_type_info_typeid_0::get_debug_info() const
+  0.00  22433.91     0.24                             boost::archive::detail::iserializer<boost::mpi::packed_iarchive, VECTOR3D>::is_polymorphic() const
+  0.00  22434.15     0.24                             boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::tracking(unsigned int) const
+  0.00  22434.30     0.15 672002688     0.00     0.00  boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::version() const
+  0.00  22434.44     0.14                             boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::class_id_type&)
+  0.00  22434.54     0.11                             boost::bad_function_call::bad_function_call()
+  0.00  22434.62     0.08  1812500     0.00     0.00  EDGE::update_bending_energy(double)
+  0.00  22434.69     0.07   250251     0.00     0.00  std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::vector(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&)
+  0.00  22434.74     0.05                             boost::serialization::extended_type_info_typeid<VECTOR3D>::construct(unsigned int, ...) const
+  0.00  22434.79     0.05                             boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::version_type)
+  0.00  22434.82     0.03                             boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::is_polymorphic() const
+  0.00  22434.84     0.02                             boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::tracking_type&)
+  0.00  22434.86     0.02                             boost::program_options::typed_value<double, char>::xparse(boost::any&, std::vector<std::string, std::allocator<std::string> > const&) const
+  0.00  22434.87     0.01                             boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::version_type&)
+  0.00  22434.88     0.01                             boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::class_id_type)
+  0.00  22434.89     0.01                             boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::tracking_type)
+  0.00  22434.90     0.01                             boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::class_id_optional_type)
+  0.00  22434.90     0.00  2500000     0.00     0.00  update_chain_xi(unsigned int, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >&, double, long double)
+  0.00  22434.90     0.00   250253     0.00     0.00  std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::~vector()
+  0.00  22434.90     0.00    72000     0.00     0.00  std::vector<BEAD*, std::allocator<BEAD*> >::push_back(BEAD* const&)
+  0.00  22434.90     0.00    67500     0.00     0.00  std::vector<BEAD*, std::allocator<BEAD*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, BEAD* const&)
+  0.00  22434.90     0.00    54500     0.00     0.00  std::vector<EDGE*, std::allocator<EDGE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<EDGE**, std::vector<EDGE*, std::allocator<EDGE*> > >, EDGE* const&)
+  0.00  22434.90     0.00    52750     0.00     0.00  std::vector<FACE*, std::allocator<FACE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<FACE**, std::vector<FACE*, std::allocator<FACE*> > >, FACE* const&)
+  0.00  22434.90     0.00    52125     0.00     0.00  std::vector<EDGE*, std::allocator<EDGE*> >::push_back(EDGE* const&)
+  0.00  22434.90     0.00    31875     0.00     0.00  std::vector<FACE*, std::allocator<FACE*> >::push_back(FACE* const&)
+  0.00  22434.90     0.00     8191     0.00     0.00  BEAD::~BEAD()
+  0.00  22434.90     0.00     5375     0.00     0.00  BEAD::BEAD(BEAD const&)
+  0.00  22434.90     0.00     5375     0.00     0.00  std::vector<SUBUNIT*, std::allocator<SUBUNIT*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<SUBUNIT**, std::vector<SUBUNIT*, std::allocator<SUBUNIT*> > >, SUBUNIT* const&)
+  0.00  22434.90     0.00      138     0.00     0.00  std::string* std::__uninitialized_copy<false>::__uninit_copy<std::string*, std::string*>(std::string*, std::string*, std::string*)
+  0.00  22434.90     0.00       48     0.00     0.00  boost::any::holder<double>::~holder()
+  0.00  22434.90     0.00       28     0.00     0.00  boost::any::holder<double>::clone() const
+  0.00  22434.90     0.00       28     0.00     0.00  BEAD* std::__uninitialized_copy<false>::__uninit_copy<BEAD*, BEAD*>(BEAD*, BEAD*, BEAD*)
+  0.00  22434.90     0.00       14     0.00     0.00  std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&)
+  0.00  22434.90     0.00       12     0.00     0.00  boost::program_options::typed_value<double, char>::default_value(double const&)
+  0.00  22434.90     0.00       12     0.00     0.00  boost::program_options::typed_value<double, char>::~typed_value()
+  0.00  22434.90     0.00       12     0.00     0.00  boost::program_options::typed_value<double, char>* boost::program_options::value<double>(double*)
+  0.00  22434.90     0.00       12     0.00     0.00  boost::detail::lexical_converter_impl<std::string, double>::try_convert(double const&, std::string&)
+  0.00  22434.90     0.00       12     0.00     0.00  boost::any::holder<double>::type() const
+  0.00  22434.90     0.00        8     0.00     0.00  std::basic_string<char, std::char_traits<char>, std::allocator<char> > const& boost::program_options::validators::get_single_string<char>(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool)
+  0.00  22434.90     0.00        8     0.00     0.00  bool boost::detail::parse_inf_nan<char, double>(char const*, char const*, double&)
+  0.00  22434.90     0.00        6     0.00     0.00  std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&)
+  0.00  22434.90     0.00        5     0.00     0.00  std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::push_back(THERMOSTAT const&)
+  0.00  22434.90     0.00        4     0.00     0.00  boost::any::holder<bool>::~holder()
+  0.00  22434.90     0.00        4     0.00     0.00  boost::any::holder<char>::~holder()
+  0.00  22434.90     0.00        4     0.00     0.00  std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::_M_insert_aux(__gnu_cxx::__normal_iterator<THERMOSTAT*, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> > >, THERMOSTAT const&)
+  0.00  22434.90     0.00        3     0.00     0.00  boost::any::holder<std::string>::~holder()
+  0.00  22434.90     0.00        3     0.00     0.00  boost::any::holder<bool>::clone() const
+  0.00  22434.90     0.00        3     0.00     0.00  boost::any::holder<char>::clone() const
+  0.00  22434.90     0.00        2     0.00     0.00  _GLOBAL__sub_I__Z21initialize_outputfileRSt14basic_ofstreamIcSt11char_traitsIcEES3_
+  0.00  22434.90     0.00        2     0.00     0.00  _GLOBAL__sub_I_main
+  0.00  22434.90     0.00        2     0.00     0.00  boost::program_options::basic_option<char>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*>(__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, __gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*)
+  0.00  22434.90     0.00        2     0.00     0.00  EDGE* std::__uninitialized_copy<false>::__uninit_copy<EDGE*, EDGE*>(EDGE*, EDGE*, EDGE*)
+  0.00  22434.90     0.00        2     0.00     0.00  FACE* std::__uninitialized_copy<false>::__uninit_copy<FACE*, FACE*>(FACE*, FACE*, FACE*)
+  0.00  22434.90     0.00        2     0.00     0.00  SUBUNIT* std::__uninitialized_copy<false>::__uninit_copy<SUBUNIT*, SUBUNIT*>(SUBUNIT*, SUBUNIT*, SUBUNIT*)
+  0.00  22434.90     0.00        2     0.00     0.00  std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::~vector()
+  0.00  22434.90     0.00        2     0.00     0.00  std::vector<std::string, std::allocator<std::string> >::~vector()
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z11ProgressBard
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z16forceCalculationRSt6vectorI7SUBUNITSaIS0_EEdddRS_I4BEADSaIS4_EERS_I4PAIRSaIS8_EEddddS_IS_IiSaIiEESaISD_EEddd
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z23particle_kinetic_energyRSt6vectorI4BEADSaIS0_EE
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN4BEAD24update_stretching_energyEdd
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN4EDGE8oppositeEP4BEAD
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN4FACE13update_normalEv
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN7SUBUNIT10update_comEv
+  0.00  22434.90     0.00        1     0.00     0.00  _GLOBAL__sub_I_lowerBound
+  0.00  22434.90     0.00        1     0.00     0.00  initialize_outputfile(std::basic_ofstream<char, std::char_traits<char> >&, std::basic_ofstream<char, std::char_traits<char> >&)
+  0.00  22434.90     0.00        1     0.00     0.00  initialize_bead_velocities(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<BEAD, std::allocator<BEAD> >&, double)
+  0.00  22434.90     0.00        1     0.00     0.00  EDGE::~EDGE()
+  0.00  22434.90     0.00        1     0.00     0.00  FACE::~FACE()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::typed_value<std::string, char>::default_value(std::string const&)
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::typed_value<std::string, char>::~typed_value()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::typed_value<bool, char>::default_value(bool const&)
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::typed_value<bool, char>::~typed_value()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::typed_value<char, char>::default_value(char const&)
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::typed_value<char, char>::~typed_value()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::variables_map::~variables_map()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::options_description::~options_description()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::basic_command_line_parser<char>::run()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::program_options::basic_command_line_parser<char>::basic_command_line_parser(int, char const* const*)
+  0.00  22434.90     0.00        1     0.00     0.00  boost::function1<std::pair<std::string, std::string>, std::string const&>::clear()
+  0.00  22434.90     0.00        1     0.00     0.00  SUBUNIT::~SUBUNIT()
+  0.00  22434.90     0.00        1     0.00     0.00  boost::any::holder<std::string>::type() const
+  0.00  22434.90     0.00        1     0.00     0.00  boost::any::holder<std::string>::clone() const
+  0.00  22434.90     0.00        1     0.00     0.00  boost::any::holder<bool>::type() const
+  0.00  22434.90     0.00        1     0.00     0.00  boost::any::holder<char>::type() const
+  0.00  22434.90     0.00        1     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::find(std::string const&) const
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<int, std::allocator<int> >* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*>(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, __gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*)
+  0.00  22434.90     0.00        1     0.00     0.00  void std::__uninitialized_fill_n<false>::__uninit_fill_n<EDGE*, unsigned long, EDGE>(EDGE*, unsigned long, EDGE const&)
+  0.00  22434.90     0.00        1     0.00     0.00  void std::__uninitialized_fill_n<false>::__uninit_fill_n<FACE*, unsigned long, FACE>(FACE*, unsigned long, FACE const&)
+  0.00  22434.90     0.00        1     0.00     0.00  void std::__uninitialized_fill_n<false>::__uninit_fill_n<SUBUNIT*, unsigned long, SUBUNIT>(SUBUNIT*, unsigned long, SUBUNIT const&)
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<BEAD, std::allocator<BEAD> >::~vector()
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<EDGE, std::allocator<EDGE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<EDGE*, std::vector<EDGE, std::allocator<EDGE> > >, unsigned long, EDGE const&)
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<EDGE, std::allocator<EDGE> >::~vector()
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<FACE, std::allocator<FACE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<FACE*, std::vector<FACE, std::allocator<FACE> > >, unsigned long, FACE const&)
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<FACE, std::allocator<FACE> >::~vector()
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<PAIR, std::allocator<PAIR> >::~vector()
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<SUBUNIT, std::allocator<SUBUNIT> >::_M_fill_insert(__gnu_cxx::__normal_iterator<SUBUNIT*, std::vector<SUBUNIT, std::allocator<SUBUNIT> > >, unsigned long, SUBUNIT const&)
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<SUBUNIT, std::allocator<SUBUNIT> >::~vector()
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::operator=(std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > const&)
+  0.00  22434.90     0.00        1     0.00     0.00  std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::operator=(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&)
+  0.00  22434.90     0.00        1     0.00     0.00  std::_Rb_tree<std::string, std::string, std::_Identity<std::string>, std::less<std::string>, std::allocator<std::string> >::_M_erase(std::_Rb_tree_node<std::string>*)
+  0.00  22434.90     0.00        1     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*)
+  0.00  22434.90     0.00        1     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, std::string>, std::_Select1st<std::pair<std::string const, std::string> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, std::string> >*)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.00% of 22434.90 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     99.8   39.29 22349.48                 run_simulation(int, char**) [1]
+               87.40 21792.25  250001/250001      forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double) [2]
+                4.28  263.67  250001/250001      dress_up(std::vector<EDGE, std::allocator<EDGE> >&, std::vector<FACE, std::allocator<FACE> >&) [6]
+               84.37   57.59     250/250         update_LJ_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double) [9]
+               23.91    0.00  250001/250001      particle_kinetic_energy(std::vector<BEAD, std::allocator<BEAD> >&) [15]
+               20.92    0.01     250/250221      update_ES_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, double, double, double, double) [3]
+               12.63    0.00 1343750000/1343750000     BEAD::update_position(double) [16]
+                1.87    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+                0.40    0.00 1343750/1343750     BEAD::update_stretching_energy(double, double) [26]
+                0.08    0.04 1812500/1812500     EDGE::update_bending_energy(double) [33]
+                0.07    0.00  250251/250251      std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::vector(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&) [35]
+                0.00    0.00 2500000/2500000     update_chain_xi(unsigned int, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >&, double, long double) [52]
+                0.00    0.00  250253/250253      std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::~vector() [53]
+                0.00    0.00      12/12          boost::program_options::typed_value<double, char>* boost::program_options::value<double>(double*) [70]
+                0.00    0.00      12/12          boost::program_options::typed_value<double, char>::default_value(double const&) [68]
+                0.00    0.00       5/5           std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::push_back(THERMOSTAT const&) [76]
+                0.00    0.00       1/1           boost::program_options::typed_value<bool, char>::default_value(bool const&) [105]
+                0.00    0.00       1/1           boost::program_options::typed_value<std::string, char>::default_value(std::string const&) [103]
+                0.00    0.00       1/1           boost::program_options::typed_value<char, char>::default_value(char const&) [107]
+                0.00    0.00       1/1           boost::program_options::basic_command_line_parser<char>::basic_command_line_parser(int, char const* const*) [112]
+                0.00    0.00       1/1           boost::program_options::basic_command_line_parser<char>::run() [111]
+                0.00    0.00       1/2           std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::~vector() [89]
+                0.00    0.00       1/1           boost::function1<std::pair<std::string, std::string>, std::string const&>::clear() [113]
+                0.00    0.00       1/1           std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::find(std::string const&) const [119]
+                0.00    0.00       1/1           boost::program_options::variables_map::~variables_map() [109]
+                0.00    0.00       1/1           boost::program_options::options_description::~options_description() [110]
+                0.00    0.00       1/1           initialize_outputfile(std::basic_ofstream<char, std::char_traits<char> >&, std::basic_ofstream<char, std::char_traits<char> >&) [99]
+                0.00    0.00       1/1           std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::operator=(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&) [133]
+                0.00    0.00       1/1           initialize_bead_velocities(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<BEAD, std::allocator<BEAD> >&, double) [100]
+                0.00    0.00       1/1           std::vector<PAIR, std::allocator<PAIR> >::~vector() [129]
+                0.00    0.00       1/1           std::vector<FACE, std::allocator<FACE> >::~vector() [128]
+                0.00    0.00       1/1           std::vector<EDGE, std::allocator<EDGE> >::~vector() [126]
+                0.00    0.00       1/1           std::vector<SUBUNIT, std::allocator<SUBUNIT> >::~vector() [131]
+                0.00    0.00       1/1           std::vector<BEAD, std::allocator<BEAD> >::~vector() [124]
+-----------------------------------------------
+               87.40 21792.25  250001/250001      run_simulation(int, char**) [1]
+[2]     97.5   87.40 21792.25  250001         forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double) [2]
+             20918.47    6.34  249971/250221      update_ES_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, double, double, double, double) [3]
+              427.61  284.28 1812507250/1812507250     EDGE::update_bending_forces(double) [4]
+               93.98   61.58 1343755375/1343755375     BEAD::update_stretching_force(double, double) [8]
+-----------------------------------------------
+               20.92    0.01     250/250221      run_simulation(int, char**) [1]
+             20918.47    6.34  249971/250221      forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double) [2]
+[3]     93.4 20939.39    6.34  250221         update_ES_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, double, double, double, double) [3]
+                6.34    0.00 316125000/15894983191     dist(BEAD*, BEAD*) [5]
+-----------------------------------------------
+              427.61  284.28 1812507250/1812507250     forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double) [2]
+[4]      3.2  427.61  284.28 1812507250         EDGE::update_bending_forces(double) [4]
+              145.48    0.00 7250029000/15894983191     dist(BEAD*, BEAD*) [5]
+              128.01    0.00 14500058000/14503683000     FACE::across(EDGE*) [10]
+               10.79    0.00 1812507250/1814319750     std::vector<BEAD*, std::allocator<BEAD*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, unsigned long, BEAD* const&) [17]
+-----------------------------------------------
+                0.98    0.00 48800079/15894983191     EDGE::update_length() [11]
+                1.96    0.00 97600158/15894983191     BEAD::update_stretching_force(double, double) [8]
+                6.34    0.00 316125000/15894983191     update_ES_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, double, double, double, double) [3]
+               57.59    0.00 2869907704/15894983191     update_LJ_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double) [9]
+              106.60    0.00 5312521250/15894983191     FACE::update_area_normal() [7]
+              145.48    0.00 7250029000/15894983191     EDGE::update_bending_forces(double) [4]
+[5]      1.4  318.96    0.00 15894983191         dist(BEAD*, BEAD*) [5]
+-----------------------------------------------
+                4.28  263.67  250001/250001      run_simulation(int, char**) [1]
+[6]      1.2    4.28  263.67  250001         dress_up(std::vector<EDGE, std::allocator<EDGE> >&, std::vector<FACE, std::allocator<FACE> >&) [6]
+               93.58  106.60 2656260625/2656260625     FACE::update_area_normal() [7]
+               62.51    0.98 48800079/48800079     EDGE::update_length() [11]
+-----------------------------------------------
+               93.58  106.60 2656260625/2656260625     dress_up(std::vector<EDGE, std::allocator<EDGE> >&, std::vector<FACE, std::allocator<FACE> >&) [6]
+[7]      0.9   93.58  106.60 2656260625         FACE::update_area_normal() [7]
+              106.60    0.00 5312521250/15894983191     dist(BEAD*, BEAD*) [5]
+-----------------------------------------------
+               93.98   61.58 1343755375/1343755375     forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double) [2]
+[8]      0.7   93.98   61.58 1343755375         BEAD::update_stretching_force(double, double) [8]
+               59.62    0.00 97600158/97600158     EDGE::opposite(BEAD*) [12]
+                1.96    0.00 97600158/15894983191     dist(BEAD*, BEAD*) [5]
+-----------------------------------------------
+               84.37   57.59     250/250         run_simulation(int, char**) [1]
+[9]      0.6   84.37   57.59     250         update_LJ_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double) [9]
+               57.59    0.00 2869907704/15894983191     dist(BEAD*, BEAD*) [5]
+-----------------------------------------------
+                0.03    0.00 3625000/14503683000     EDGE::update_bending_energy(double) [33]
+              128.01    0.00 14500058000/14503683000     EDGE::update_bending_forces(double) [4]
+[10]     0.6  128.04    0.00 14503683000         FACE::across(EDGE*) [10]
+-----------------------------------------------
+               62.51    0.98 48800079/48800079     dress_up(std::vector<EDGE, std::allocator<EDGE> >&, std::vector<FACE, std::allocator<FACE> >&) [6]
+[11]     0.3   62.51    0.98 48800079         EDGE::update_length() [11]
+                0.98    0.00 48800079/15894983191     dist(BEAD*, BEAD*) [5]
+-----------------------------------------------
+               59.62    0.00 97600158/97600158     BEAD::update_stretching_force(double, double) [8]
+[12]     0.3   59.62    0.00 97600158         EDGE::opposite(BEAD*) [12]
+-----------------------------------------------
+                                                 <spontaneous>
+[13]     0.1    2.08   29.15                 boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::save_object_data(boost::archive::detail::basic_oarchive&, void const*) const [13]
+               29.00    0.00 2016008064/2016008064     void std::vector<char, boost::mpi::allocator<char> >::_M_range_insert<char const*>(__gnu_cxx::__normal_iterator<char*, std::vector<char, boost::mpi::allocator<char> > >, char const*, char const*, std::forward_iterator_tag) [14]
+                0.15    0.00 672002688/672002688     boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::version() const [31]
+-----------------------------------------------
+               29.00    0.00 2016008064/2016008064     boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::save_object_data(boost::archive::detail::basic_oarchive&, void const*) const [13]
+[14]     0.1   29.00    0.00 2016008064         void std::vector<char, boost::mpi::allocator<char> >::_M_range_insert<char const*>(__gnu_cxx::__normal_iterator<char*, std::vector<char, boost::mpi::allocator<char> > >, char const*, char const*, std::forward_iterator_tag) [14]
+-----------------------------------------------
+               23.91    0.00  250001/250001      run_simulation(int, char**) [1]
+[15]     0.1   23.91    0.00  250001         particle_kinetic_energy(std::vector<BEAD, std::allocator<BEAD> >&) [15]
+-----------------------------------------------
+               12.63    0.00 1343750000/1343750000     run_simulation(int, char**) [1]
+[16]     0.1   12.63    0.00 1343750000         BEAD::update_position(double) [16]
+-----------------------------------------------
+                0.01    0.00 1812500/1814319750     EDGE::update_bending_energy(double) [33]
+               10.79    0.00 1812507250/1814319750     EDGE::update_bending_forces(double) [4]
+[17]     0.0   10.80    0.00 1814319750         std::vector<BEAD*, std::allocator<BEAD*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, unsigned long, BEAD* const&) [17]
+-----------------------------------------------
+                                                 <spontaneous>
+[18]     0.0    6.20    0.00                 ProgressBar(double) [18]
+-----------------------------------------------
+                                                 <spontaneous>
+[19]     0.0    2.27    0.00                 boost::archive::detail::iserializer<boost::mpi::packed_iarchive, VECTOR3D>::load_object_data(boost::archive::detail::basic_iarchive&, void*, unsigned int) const [19]
+-----------------------------------------------
+                                                 <spontaneous>
+[20]     0.0    2.20    0.00                 FACE::update_area() [20]
+-----------------------------------------------
+                1.87    0.00       1/1           run_simulation(int, char**) [1]
+[21]     0.0    1.87    0.00       1         generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+                0.00    0.00   72000/72000       std::vector<BEAD*, std::allocator<BEAD*> >::push_back(BEAD* const&) [54]
+                0.00    0.00   52125/52125       std::vector<EDGE*, std::allocator<EDGE*> >::push_back(EDGE* const&) [58]
+                0.00    0.00   31875/31875       std::vector<FACE*, std::allocator<FACE*> >::push_back(FACE* const&) [59]
+                0.00    0.00   31875/52750       std::vector<FACE*, std::allocator<FACE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<FACE**, std::vector<FACE*, std::allocator<FACE*> > >, FACE* const&) [57]
+                0.00    0.00   31875/54500       std::vector<EDGE*, std::allocator<EDGE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<EDGE**, std::vector<EDGE*, std::allocator<EDGE*> > >, EDGE* const&) [56]
+                0.00    0.00    5375/5375        std::vector<SUBUNIT*, std::allocator<SUBUNIT*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<SUBUNIT**, std::vector<SUBUNIT*, std::allocator<SUBUNIT*> > >, SUBUNIT* const&) [62]
+                0.00    0.00    5361/5375        BEAD::BEAD(BEAD const&) [61]
+                0.00    0.00      14/14          std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&) [67]
+                0.00    0.00       1/1           SUBUNIT::~SUBUNIT() [114]
+                0.00    0.00       1/1           EDGE::~EDGE() [101]
+                0.00    0.00       1/1           std::vector<SUBUNIT, std::allocator<SUBUNIT> >::_M_fill_insert(__gnu_cxx::__normal_iterator<SUBUNIT*, std::vector<SUBUNIT, std::allocator<SUBUNIT> > >, unsigned long, SUBUNIT const&) [130]
+                0.00    0.00       1/1           FACE::~FACE() [102]
+                0.00    0.00       1/1           std::vector<FACE, std::allocator<FACE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<FACE*, std::vector<FACE, std::allocator<FACE> > >, unsigned long, FACE const&) [127]
+                0.00    0.00       1/1           std::vector<EDGE, std::allocator<EDGE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<EDGE*, std::vector<EDGE, std::allocator<EDGE> > >, unsigned long, EDGE const&) [125]
+-----------------------------------------------
+                                                 <spontaneous>
+[22]     0.0    0.89    0.00                 EDGE::get_grad1(BEAD*, VECTOR3D, VECTOR3D, VECTOR3D) [22]
+-----------------------------------------------
+                                                 <spontaneous>
+[23]     0.0    0.68    0.00                 FACE::update_normal() [23]
+-----------------------------------------------
+                                                 <spontaneous>
+[24]     0.0    0.59    0.00                 boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::class_info() const [24]
+-----------------------------------------------
+                                                 <spontaneous>
+[25]     0.0    0.56    0.00                 EDGE::opposite(FACE*) [25]
+-----------------------------------------------
+                0.40    0.00 1343750/1343750     run_simulation(int, char**) [1]
+[26]     0.0    0.40    0.00 1343750         BEAD::update_stretching_energy(double, double) [26]
+-----------------------------------------------
+                                                 <spontaneous>
+[27]     0.0    0.33    0.00                 virtual thunk to boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::mpi::exception> >::clone() const [27]
+-----------------------------------------------
+                                                 <spontaneous>
+[28]     0.0    0.24    0.00                 boost::serialization::typeid_system::extended_type_info_typeid_0::get_debug_info() const [28]
+-----------------------------------------------
+                                                 <spontaneous>
+[29]     0.0    0.24    0.00                 boost::archive::detail::iserializer<boost::mpi::packed_iarchive, VECTOR3D>::is_polymorphic() const [29]
+-----------------------------------------------
+                                                 <spontaneous>
+[30]     0.0    0.24    0.00                 boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::tracking(unsigned int) const [30]
+-----------------------------------------------
+                0.15    0.00 672002688/672002688     boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::save_object_data(boost::archive::detail::basic_oarchive&, void const*) const [13]
+[31]     0.0    0.15    0.00 672002688         boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::version() const [31]
+-----------------------------------------------
+                                                 <spontaneous>
+[32]     0.0    0.14    0.00                 boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::class_id_type&) [32]
+-----------------------------------------------
+                0.08    0.04 1812500/1812500     run_simulation(int, char**) [1]
+[33]     0.0    0.08    0.04 1812500         EDGE::update_bending_energy(double) [33]
+                0.03    0.00 3625000/14503683000     FACE::across(EDGE*) [10]
+                0.01    0.00 1812500/1814319750     std::vector<BEAD*, std::allocator<BEAD*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, unsigned long, BEAD* const&) [17]
+-----------------------------------------------
+                                                 <spontaneous>
+[34]     0.0    0.11    0.00                 boost::bad_function_call::bad_function_call() [34]
+-----------------------------------------------
+                0.07    0.00  250251/250251      run_simulation(int, char**) [1]
+[35]     0.0    0.07    0.00  250251         std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::vector(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&) [35]
+-----------------------------------------------
+                                                 <spontaneous>
+[36]     0.0    0.05    0.00                 boost::serialization::extended_type_info_typeid<VECTOR3D>::construct(unsigned int, ...) const [36]
+-----------------------------------------------
+                                                 <spontaneous>
+[37]     0.0    0.05    0.00                 boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::version_type) [37]
+-----------------------------------------------
+                                                 <spontaneous>
+[38]     0.0    0.03    0.00                 boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::is_polymorphic() const [38]
+-----------------------------------------------
+                                                 <spontaneous>
+[39]     0.0    0.02    0.00                 boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::tracking_type&) [39]
+-----------------------------------------------
+                                                 <spontaneous>
+[40]     0.0    0.02    0.00                 boost::program_options::typed_value<double, char>::xparse(boost::any&, std::vector<std::string, std::allocator<std::string> > const&) const [40]
+-----------------------------------------------
+                                                 <spontaneous>
+[41]     0.0    0.01    0.00                 boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::version_type&) [41]
+-----------------------------------------------
+                                                 <spontaneous>
+[42]     0.0    0.01    0.00                 boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::class_id_type) [42]
+-----------------------------------------------
+                                                 <spontaneous>
+[43]     0.0    0.01    0.00                 boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::tracking_type) [43]
+-----------------------------------------------
+                                                 <spontaneous>
+[44]     0.0    0.01    0.00                 boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::class_id_optional_type) [44]
+-----------------------------------------------
+                0.00    0.00 2500000/2500000     run_simulation(int, char**) [1]
+[52]     0.0    0.00    0.00 2500000         update_chain_xi(unsigned int, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >&, double, long double) [52]
+-----------------------------------------------
+                0.00    0.00  250253/250253      run_simulation(int, char**) [1]
+[53]     0.0    0.00    0.00  250253         std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::~vector() [53]
+-----------------------------------------------
+                0.00    0.00   72000/72000       generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[54]     0.0    0.00    0.00   72000         std::vector<BEAD*, std::allocator<BEAD*> >::push_back(BEAD* const&) [54]
+                0.00    0.00   67500/67500       std::vector<BEAD*, std::allocator<BEAD*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, BEAD* const&) [55]
+-----------------------------------------------
+                0.00    0.00   67500/67500       std::vector<BEAD*, std::allocator<BEAD*> >::push_back(BEAD* const&) [54]
+[55]     0.0    0.00    0.00   67500         std::vector<BEAD*, std::allocator<BEAD*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, BEAD* const&) [55]
+-----------------------------------------------
+                0.00    0.00   22625/54500       std::vector<EDGE*, std::allocator<EDGE*> >::push_back(EDGE* const&) [58]
+                0.00    0.00   31875/54500       generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[56]     0.0    0.00    0.00   54500         std::vector<EDGE*, std::allocator<EDGE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<EDGE**, std::vector<EDGE*, std::allocator<EDGE*> > >, EDGE* const&) [56]
+-----------------------------------------------
+                0.00    0.00   20875/52750       std::vector<FACE*, std::allocator<FACE*> >::push_back(FACE* const&) [59]
+                0.00    0.00   31875/52750       generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[57]     0.0    0.00    0.00   52750         std::vector<FACE*, std::allocator<FACE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<FACE**, std::vector<FACE*, std::allocator<FACE*> > >, FACE* const&) [57]
+-----------------------------------------------
+                0.00    0.00   52125/52125       generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[58]     0.0    0.00    0.00   52125         std::vector<EDGE*, std::allocator<EDGE*> >::push_back(EDGE* const&) [58]
+                0.00    0.00   22625/54500       std::vector<EDGE*, std::allocator<EDGE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<EDGE**, std::vector<EDGE*, std::allocator<EDGE*> > >, EDGE* const&) [56]
+-----------------------------------------------
+                0.00    0.00   31875/31875       generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[59]     0.0    0.00    0.00   31875         std::vector<FACE*, std::allocator<FACE*> >::push_back(FACE* const&) [59]
+                0.00    0.00   20875/52750       std::vector<FACE*, std::allocator<FACE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<FACE**, std::vector<FACE*, std::allocator<FACE*> > >, FACE* const&) [57]
+-----------------------------------------------
+                0.00    0.00    8191/8191        std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&) [67]
+[60]     0.0    0.00    0.00    8191         BEAD::~BEAD() [60]
+-----------------------------------------------
+                0.00    0.00      14/5375        std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&) [67]
+                0.00    0.00    5361/5375        generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[61]     0.0    0.00    0.00    5375         BEAD::BEAD(BEAD const&) [61]
+-----------------------------------------------
+                0.00    0.00    5375/5375        generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[62]     0.0    0.00    0.00    5375         std::vector<SUBUNIT*, std::allocator<SUBUNIT*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<SUBUNIT**, std::vector<SUBUNIT*, std::allocator<SUBUNIT*> > >, SUBUNIT* const&) [62]
+-----------------------------------------------
+                0.00    0.00     138/138         std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&) [75]
+[63]     0.0    0.00    0.00     138         std::string* std::__uninitialized_copy<false>::__uninit_copy<std::string*, std::string*>(std::string*, std::string*, std::string*) [63]
+-----------------------------------------------
+                0.00    0.00       4/48          boost::program_options::typed_value<double, char>::apply_default(boost::any&) const [290]
+                0.00    0.00       8/48          void boost::program_options::validate<double, char>(boost::any&, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, double*, long) [174]
+                0.00    0.00      12/48          boost::program_options::typed_value<double, char>::~typed_value() [69]
+                0.00    0.00      12/48          boost::program_options::typed_value<double, char>::default_value(double const&) [68]
+                0.00    0.00      12/48          std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+[64]     0.0    0.00    0.00      48         boost::any::holder<double>::~holder() [64]
+-----------------------------------------------
+                0.00    0.00       8/28          boost::program_options::typed_value<double, char>::apply_default(boost::any&) const [290]
+                0.00    0.00       8/28          void boost::program_options::validate<double, char>(boost::any&, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, double*, long) [174]
+                0.00    0.00      12/28          boost::program_options::typed_value<double, char>::default_value(double const&) [68]
+[65]     0.0    0.00    0.00      28         boost::any::holder<double>::clone() const [65]
+-----------------------------------------------
+                0.00    0.00      28/28          std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&) [67]
+[66]     0.0    0.00    0.00      28         BEAD* std::__uninitialized_copy<false>::__uninit_copy<BEAD*, BEAD*>(BEAD*, BEAD*, BEAD*) [66]
+-----------------------------------------------
+                0.00    0.00      14/14          generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[67]     0.0    0.00    0.00      14         std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&) [67]
+                0.00    0.00    8191/8191        BEAD::~BEAD() [60]
+                0.00    0.00      28/28          BEAD* std::__uninitialized_copy<false>::__uninit_copy<BEAD*, BEAD*>(BEAD*, BEAD*, BEAD*) [66]
+                0.00    0.00      14/5375        BEAD::BEAD(BEAD const&) [61]
+-----------------------------------------------
+                0.00    0.00      12/12          run_simulation(int, char**) [1]
+[68]     0.0    0.00    0.00      12         boost::program_options::typed_value<double, char>::default_value(double const&) [68]
+                0.00    0.00      12/28          boost::any::holder<double>::clone() const [65]
+                0.00    0.00      12/48          boost::any::holder<double>::~holder() [64]
+                0.00    0.00      12/12          boost::detail::lexical_converter_impl<std::string, double>::try_convert(double const&, std::string&) [71]
+-----------------------------------------------
+                0.00    0.00      12/12          boost::program_options::typed_value<double, char>::~typed_value() [151]
+[69]     0.0    0.00    0.00      12         boost::program_options::typed_value<double, char>::~typed_value() [69]
+                0.00    0.00      12/48          boost::any::holder<double>::~holder() [64]
+-----------------------------------------------
+                0.00    0.00      12/12          run_simulation(int, char**) [1]
+[70]     0.0    0.00    0.00      12         boost::program_options::typed_value<double, char>* boost::program_options::value<double>(double*) [70]
+-----------------------------------------------
+                0.00    0.00      12/12          boost::program_options::typed_value<double, char>::default_value(double const&) [68]
+[71]     0.0    0.00    0.00      12         boost::detail::lexical_converter_impl<std::string, double>::try_convert(double const&, std::string&) [71]
+-----------------------------------------------
+                0.00    0.00      12/12          boost::program_options::typed_value<double, char>::notify(boost::any const&) const [292]
+[72]     0.0    0.00    0.00      12         boost::any::holder<double>::type() const [72]
+-----------------------------------------------
+                0.00    0.00       8/8           void boost::program_options::validate<double, char>(boost::any&, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, double*, long) [174]
+[73]     0.0    0.00    0.00       8         std::basic_string<char, std::char_traits<char>, std::allocator<char> > const& boost::program_options::validators::get_single_string<char>(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) [73]
+-----------------------------------------------
+                0.00    0.00       8/8           void boost::program_options::validate<double, char>(boost::any&, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, double*, long) [174]
+[74]     0.0    0.00    0.00       8         bool boost::detail::parse_inf_nan<char, double>(char const*, char const*, double&) [74]
+-----------------------------------------------
+                0.00    0.00       6/6           boost::program_options::basic_command_line_parser<char>::basic_command_line_parser(int, char const* const*) [112]
+[75]     0.0    0.00    0.00       6         std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&) [75]
+                0.00    0.00     138/138         std::string* std::__uninitialized_copy<false>::__uninit_copy<std::string*, std::string*>(std::string*, std::string*, std::string*) [63]
+-----------------------------------------------
+                0.00    0.00       5/5           run_simulation(int, char**) [1]
+[76]     0.0    0.00    0.00       5         std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::push_back(THERMOSTAT const&) [76]
+                0.00    0.00       4/4           std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::_M_insert_aux(__gnu_cxx::__normal_iterator<THERMOSTAT*, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> > >, THERMOSTAT const&) [79]
+-----------------------------------------------
+                0.00    0.00       1/4           boost::program_options::typed_value<bool, char>::~typed_value() [106]
+                0.00    0.00       1/4           boost::program_options::typed_value<bool, char>::apply_default(boost::any&) const [272]
+                0.00    0.00       1/4           boost::program_options::typed_value<bool, char>::default_value(bool const&) [105]
+                0.00    0.00       1/4           std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+[77]     0.0    0.00    0.00       4         boost::any::holder<bool>::~holder() [77]
+-----------------------------------------------
+                0.00    0.00       1/4           boost::program_options::typed_value<char, char>::~typed_value() [108]
+                0.00    0.00       1/4           boost::program_options::typed_value<char, char>::apply_default(boost::any&) const [281]
+                0.00    0.00       1/4           boost::program_options::typed_value<char, char>::default_value(char const&) [107]
+                0.00    0.00       1/4           std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+[78]     0.0    0.00    0.00       4         boost::any::holder<char>::~holder() [78]
+-----------------------------------------------
+                0.00    0.00       4/4           std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::push_back(THERMOSTAT const&) [76]
+[79]     0.0    0.00    0.00       4         std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::_M_insert_aux(__gnu_cxx::__normal_iterator<THERMOSTAT*, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> > >, THERMOSTAT const&) [79]
+-----------------------------------------------
+                0.00    0.00       1/3           boost::program_options::typed_value<std::string, char>::~typed_value() [104]
+                0.00    0.00       1/3           boost::program_options::typed_value<std::string, char>::default_value(std::string const&) [103]
+                0.00    0.00       1/3           std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+[80]     0.0    0.00    0.00       3         boost::any::holder<std::string>::~holder() [80]
+-----------------------------------------------
+                0.00    0.00       1/3           boost::program_options::typed_value<bool, char>::default_value(bool const&) [105]
+                0.00    0.00       2/3           boost::program_options::typed_value<bool, char>::apply_default(boost::any&) const [272]
+[81]     0.0    0.00    0.00       3         boost::any::holder<bool>::clone() const [81]
+-----------------------------------------------
+                0.00    0.00       1/3           boost::program_options::typed_value<char, char>::default_value(char const&) [107]
+                0.00    0.00       2/3           boost::program_options::typed_value<char, char>::apply_default(boost::any&) const [281]
+[82]     0.0    0.00    0.00       3         boost::any::holder<char>::clone() const [82]
+-----------------------------------------------
+                0.00    0.00       2/2           __libc_csu_init [393]
+[83]     0.0    0.00    0.00       2         _GLOBAL__sub_I__Z21initialize_outputfileRSt14basic_ofstreamIcSt11char_traitsIcEES3_ [83]
+-----------------------------------------------
+                0.00    0.00       2/2           __libc_csu_init [393]
+[84]     0.0    0.00    0.00       2         _GLOBAL__sub_I_main [84]
+-----------------------------------------------
+                0.00    0.00       1/2           std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::operator=(std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > const&) [132]
+                0.00    0.00       1/2           boost::program_options::basic_command_line_parser<char>::run() [111]
+[85]     0.0    0.00    0.00       2         boost::program_options::basic_option<char>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*>(__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, __gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*) [85]
+-----------------------------------------------
+                0.00    0.00       2/2           std::vector<EDGE, std::allocator<EDGE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<EDGE*, std::vector<EDGE, std::allocator<EDGE> > >, unsigned long, EDGE const&) [125]
+[86]     0.0    0.00    0.00       2         EDGE* std::__uninitialized_copy<false>::__uninit_copy<EDGE*, EDGE*>(EDGE*, EDGE*, EDGE*) [86]
+-----------------------------------------------
+                0.00    0.00       2/2           std::vector<FACE, std::allocator<FACE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<FACE*, std::vector<FACE, std::allocator<FACE> > >, unsigned long, FACE const&) [127]
+[87]     0.0    0.00    0.00       2         FACE* std::__uninitialized_copy<false>::__uninit_copy<FACE*, FACE*>(FACE*, FACE*, FACE*) [87]
+-----------------------------------------------
+                0.00    0.00       2/2           std::vector<SUBUNIT, std::allocator<SUBUNIT> >::_M_fill_insert(__gnu_cxx::__normal_iterator<SUBUNIT*, std::vector<SUBUNIT, std::allocator<SUBUNIT> > >, unsigned long, SUBUNIT const&) [130]
+[88]     0.0    0.00    0.00       2         SUBUNIT* std::__uninitialized_copy<false>::__uninit_copy<SUBUNIT*, SUBUNIT*>(SUBUNIT*, SUBUNIT*, SUBUNIT*) [88]
+-----------------------------------------------
+                0.00    0.00       1/2           run_simulation(int, char**) [1]
+                0.00    0.00       1/2           boost::program_options::basic_command_line_parser<char>::run() [111]
+[89]     0.0    0.00    0.00       2         std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::~vector() [89]
+-----------------------------------------------
+                0.00    0.00       2/2           boost::program_options::basic_command_line_parser<char>::basic_command_line_parser(int, char const* const*) [112]
+[90]     0.0    0.00    0.00       2         std::vector<std::string, std::allocator<std::string> >::~vector() [90]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[91]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z11ProgressBard [91]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[92]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z16forceCalculationRSt6vectorI7SUBUNITSaIS0_EEdddRS_I4BEADSaIS4_EERS_I4PAIRSaIS8_EEddddS_IS_IiSaIiEESaISD_EEddd [92]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[93]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z23particle_kinetic_energyRSt6vectorI4BEADSaIS0_EE [93]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[94]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN4BEAD24update_stretching_energyEdd [94]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[95]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN4EDGE8oppositeEP4BEAD [95]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[96]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN4FACE13update_normalEv [96]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[97]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN7SUBUNIT10update_comEv [97]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [393]
+[98]     0.0    0.00    0.00       1         _GLOBAL__sub_I_lowerBound [98]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[99]     0.0    0.00    0.00       1         initialize_outputfile(std::basic_ofstream<char, std::char_traits<char> >&, std::basic_ofstream<char, std::char_traits<char> >&) [99]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[100]    0.0    0.00    0.00       1         initialize_bead_velocities(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<BEAD, std::allocator<BEAD> >&, double) [100]
+-----------------------------------------------
+                0.00    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[101]    0.0    0.00    0.00       1         EDGE::~EDGE() [101]
+-----------------------------------------------
+                0.00    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[102]    0.0    0.00    0.00       1         FACE::~FACE() [102]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[103]    0.0    0.00    0.00       1         boost::program_options::typed_value<std::string, char>::default_value(std::string const&) [103]
+                0.00    0.00       1/1           boost::any::holder<std::string>::clone() const [116]
+                0.00    0.00       1/3           boost::any::holder<std::string>::~holder() [80]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<std::string, char>::~typed_value() [148]
+[104]    0.0    0.00    0.00       1         boost::program_options::typed_value<std::string, char>::~typed_value() [104]
+                0.00    0.00       1/3           boost::any::holder<std::string>::~holder() [80]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[105]    0.0    0.00    0.00       1         boost::program_options::typed_value<bool, char>::default_value(bool const&) [105]
+                0.00    0.00       1/3           boost::any::holder<bool>::clone() const [81]
+                0.00    0.00       1/4           boost::any::holder<bool>::~holder() [77]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<bool, char>::~typed_value() [149]
+[106]    0.0    0.00    0.00       1         boost::program_options::typed_value<bool, char>::~typed_value() [106]
+                0.00    0.00       1/4           boost::any::holder<bool>::~holder() [77]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[107]    0.0    0.00    0.00       1         boost::program_options::typed_value<char, char>::default_value(char const&) [107]
+                0.00    0.00       1/3           boost::any::holder<char>::clone() const [82]
+                0.00    0.00       1/4           boost::any::holder<char>::~holder() [78]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<char, char>::~typed_value() [150]
+[108]    0.0    0.00    0.00       1         boost::program_options::typed_value<char, char>::~typed_value() [108]
+                0.00    0.00       1/4           boost::any::holder<char>::~holder() [78]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[109]    0.0    0.00    0.00       1         boost::program_options::variables_map::~variables_map() [109]
+                0.00    0.00       1/1           std::_Rb_tree<std::string, std::pair<std::string const, std::string>, std::_Select1st<std::pair<std::string const, std::string> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, std::string> >*) [136]
+                0.00    0.00       1/1           std::_Rb_tree<std::string, std::string, std::_Identity<std::string>, std::less<std::string>, std::allocator<std::string> >::_M_erase(std::_Rb_tree_node<std::string>*) [134]
+                0.00    0.00       1/1           std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[110]    0.0    0.00    0.00       1         boost::program_options::options_description::~options_description() [110]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[111]    0.0    0.00    0.00       1         boost::program_options::basic_command_line_parser<char>::run() [111]
+                0.00    0.00       1/1           std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::operator=(std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > const&) [132]
+                0.00    0.00       1/2           std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::~vector() [89]
+                0.00    0.00       1/2           boost::program_options::basic_option<char>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*>(__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, __gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*) [85]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[112]    0.0    0.00    0.00       1         boost::program_options::basic_command_line_parser<char>::basic_command_line_parser(int, char const* const*) [112]
+                0.00    0.00       6/6           std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&) [75]
+                0.00    0.00       2/2           std::vector<std::string, std::allocator<std::string> >::~vector() [90]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[113]    0.0    0.00    0.00       1         boost::function1<std::pair<std::string, std::string>, std::string const&>::clear() [113]
+-----------------------------------------------
+                0.00    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[114]    0.0    0.00    0.00       1         SUBUNIT::~SUBUNIT() [114]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<std::string, char>::notify(boost::any const&) const [265]
+[115]    0.0    0.00    0.00       1         boost::any::holder<std::string>::type() const [115]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<std::string, char>::default_value(std::string const&) [103]
+[116]    0.0    0.00    0.00       1         boost::any::holder<std::string>::clone() const [116]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<bool, char>::notify(boost::any const&) const [274]
+[117]    0.0    0.00    0.00       1         boost::any::holder<bool>::type() const [117]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::typed_value<char, char>::notify(boost::any const&) const [283]
+[118]    0.0    0.00    0.00       1         boost::any::holder<char>::type() const [118]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[119]    0.0    0.00    0.00       1         std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::find(std::string const&) const [119]
+-----------------------------------------------
+                0.00    0.00       1/1           std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::operator=(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&) [133]
+[120]    0.0    0.00    0.00       1         std::vector<int, std::allocator<int> >* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*>(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, __gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*) [120]
+-----------------------------------------------
+                0.00    0.00       1/1           std::vector<EDGE, std::allocator<EDGE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<EDGE*, std::vector<EDGE, std::allocator<EDGE> > >, unsigned long, EDGE const&) [125]
+[121]    0.0    0.00    0.00       1         void std::__uninitialized_fill_n<false>::__uninit_fill_n<EDGE*, unsigned long, EDGE>(EDGE*, unsigned long, EDGE const&) [121]
+-----------------------------------------------
+                0.00    0.00       1/1           std::vector<FACE, std::allocator<FACE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<FACE*, std::vector<FACE, std::allocator<FACE> > >, unsigned long, FACE const&) [127]
+[122]    0.0    0.00    0.00       1         void std::__uninitialized_fill_n<false>::__uninit_fill_n<FACE*, unsigned long, FACE>(FACE*, unsigned long, FACE const&) [122]
+-----------------------------------------------
+                0.00    0.00       1/1           std::vector<SUBUNIT, std::allocator<SUBUNIT> >::_M_fill_insert(__gnu_cxx::__normal_iterator<SUBUNIT*, std::vector<SUBUNIT, std::allocator<SUBUNIT> > >, unsigned long, SUBUNIT const&) [130]
+[123]    0.0    0.00    0.00       1         void std::__uninitialized_fill_n<false>::__uninit_fill_n<SUBUNIT*, unsigned long, SUBUNIT>(SUBUNIT*, unsigned long, SUBUNIT const&) [123]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[124]    0.0    0.00    0.00       1         std::vector<BEAD, std::allocator<BEAD> >::~vector() [124]
+-----------------------------------------------
+                0.00    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[125]    0.0    0.00    0.00       1         std::vector<EDGE, std::allocator<EDGE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<EDGE*, std::vector<EDGE, std::allocator<EDGE> > >, unsigned long, EDGE const&) [125]
+                0.00    0.00       2/2           EDGE* std::__uninitialized_copy<false>::__uninit_copy<EDGE*, EDGE*>(EDGE*, EDGE*, EDGE*) [86]
+                0.00    0.00       1/1           void std::__uninitialized_fill_n<false>::__uninit_fill_n<EDGE*, unsigned long, EDGE>(EDGE*, unsigned long, EDGE const&) [121]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[126]    0.0    0.00    0.00       1         std::vector<EDGE, std::allocator<EDGE> >::~vector() [126]
+-----------------------------------------------
+                0.00    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[127]    0.0    0.00    0.00       1         std::vector<FACE, std::allocator<FACE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<FACE*, std::vector<FACE, std::allocator<FACE> > >, unsigned long, FACE const&) [127]
+                0.00    0.00       2/2           FACE* std::__uninitialized_copy<false>::__uninit_copy<FACE*, FACE*>(FACE*, FACE*, FACE*) [87]
+                0.00    0.00       1/1           void std::__uninitialized_fill_n<false>::__uninit_fill_n<FACE*, unsigned long, FACE>(FACE*, unsigned long, FACE const&) [122]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[128]    0.0    0.00    0.00       1         std::vector<FACE, std::allocator<FACE> >::~vector() [128]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[129]    0.0    0.00    0.00       1         std::vector<PAIR, std::allocator<PAIR> >::~vector() [129]
+-----------------------------------------------
+                0.00    0.00       1/1           generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [21]
+[130]    0.0    0.00    0.00       1         std::vector<SUBUNIT, std::allocator<SUBUNIT> >::_M_fill_insert(__gnu_cxx::__normal_iterator<SUBUNIT*, std::vector<SUBUNIT, std::allocator<SUBUNIT> > >, unsigned long, SUBUNIT const&) [130]
+                0.00    0.00       2/2           SUBUNIT* std::__uninitialized_copy<false>::__uninit_copy<SUBUNIT*, SUBUNIT*>(SUBUNIT*, SUBUNIT*, SUBUNIT*) [88]
+                0.00    0.00       1/1           void std::__uninitialized_fill_n<false>::__uninit_fill_n<SUBUNIT*, unsigned long, SUBUNIT>(SUBUNIT*, unsigned long, SUBUNIT const&) [123]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[131]    0.0    0.00    0.00       1         std::vector<SUBUNIT, std::allocator<SUBUNIT> >::~vector() [131]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::basic_command_line_parser<char>::run() [111]
+[132]    0.0    0.00    0.00       1         std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::operator=(std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > const&) [132]
+                0.00    0.00       1/2           boost::program_options::basic_option<char>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*>(__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, __gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*) [85]
+-----------------------------------------------
+                0.00    0.00       1/1           run_simulation(int, char**) [1]
+[133]    0.0    0.00    0.00       1         std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::operator=(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&) [133]
+                0.00    0.00       1/1           std::vector<int, std::allocator<int> >* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*>(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, __gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*) [120]
+-----------------------------------------------
+                                  18             std::_Rb_tree<std::string, std::string, std::_Identity<std::string>, std::less<std::string>, std::allocator<std::string> >::_M_erase(std::_Rb_tree_node<std::string>*) [134]
+                0.00    0.00       1/1           boost::program_options::variables_map::~variables_map() [109]
+[134]    0.0    0.00    0.00       1+18      std::_Rb_tree<std::string, std::string, std::_Identity<std::string>, std::less<std::string>, std::allocator<std::string> >::_M_erase(std::_Rb_tree_node<std::string>*) [134]
+                                  18             std::_Rb_tree<std::string, std::string, std::_Identity<std::string>, std::less<std::string>, std::allocator<std::string> >::_M_erase(std::_Rb_tree_node<std::string>*) [134]
+-----------------------------------------------
+                                  15             std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+                0.00    0.00       1/1           boost::program_options::variables_map::~variables_map() [109]
+[135]    0.0    0.00    0.00       1+15      std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+                0.00    0.00      12/48          boost::any::holder<double>::~holder() [64]
+                0.00    0.00       1/4           boost::any::holder<char>::~holder() [78]
+                0.00    0.00       1/3           boost::any::holder<std::string>::~holder() [80]
+                0.00    0.00       1/4           boost::any::holder<bool>::~holder() [77]
+                                  15             std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*) [135]
+-----------------------------------------------
+                0.00    0.00       1/1           boost::program_options::variables_map::~variables_map() [109]
+[136]    0.0    0.00    0.00       1         std::_Rb_tree<std::string, std::pair<std::string const, std::string>, std::_Select1st<std::pair<std::string const, std::string> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, std::string> >*) [136]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [91] _GLOBAL__sub_I__Z11ProgressBard (functions.cpp) [106] boost::program_options::typed_value<bool, char>::~typed_value() [30] boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::tracking(unsigned int) const
+  [92] _GLOBAL__sub_I__Z16forceCalculationRSt6vectorI7SUBUNITSaIS0_EEdddRS_I4BEADSaIS4_EERS_I4PAIRSaIS8_EEddddS_IS_IiSaIiEESaISD_EEddd (forces.cpp) [107] boost::program_options::typed_value<char, char>::default_value(char const&) [119] std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::find(std::string const&) const
+  [83] _GLOBAL__sub_I__Z21initialize_outputfileRSt14basic_ofstreamIcSt11char_traitsIcEES3_ (initialize.cpp) [108] boost::program_options::typed_value<char, char>::~typed_value() [85] boost::program_options::basic_option<char>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*>(__gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, __gnu_cxx::__normal_iterator<boost::program_options::basic_option<char> const*, std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > >, boost::program_options::basic_option<char>*)
+  [93] _GLOBAL__sub_I__Z23particle_kinetic_energyRSt6vectorI4BEADSaIS0_EE (energies.cpp) [68] boost::program_options::typed_value<double, char>::default_value(double const&) [120] std::vector<int, std::allocator<int> >* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*>(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, __gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> > const*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> >*)
+  [94] _GLOBAL__sub_I__ZN4BEAD24update_stretching_energyEdd (bead.cpp) [69] boost::program_options::typed_value<double, char>::~typed_value() [66] BEAD* std::__uninitialized_copy<false>::__uninit_copy<BEAD*, BEAD*>(BEAD*, BEAD*, BEAD*)
+  [95] _GLOBAL__sub_I__ZN4EDGE8oppositeEP4BEAD (edge.cpp) [109] boost::program_options::variables_map::~variables_map() [86] EDGE* std::__uninitialized_copy<false>::__uninit_copy<EDGE*, EDGE*>(EDGE*, EDGE*, EDGE*)
+  [96] _GLOBAL__sub_I__ZN4FACE13update_normalEv (face.cpp) [110] boost::program_options::options_description::~options_description() [87] FACE* std::__uninitialized_copy<false>::__uninit_copy<FACE*, FACE*>(FACE*, FACE*, FACE*)
+  [97] _GLOBAL__sub_I__ZN7SUBUNIT10update_comEv (subunit.cpp) [111] boost::program_options::basic_command_line_parser<char>::run() [88] SUBUNIT* std::__uninitialized_copy<false>::__uninit_copy<SUBUNIT*, SUBUNIT*>(SUBUNIT*, SUBUNIT*, SUBUNIT*)
+  [98] _GLOBAL__sub_I_lowerBound (md.cpp) [112] boost::program_options::basic_command_line_parser<char>::basic_command_line_parser(int, char const* const*) [63] std::string* std::__uninitialized_copy<false>::__uninit_copy<std::string*, std::string*>(std::string*, std::string*, std::string*)
+  [84] _GLOBAL__sub_I_main (main.cpp) [70] boost::program_options::typed_value<double, char>* boost::program_options::value<double>(double*) [121] void std::__uninitialized_fill_n<false>::__uninit_fill_n<EDGE*, unsigned long, EDGE>(EDGE*, unsigned long, EDGE const&)
+  [18] ProgressBar(double)    [34] boost::bad_function_call::bad_function_call() [122] void std::__uninitialized_fill_n<false>::__uninit_fill_n<FACE*, unsigned long, FACE>(FACE*, unsigned long, FACE const&)
+   [1] run_simulation(int, char**) [80] boost::any::holder<std::string>::~holder() [123] void std::__uninitialized_fill_n<false>::__uninit_fill_n<SUBUNIT*, unsigned long, SUBUNIT>(SUBUNIT*, unsigned long, SUBUNIT const&)
+  [52] update_chain_xi(unsigned int, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >&, double, long double) [77] boost::any::holder<bool>::~holder() [79] std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::_M_insert_aux(__gnu_cxx::__normal_iterator<THERMOSTAT*, std::vector<THERMOSTAT, std::allocator<THERMOSTAT> > >, THERMOSTAT const&)
+   [2] forceCalculation(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, double, double, double, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<PAIR, std::allocator<PAIR> >&, double, double, double, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double, double, double) [78] boost::any::holder<char>::~holder() [76] std::vector<THERMOSTAT, std::allocator<THERMOSTAT> >::push_back(THERMOSTAT const&)
+  [21] generate_lattice(double, unsigned int, std::string, double&, double&, double&, std::vector<BEAD, std::allocator<BEAD> >&, std::vector<EDGE, std::allocator<EDGE> >&, std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<FACE, std::allocator<FACE> >&) [64] boost::any::holder<double>::~holder() [67] std::vector<BEAD, std::allocator<BEAD> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD*, std::vector<BEAD, std::allocator<BEAD> > >, BEAD const&)
+  [99] initialize_outputfile(std::basic_ofstream<char, std::char_traits<char> >&, std::basic_ofstream<char, std::char_traits<char> >&) [74] bool boost::detail::parse_inf_nan<char, double>(char const*, char const*, double&) [124] std::vector<BEAD, std::allocator<BEAD> >::~vector()
+  [15] particle_kinetic_energy(std::vector<BEAD, std::allocator<BEAD> >&) [71] boost::detail::lexical_converter_impl<std::string, double>::try_convert(double const&, std::string&) [125] std::vector<EDGE, std::allocator<EDGE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<EDGE*, std::vector<EDGE, std::allocator<EDGE> > >, unsigned long, EDGE const&)
+ [100] initialize_bead_velocities(std::vector<SUBUNIT, std::allocator<SUBUNIT> >&, std::vector<BEAD, std::allocator<BEAD> >&, double) [41] boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::version_type&) [126] std::vector<EDGE, std::allocator<EDGE> >::~vector()
+   [3] update_ES_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, double, double, double, double) [32] boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::class_id_type&) [127] std::vector<FACE, std::allocator<FACE> >::_M_fill_insert(__gnu_cxx::__normal_iterator<FACE*, std::vector<FACE, std::allocator<FACE> > >, unsigned long, FACE const&)
+   [9] update_LJ_energies_simplified(std::vector<BEAD, std::allocator<BEAD> >&, double, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, double) [39] boost::archive::detail::common_iarchive<boost::mpi::packed_iarchive>::vload(boost::archive::tracking_type&) [128] std::vector<FACE, std::allocator<FACE> >::~vector()
+   [5] dist(BEAD*, BEAD*)     [37] boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::version_type) [129] std::vector<PAIR, std::allocator<PAIR> >::~vector()
+   [6] dress_up(std::vector<EDGE, std::allocator<EDGE> >&, std::vector<FACE, std::allocator<FACE> >&) [42] boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::class_id_type) [130] std::vector<SUBUNIT, std::allocator<SUBUNIT> >::_M_fill_insert(__gnu_cxx::__normal_iterator<SUBUNIT*, std::vector<SUBUNIT, std::allocator<SUBUNIT> > >, unsigned long, SUBUNIT const&)
+  [16] BEAD::update_position(double) [43] boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::tracking_type) [131] std::vector<SUBUNIT, std::allocator<SUBUNIT> >::~vector()
+   [8] BEAD::update_stretching_force(double, double) [44] boost::archive::detail::common_oarchive<boost::mpi::packed_oarchive>::vsave(boost::archive::class_id_optional_type) [89] std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::~vector()
+  [26] BEAD::update_stretching_energy(double, double) [113] boost::function1<std::pair<std::string, std::string>, std::string const&>::clear() [132] std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > >::operator=(std::vector<boost::program_options::basic_option<char>, std::allocator<boost::program_options::basic_option<char> > > const&)
+  [61] BEAD::BEAD(BEAD const&) [114] SUBUNIT::~SUBUNIT()  [55] std::vector<BEAD*, std::allocator<BEAD*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, BEAD* const&)
+  [60] BEAD::~BEAD()          [28] boost::serialization::typeid_system::extended_type_info_typeid_0::get_debug_info() const [17] std::vector<BEAD*, std::allocator<BEAD*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<BEAD**, std::vector<BEAD*, std::allocator<BEAD*> > >, unsigned long, BEAD* const&)
+  [11] EDGE::update_length()  [36] boost::serialization::extended_type_info_typeid<VECTOR3D>::construct(unsigned int, ...) const [54] std::vector<BEAD*, std::allocator<BEAD*> >::push_back(BEAD* const&)
+  [33] EDGE::update_bending_energy(double) [40] boost::program_options::typed_value<double, char>::xparse(boost::any&, std::vector<std::string, std::allocator<std::string> > const&) const [56] std::vector<EDGE*, std::allocator<EDGE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<EDGE**, std::vector<EDGE*, std::allocator<EDGE*> > >, EDGE* const&)
+   [4] EDGE::update_bending_forces(double) [115] boost::any::holder<std::string>::type() const [58] std::vector<EDGE*, std::allocator<EDGE*> >::push_back(EDGE* const&)
+  [12] EDGE::opposite(BEAD*) [116] boost::any::holder<std::string>::clone() const [57] std::vector<FACE*, std::allocator<FACE*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<FACE**, std::vector<FACE*, std::allocator<FACE*> > >, FACE* const&)
+  [25] EDGE::opposite(FACE*) [117] boost::any::holder<bool>::type() const [59] std::vector<FACE*, std::allocator<FACE*> >::push_back(FACE* const&)
+  [22] EDGE::get_grad1(BEAD*, VECTOR3D, VECTOR3D, VECTOR3D) [81] boost::any::holder<bool>::clone() const [62] std::vector<SUBUNIT*, std::allocator<SUBUNIT*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<SUBUNIT**, std::vector<SUBUNIT*, std::allocator<SUBUNIT*> > >, SUBUNIT* const&)
+ [101] EDGE::~EDGE()         [118] boost::any::holder<char>::type() const [35] std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::vector(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&)
+  [20] FACE::update_area()    [82] boost::any::holder<char>::clone() const [53] std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::~vector()
+  [23] FACE::update_normal()  [72] boost::any::holder<double>::type() const [133] std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::operator=(std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&)
+   [7] FACE::update_area_normal() [65] boost::any::holder<double>::clone() const [75] std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&)
+  [10] FACE::across(EDGE*)    [29] boost::archive::detail::iserializer<boost::mpi::packed_iarchive, VECTOR3D>::is_polymorphic() const [90] std::vector<std::string, std::allocator<std::string> >::~vector()
+ [102] FACE::~FACE()          [19] boost::archive::detail::iserializer<boost::mpi::packed_iarchive, VECTOR3D>::load_object_data(boost::archive::detail::basic_iarchive&, void*, unsigned int) const [14] void std::vector<char, boost::mpi::allocator<char> >::_M_range_insert<char const*>(__gnu_cxx::__normal_iterator<char*, std::vector<char, boost::mpi::allocator<char> > >, char const*, char const*, std::forward_iterator_tag)
+  [73] std::basic_string<char, std::char_traits<char>, std::allocator<char> > const& boost::program_options::validators::get_single_string<char>(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) [24] boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::class_info() const [134] std::_Rb_tree<std::string, std::string, std::_Identity<std::string>, std::less<std::string>, std::allocator<std::string> >::_M_erase(std::_Rb_tree_node<std::string>*)
+ [103] boost::program_options::typed_value<std::string, char>::default_value(std::string const&) [38] boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::is_polymorphic() const [135] std::_Rb_tree<std::string, std::pair<std::string const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::string const, boost::program_options::variable_value> >, std::less<std::string>, std::allocator<std::pair<std::string const, boost::program_options::variable_value> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, boost::program_options::variable_value> >*)
+ [104] boost::program_options::typed_value<std::string, char>::~typed_value() [13] boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::save_object_data(boost::archive::detail::basic_oarchive&, void const*) const [136] std::_Rb_tree<std::string, std::pair<std::string const, std::string>, std::_Select1st<std::pair<std::string const, std::string> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, std::string> >*)
+ [105] boost::program_options::typed_value<bool, char>::default_value(bool const&) [31] boost::archive::detail::oserializer<boost::mpi::packed_oarchive, VECTOR3D>::version() const [27] virtual thunk to boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::mpi::exception> >::clone() const
