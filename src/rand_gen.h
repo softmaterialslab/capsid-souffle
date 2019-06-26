@@ -25,9 +25,9 @@ public:
         // NOTE: if you want to start with the same initial configuration comment three lines below
         // else uncomment them. uncommenting will generate a new randomized distribution of particles every run
 
-//        srand((time_t(0)));                	// srand & time are built-in
-//        unsigned long int s = random();  	// gsl_rng_uniform will eventually
-//        gsl_rng_set(r,s); 		            // seed the random number generator;
+        srand((time_t(0)));                	// srand & time are built-in
+        unsigned long int s = random();  	// gsl_rng_uniform will eventually
+        gsl_rng_set(r,s); 		            // seed the random number generator;
     }
 
     ~RAND_GEN()

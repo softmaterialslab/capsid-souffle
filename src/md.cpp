@@ -92,9 +92,9 @@ int run_simulation(int argc, char *argv[]) {
     }
 
     double bondlength;//= pow(2, 0.166666666667);       	//System specific paramters (modelled for HBV)
-    double SImass;                             			//SI value for a single bead
-    double SIsigma;
-    double SItime;
+    double SImass;                             			//SI value for a single bead (kg)
+    double SIsigma;                                             // (nm)
+    double SItime;                                              // (seconds)
     double const Avagadro = 6.022e23; // mol^-1			//useful constants
     double const Boltzmann = 1.3806e-23; // m2kg/s2K
     //double const e0 = 8.854187e-12; // c2/Nm2
@@ -108,7 +108,7 @@ int run_simulation(int argc, char *argv[]) {
     vector<PAIR> lj_pairlist;                               //create vector to hold LJ pairings
     vector<THERMOSTAT> real_bath;                           //vector of thermostats
 
-    double ecut = 2.5;                                       //lennard jones cut-off distance
+    double ecut = 2.5 * (SIsigma / 1e-9);                    //lennard jones cut-off distance
     double qs = 1;                                           //salt valency
     double T = 1;                                            //set temperature (reduced units)
     double Q = 10;                                           //nose hoover mass (reduced units)
@@ -336,7 +336,7 @@ int run_simulation(int argc, char *argv[]) {
  *    |    |   |   \ |   |    |   |         |            \        |            \
  *    |    |   |    \|   |    |   |_____    |       \____/    ____|____   \____/                                */
 
-        if (a % 1000 == 0) {                                           //analysis loop
+        if (a % 100000 == 0) {                                           //analysis loop
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								ANALYZE ENERGIES														*/
