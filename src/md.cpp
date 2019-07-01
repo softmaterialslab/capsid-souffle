@@ -33,7 +33,7 @@ int run_simulation(int argc, char *argv[]) {
     char response;
     string file_name;
     double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att;					
-    bool verbose;
+    bool verbose, restartFile;
 
     //Progress bar paras
     double percentage = 0, percentagePre = -1;
@@ -60,6 +60,7 @@ int run_simulation(int argc, char *argv[]) {
 	    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
 	    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
 	    ("ecut_c,e", value<double>(&ecut_c)->default_value(20), "electrostatics cutoff coefficient, input 0 for no cutoff")
+            ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
             ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
 	    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth");
 
@@ -71,12 +72,14 @@ int run_simulation(int argc, char *argv[]) {
         std::cout << desc << "\n";
         return 0;
     }
-
-
-    ofstream traj("outfiles/energy.out", ios::out);              //setting up file outputs
-    ofstream ofile("outfiles/ovito.lammpstrj", ios::out);
-    ofstream msdata("outfiles/ms.out", ios::out);
+    
+    
+    ofstream traj("outfiles/energy.out", ios_base::app);              //setting up file outputs
+    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
+  //  ofstream msdata("outfiles/ms.out", ios_base::app);
     ofstream sysdata("outfiles/model.parameters.out", ios::out);
+    ofstream restart;
+    int restartStep;
 
     initialize_outputfile(traj, ofile);
 
@@ -116,7 +119,7 @@ int run_simulation(int argc, char *argv[]) {
 
     vector<vector<int> > lj_a;
     lj_a = generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass, 
-			    subunit_bead, subunit_edge, protein, subunit_face);     //Setting up the input file (uses user specified file to generate lattice)
+			    subunit_bead, subunit_edge, protein, subunit_face, restartFile, restartStep);     //Setting up the input file (uses user specified file to generate lattice)
                             
      double SIenergy =  temperature * Boltzmann; 		// Joules
      SItime = sqrt(SIsigma*SIsigma*SImass/SIenergy); 	//seconds
@@ -220,8 +223,10 @@ int run_simulation(int argc, char *argv[]) {
     double tpenergy = 0;
     double tkenergy = 0;
 
+    if (restartFile == false) {
     initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
 //    initialize_constant_bead_velocities(protein, subunit_bead, T);
+    }
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
     double expfac_real;//= exp(-0.5 * delta_t * real_bath[0].xi);
@@ -239,7 +244,11 @@ int run_simulation(int argc, char *argv[]) {
    /   |/   |      |    /            |       |    |  |    |   |
   /         |      |___/             |_____   \__/    \__/    |                       */
 
-    for (unsigned int a = 0; a < (totaltime / delta_t); a++)         // BEGIN MD LOOP
+int loopStart;
+if (restartFile == false) loopStart = 0;
+if (restartFile == true) loopStart = restartStep;
+
+    for (unsigned int a = loopStart; a < (totaltime / delta_t); a++)         // BEGIN MD LOOP
     {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,8 +345,24 @@ int run_simulation(int argc, char *argv[]) {
  *    |    |   |   \ |   |    |   |         |            \        |            \
  *    |    |   |    \|   |    |   |_____    |       \____/    ____|____   \____/                                */
 
-        if (a % 100000 == 0) {                                           //analysis loop
+        if (a % 1000 == 0) {                                           //analysis loop
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*                                                              MAKING RESTART FILE                                                                                                                */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////         
+
+         if (a % 100000 == 0) {
+            restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
+            
+            restart << "Velocities & Positions for " << a << endl;
+            for (unsigned int i = 0; i < subunit_bead.size(); i++) {
+               restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12)
+                       << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
+            }
+            restart.close();
+         }
+
+           
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								ANALYZE ENERGIES														*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
