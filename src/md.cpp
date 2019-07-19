@@ -111,7 +111,7 @@ int run_simulation(int argc, char *argv[]) {
     vector<PAIR> lj_pairlist;                               //create vector to hold LJ pairings
     vector<THERMOSTAT> real_bath;                           //vector of thermostats
 
-    double ecut = 2.5 * (SIsigma / 1e-9);                    //lennard jones cut-off distance
+    
     double qs = 1;                                           //salt valency
     double T = 1;                                            //set temperature (reduced units)
     double Q = 10;                                           //nose hoover mass (reduced units)
@@ -149,8 +149,92 @@ int run_simulation(int argc, char *argv[]) {
     double kappa = sqrt(8 * Pi * ni * lb * qs * qs);					//electrostatics parameter
     double screen = 1 / kappa;							 	// 
     double ecut_el = screen * ecut_c;							// screening length times a constant so that electrostatics is cutoff at approximately 0.015
+    double ecut = 2.5 * (SIsigma / 1e-9);                                               //lennard jones cut-off distance
+    unsigned int M = floor( bxsz.x / ecut );
+    double cell_x = bxsz.x / M;                                                          //Cell width for neighborlist
+    int head [M][M][M];
+    if (world.rank() == 0) {
+       cout << "GOT HERE 1!" << endl;
+    }
+    vector<int> list(subunit_bead.size());
     
+    /*
+    int i_x, j_y, k_z; //index in x y and z directions
+    int icell; //index of cell
+    double r_cut = ecut*2;
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //Set up cell-linked neighborlist
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    for (unsigned int i = 0; i < M; i++) {
+       for (unsigned int j = 0; j < M; j++) {
+          for (unsigned int k = 0; k < M; k++) {
+             head[i][j][k] = -1;
+         }
+      }
+   }
+   for (unsigned int i = 0; i < list.size(); i++) {
+      list[i] = -1;
+   }
+    for (unsigned int i = 0; i < subunit_bead.size(); i++) { //put beads into cells
+       i_x = floor(subunit_bead[i].pos.x / cell_x);
+       j_y = floor(subunit_bead[i].pos.y / cell_x);
+       k_z = floor(subunit_bead[i].pos.z / cell_x);
+       //icell = ( (i_x * M * M) + (j_y * M) + k_z );
+       list[i] = head[i_x][j_y][k_z];
+       head[i_x][j_y][k_z] = i;
+   }
    
+   if (world.rank() == 0) {
+      cout << "GOT HERE!" << endl;
+   }
+   
+   int i_y, i_z;
+   int j;
+   VECTOR3D r_vec;
+   double r_dist;
+   VECTOR3D box = subunit_bead[0].bx;
+   
+   for (unsigned int i = 0; i < subunit_bead.size(); i++){ // for all particles...
+      for (int n = -1; n < 2; n++){ //look in all of the neighboring cells (27)
+         for (int m = -1; m < 2; m++){
+            for(int k = -1; k < 2; k++){
+               i_x = subunit_bead[i].cell_id.x + n;
+               i_y = subunit_bead[i].cell_id.y + m;
+               i_z = subunit_bead[i].cell_id.z + k;
+               if (i_x < 0) i_x = M;    //account for periodic boundaries
+               if (i_x > M) i_x = 0;
+               if (i_y < 0) i_y = M;
+               if (i_y > M) i_y = 0;
+               if (i_z < 0) i_z = M;
+               if (i_z > M) i_z = 0;
+               j = head[i_x][i_y][i_z];
+               while (j != -1) {        //scan through all the beads in the cell
+                  if (i > j) {         //check distance to see if it is within r_cut
+                     r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
+                     if (r_vec.x > box.x / 2) r_vec.x -= box.x;
+                     if (r_vec.x < -box.x / 2) r_vec.x += box.x;
+                     if (r_vec.y > box.y / 2) r_vec.y -= box.y;
+                     if (r_vec.y < -box.y / 2) r_vec.y += box.y;
+                     if (r_vec.z > box.z / 2) r_vec.z -= box.z;
+                     if (r_vec.z < -box.z / 2) r_vec.z += box.z;
+                     r_dist = r_vec.GetMagnitude();
+                     
+                     if (r_dist < r_cut) {
+                        subunit_bead[i].itsN.push_back(&subunit_bead[j]);
+                        subunit_bead[j].itsN.push_back(&subunit_bead[i]);
+                     }
+                  }
+                  j = list[j];
+               }
+               
+               
+            }
+         }
+      }
+   } */
+
+    
+    
 
     
     if (world.rank() == 0) {
@@ -210,8 +294,14 @@ int run_simulation(int argc, char *argv[]) {
 /*									Initial Force Calculation												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int test = 0;
 
-    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att);
+   for (unsigned int i = 0; i < subunit_bead.size(); i ++) {
+      subunit_bead[i].itsN.assign(subunit_bead.size(), 1);                      //To turn pairlist on, comment this line and uncomment the next one. Uncomment lines 50-67 in forces.cpp
+      //subunit_bead[i].itsN.assign(subunit_bead.size(), 0); 
+   }
+  
+    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, test);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -295,12 +385,49 @@ if (restartFile == true) loopStart = restartStep;
         }
 
         dress_up(subunit_edge, subunit_face);                              //update edge and face properties
+        
+        
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*                                                                      UPDATE PAIRLIST                                                                                          */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////  
+// if (a % 20) {
+// 
+// for (unsigned int ii = 0; ii < subunit_bead.size(); ii++) {
+//    subunit_bead[ii].itsN.clear();                                //clear the pairlist
+// }
+// 
+// 
+// //       for (unsigned int i = 0; i < protein.size(); i++) {
+// //            for (unsigned int j = i + 1; j < protein.size(); j++) {
+// //               if (dist(protein[i].itsB[8], protein[j].itsB[8]).GetMagnitudeSquared() < (9.7766*9.7766) ) { // If it is within the cutoff...
+// //                  for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+// //                     for (unsigned int jj = 0; jj < protein[j].itsB.size(); jj++) {
+// //                        protein[i].itsB[ii]->itsN.push_back(protein[j].itsB[jj]); //Add it to the pairlist
+// //                        protein[j].itsB[jj]->itsN.push_back(protein[i].itsB[ii]);
+// //                   }
+// //                }
+// //             }
+// //          }
+// //       }
+// 
+//          for (unsigned int ii = 0; ii < subunit_bead.size(); ii++) {
+//             for (unsigned int jj = ii + 1; jj < subunit_bead.size(); jj++) {
+//                if (dist(&subunit_bead[ii], &subunit_bead[jj]).GetMagnitudeSquared() < (6.5*6.5) ) {
+//                   subunit_bead[ii].itsN.push_back(&subunit_bead[jj]);
+//                   subunit_bead[jj].itsN.push_back(&subunit_bead[ii]);
+//                }
+//             }
+//          }
+//         
+//         
+//         
+// }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									MD LOOP FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att);
+        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, a);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -351,7 +478,7 @@ if (restartFile == true) loopStart = restartStep;
 /*                                                              MAKING RESTART FILE                                                                                                                */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////         
 
-         if (a % 100000 == 0) {
+         if (a % 1000 == 0) {
             restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
             
             restart << "Velocities & Positions for " << a << endl;

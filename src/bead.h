@@ -31,6 +31,8 @@ public:
     VECTOR3D bx;
     int unit ;
     int type ;
+    VECTOR3D cell_id;                          //cell array index
+    std::vector<int> itsN;                    //Its neighbors
     VECTOR3D pos;                       //position of the particle (xyz) (unitless)
     VECTOR3D vel;                       //velocity of the particle (xyz) (delt^-1)
     VECTOR3D sforce;                    //force on the particle (xyz) (amu/delt^2)
