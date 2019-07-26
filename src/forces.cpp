@@ -14,7 +14,7 @@ using namespace std;
 
 void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs, vector<BEAD> &subunit_bead,
                       vector<PAIR> &lj_pairlist, double ecut, double ks, double bondlength, double kb,
-                      vector<vector<int> > lj_a, double ecut_el, double kappa, double elj_att, int a) {
+                      vector<vector<int> > lj_a, double ecut_el, double kappa, double elj_att, bool updatePairlist) {
    
    //ofstream forces("outfiles/forces.out", ios::app);
    
@@ -47,37 +47,42 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    #pragma omp parallel for schedule(dynamic) default(shared) private(i, j, k)
    for (i = lowerBound; i <= upperBound; i++) {
       
-//       if (a % 20) {
-//          fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), 0);  //clear the pairlist
+//       if (updatePairlist == true) {
+//          fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist
 //          int test = 0;         
 //          
 //          for (j = 0; j < subunit_bead.size(); j++) {
-//             if (i != j && dist(&subunit_bead[i], &subunit_bead[j]).GetMagnitudeSquared() < (3*3) ) {
-//                if (subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id) {
-//                   subunit_bead[i].itsN[j] = 1;                                     //update pairlist
+//             if (i != j && dist(&subunit_bead[i], &subunit_bead[j]).GetMagnitudeSquared() < (3*3) ) { //if i_bead is not j_bead and distance is small...
+//                //if (subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id) {
+//                   subunit_bead[i].itsN[test] = subunit_bead[j].id;                                     //if not in the same subunit...update pairlist
 //                   test +=1;
-//                } else if (subunit_bead[i].q != 0 && subunit_bead[j].q != 0) {
-//                   subunit_bead[i].itsN[j] = 1;                                     //update pairlist
-//                   test +=1;
+//                   if (test >= 100) cout << "ERROR! Outgrew pairlist";
+//              //  } else if (subunit_bead[i].q != 0 && subunit_bead[j].q != 0) {
+//               //    subunit_bead[i].itsN[test] = subunit_bead[j].id;                                     //if in the same subunit & both charged...update pairlist
+//               //    test +=1;
+//                //   if (test >= 50) cout << "ERROR! Outgrew pairlist";
 //                }
 //             }
 //          }
-//         // cout << "At timestep " << a << " for bead " << i << " number of neigbors is " << test << endl ;
-//          
-//       }
+        // cout << "At timestep " << a << " for bead " << i << " number of neigbors is " << test << endl ;
+         
+      //}
       
       VECTOR3D eForce = VECTOR3D(0, 0, 0);
       VECTOR3D ljForce = VECTOR3D(0, 0, 0);
       
-      for (j = 0; j < subunit_bead[i].itsN.size(); j++) {
+      for (k = 0; k < subunit_bead[i].itsN.size(); k++) {
          
-         if (subunit_bead[i].itsN[j] == 1) { // if it is part of the neighborlist...
+         if (subunit_bead[i].itsN[k] == -1) break; // checking for -1 because this is the "empty" value, an index no bead can have.
+         
+         j = subunit_bead[i].itsN[k];
+         
+       //  if (subunit_bead[i].itsN[j] != 0) { // if it is part of the neighborlist...
             
-            BEAD j_bead = subunit_bead[j];
             
             //Add electrostatic cut offs here.
-            bool electrostatic = (i != j && subunit_bead[i].q != 0 && j_bead.q != 0);
-            bool lj = subunit_bead[i].itsS[0]->id != j_bead.itsS[0]->id;
+            bool electrostatic = (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0);
+            bool lj = subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id;
             
             VECTOR3D r_vec = VECTOR3D(0, 0, 0);
             long double r2 = 0.0;
@@ -87,7 +92,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             
             if (electrostatic || lj) {
                
-               r_vec = subunit_bead[i].pos - j_bead.pos;
+               r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
                if (r_vec.x > hbox) r_vec.x -= box.x;
                else if (r_vec.x < -hbox) r_vec.x += box.x;
                if (r_vec.y > hbox) r_vec.y -= box.y;
@@ -100,16 +105,16 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             
             if (electrostatic && r2 < (ecut_el * ecut_el) && ecut_el != 0) {
                r = sqrt(r2);
-               eForce += r_vec ^ ((subunit_bead[i].q * j_bead.q * lb * exp(-kappa * r)
+               eForce += r_vec ^ ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)
                / (r2)) * (kappa + 1 / r));
             } else if (electrostatic && ecut_el == 0) {
                r = sqrt(r2);
-               eForce += r_vec ^ ((subunit_bead[i].q * j_bead.q * lb * exp(-kappa * r)
+               eForce += r_vec ^ ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)
                / (r2)) * (kappa + 1 / r));
             }
             
             double sig1 = subunit_bead[i].sigma;
-            double sig2 = j_bead.sigma;
+            double sig2 = subunit_bead[j].sigma;
             double shc = (sig1 +sig2)/2;
             
             if (r2 >= ecut*ecut && r2 >= ((1.12246205 * shc) * (1.12246205 * shc)))
@@ -119,7 +124,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                
                bool lj_attractive = false;
                for (k = 0; k < lj_a[0].size(); k++) {
-                  if (subunit_bead[i].type == lj_a[1][k] && j_bead.type == lj_a[2][k]) {
+                  if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]) {
                      lj_attractive = true;
                   }
                }
@@ -133,11 +138,11 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                else if (lj_attractive == false && r2 < ((1.12246205 * shc) * (1.12246205 * shc))) {
                   double r6 = r2 * r2 * r2;
                   double sigma6 = shc * shc * shc * shc * shc * shc;
-                  double elj = 1;//j_bead.epsilon;
+                  double elj = 1;//subunit_bead[j].epsilon;
                   ljForce += (r_vec ^ (48 * elj * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                } 
                }
-            }
+            //}
             
             forvec[i - lowerBound] = eForce + ljForce;
          }

@@ -128,16 +128,18 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
     if (world.rank() == 0) {
         inputfile << "# Number of Particles = " << np * number_capsomeres << endl << "Coordinates:" << endl;
         inputfile << "index x y z subunit charge type diameter mass" << endl;
-        if (restartFile == true) {
-           restart.open("outfiles/restart.out");
-           if (!restart) {                                        //check to make sure file is there
-              if (world.rank() == 0)
-                 cerr << "ERR: RESTART FILE outfiles/restart.out NOT OPENED. Check directory and/or filename.";
-              exit(1);
-           }
-           restart >> dummy >> dummy >> dummy >> dummy >> restartStep;
-      }
     }
+    
+    if (restartFile == true) {
+       restart.open("outfiles/restart.out");
+       if (!restart) {                                        //check to make sure file is there
+          if (world.rank() == 0)
+             cerr << "ERR: RESTART FILE outfiles/restart.out NOT OPENED. Check directory and/or filename.";
+          exit(1);
+       }
+       restart >> dummy >> dummy >> dummy >> dummy >> restartStep;
+    }
+    
     int myindex = 0;
     double vel_x, vel_y, vel_z;
 
