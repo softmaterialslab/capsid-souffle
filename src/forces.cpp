@@ -71,13 +71,14 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
       VECTOR3D eForce = VECTOR3D(0, 0, 0);
       VECTOR3D ljForce = VECTOR3D(0, 0, 0);
       
-      for (k = 0; k < subunit_bead[i].itsN.size(); k++) {
+    //  for (k = 0; k < subunit_bead[i].itsN.size(); k++) {
+	  for (int m=0; m < subunit_bead[i].itsN.size(); m++){
          
-         if (subunit_bead[i].itsN[k] == -1) break; // checking for -1 because this is the "empty" value, an index no bead can have.
+         if (subunit_bead[i].itsN[m] == -1) break; // checking for -1 because this is the "empty" value, an index no bead can have.
          
-         j = subunit_bead[i].itsN[k];
+         j = m;//subunit_bead[i].itsN[k];
          
-       //  if (subunit_bead[i].itsN[j] != 0) { // if it is part of the neighborlist...
+        // if (subunit_bead[i].itsN[j] != 0) { // if it is part of the neighborlist...
             
             
             //Add electrostatic cut offs here.
@@ -142,7 +143,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                   ljForce += (r_vec ^ (48 * elj * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                } 
                }
-            //}
+       //     }
             
             forvec[i - lowerBound] = eForce + ljForce;
          }

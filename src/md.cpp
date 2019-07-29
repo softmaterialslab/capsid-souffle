@@ -331,13 +331,13 @@ if (updatePairlist == true) {
          if (r_vec.z > hbox) r_vec.z -= box.z;
          else if (r_vec.z < -hbox) r_vec.z += box.z;
          r2 = r_vec.GetMagnitudeSquared();
-         if (r2 < 2.5*2.5) {
+         if (r2 < 3*3) {
             subunit_bead[i].itsN[test] = subunit_bead[j].id;
             test += 1;
           //  cout << "here";
          }
       }// for j
-     if(test > 100) cout << "test value is " << test << endl;
+    // if(test > 400) cout << "test value is " << test << endl;
    } // for i
 } //if
 
