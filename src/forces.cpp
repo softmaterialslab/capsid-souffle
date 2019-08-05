@@ -14,7 +14,7 @@ using namespace std;
 
 void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs, vector<BEAD> &subunit_bead,
                       vector<PAIR> &lj_pairlist, double ecut, double ks, double bondlength, double kb,
-                      vector<vector<int> > lj_a, double ecut_el, double kappa, double elj_att, bool updatePairlist) {
+                      vector<vector<int> > lj_a, double ecut_el, double kappa, double elj_att, bool updatePairlist, double NListCutoff) {
    
    //ofstream forces("outfiles/forces.out", ios::app);
    
@@ -47,49 +47,52 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    #pragma omp parallel for schedule(dynamic) default(shared) private(i, j, k)
    for (i = lowerBound; i <= upperBound; i++) {
       
-//       if (updatePairlist == true) {
-//          fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist
-//          int test = 0;         
-//          
-//          for (j = 0; j < subunit_bead.size(); j++) {
-//             if (i != j && dist(&subunit_bead[i], &subunit_bead[j]).GetMagnitudeSquared() < (3*3) ) { //if i_bead is not j_bead and distance is small...
-//                //if (subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id) {
-//                   subunit_bead[i].itsN[test] = subunit_bead[j].id;                                     //if not in the same subunit...update pairlist
-//                   test +=1;
-//                   if (test >= 100) cout << "ERROR! Outgrew pairlist";
-//              //  } else if (subunit_bead[i].q != 0 && subunit_bead[j].q != 0) {
-//               //    subunit_bead[i].itsN[test] = subunit_bead[j].id;                                     //if in the same subunit & both charged...update pairlist
-//               //    test +=1;
-//                //   if (test >= 50) cout << "ERROR! Outgrew pairlist";
-//                }
-//             }
-//          }
-        // cout << "At timestep " << a << " for bead " << i << " number of neigbors is " << test << endl ;
-         
-      //}
+      VECTOR3D r_vec = VECTOR3D(0, 0, 0);
+      long double r2 = 0.0;
+      double hbox = box.x / 2;
+      
+      if (updatePairlist == true) {
+         fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist to -1 (a number that cannot be bead index)
+         unsigned int test = 0;
+         for (unsigned int bead_j = 0; bead_j < subunit_bead.size(); bead_j++) {
+            bool electrostatic = (i != bead_j && subunit_bead[i].q != 0 && subunit_bead[bead_j].q != 0);
+            bool lj = subunit_bead[i].itsS[0]->id != subunit_bead[bead_j].itsS[0]->id;
+            if (electrostatic || lj) {
+               r_vec = subunit_bead[i].pos - subunit_bead[bead_j].pos;
+               if (r_vec.x > hbox) r_vec.x -= box.x;
+               else if (r_vec.x < -hbox) r_vec.x += box.x;
+               if (r_vec.y > hbox) r_vec.y -= box.y;
+               else if (r_vec.y < -hbox) r_vec.y += box.y;
+               if (r_vec.z > hbox) r_vec.z -= box.z;
+               else if (r_vec.z < -hbox) r_vec.z += box.z;
+               r2 = r_vec.GetMagnitudeSquared();
+               if ( r2 < (NListCutoff * NListCutoff) ) {
+                  subunit_bead[i].itsN[test] = subunit_bead[bead_j].id;
+                  test += 1;
+               }
+            } //if lj||es
+         }// for j
+         if(test > subunit_bead[0].itsN.size()) cout << endl << "ERROR! Neighborlist outgrew allocated vector size!" << endl;
+      } //if
       
       VECTOR3D eForce = VECTOR3D(0, 0, 0);
       VECTOR3D ljForce = VECTOR3D(0, 0, 0);
       
     //  for (k = 0; k < subunit_bead[i].itsN.size(); k++) {
-	  for (int m=0; m < subunit_bead[i].itsN.size(); m++){
+	  for (unsigned int m = 0; m < subunit_bead[i].itsN.size(); m++){
          
          if (subunit_bead[i].itsN[m] == -1) break; // checking for -1 because this is the "empty" value, an index no bead can have.
          
-         j = m;//subunit_bead[i].itsN[k];
-         
-        // if (subunit_bead[i].itsN[j] != 0) { // if it is part of the neighborlist...
+         j = subunit_bead[i].itsN[m];
             
             
             //Add electrostatic cut offs here.
             bool electrostatic = (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0);
             bool lj = subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id;
             
-            VECTOR3D r_vec = VECTOR3D(0, 0, 0);
-            long double r2 = 0.0;
+            
             long double r = 0.0;
             
-            double hbox = box.x / 2;
             
             if (electrostatic || lj) {
                
@@ -143,8 +146,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                   ljForce += (r_vec ^ (48 * elj * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                } 
                }
-       //     }
-            
+ 
             forvec[i - lowerBound] = eForce + ljForce;
          }
       }

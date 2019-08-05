@@ -32,7 +32,7 @@
 * Next, go to the bin directory:
  ```cd bin```
 * Next, run a test job:
-```time mpirun -np 2 -N 16 ./capsid-souffle -f 41part_cu -T 1000 -t 0.01 -q 1 -e 0 ```
+``` time mpirun -np 2 -N 16 ./capsid-souffle -f 41part_c -T 10 -t 0.004 -e 12 -C 200 -c 500 -S 64 ```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
 * If you want to clean everything and create a new build, use:
@@ -42,22 +42,30 @@
 
 * if testing on a separate folder, copy 41part and/or 41part_c and/or 41part_cu
 
-##### OPTIONS                           FLAG  DEFAULT     EXTRA INFO
-* engine selection,                   -D  m         set to 'b' for brownian
-* filename,                           -f  41part
-* capsomere conc (microM),            -C  75
-* salt conc (mM),                     -c  200
-* stretching constant (kBT),          -s  50
-* bending constant (kBT),             -S  20
-* total time (MD units),              -T  100       # of MD steps = T/t
-* timestep (MD units),                -t  .001
-* number subunits,                    -S  8         must be a cubic number
-* temperature (K),                    -K  298
-* nose-hoover chain length,           -q  5         to turn off thermostat set to 1
-* electrostatics cut-off coefficient, -e  20        to turn off electrostatics set to 0
-* friction coefficient,               -r  1
-* lennard jones attractive E_lj	      -E  2
+##### OPTIONS,                           **FLAG**  DEFAULT   
+* engine selection,                   **-D**  m         
+    * set to 'b' for brownian, 'm' for molecular dynamics
+* filename,                           **-f**  41part
+* capsomere conc (microM),            **-C**  75.0
+* salt conc (mM),                     **-c**  200.0
+* stretching constant (kBT),          **-s**  50.0
+* bending constant (kBT),             **-S**  20.0
+* total time (MD units),              **-T**  100       
+    * # of computational steps = T/t
+* timestep (MD units),                **-t**  0.001
+* number subunits,                    **-S**  8         
+* temperature (K),                    **-K**  298.0
+* nose-hoover chain length,           **-q**  5         
+    * to turn off thermostat set to 1
+* electrostatics cut-off coefficient, **-e**  20.0      
+    * to turn off electrostatic cut-off set to 0
+* friction coefficient,               **-r**  1.0
+* lennard jones attractive E_lj,	      **-E**  2.0
+* Restart file bool,                   **-R**  false     
+    * set to 'true' if restarting
+* Neighbor list build frequency,       **-B**  20
+* Neighbor list cutoff,                **-L**  4.0
 
-* verbose                             -v
-* help                                -h
+* verbose                             **-v**
+* help                                **-h**
 

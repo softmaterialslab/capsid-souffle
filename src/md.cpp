@@ -32,8 +32,9 @@ int run_simulation(int argc, char *argv[]) {
     //parameters from user
     char response;
     string file_name;
-    double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att;					
+    double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att, NListCutoff;					
     bool verbose, restartFile;
+    int buildFrequency ;
 
     //Progress bar paras
     double percentage = 0, percentagePre = -1;
@@ -62,7 +63,9 @@ int run_simulation(int argc, char *argv[]) {
 	    ("ecut_c,e", value<double>(&ecut_c)->default_value(20), "electrostatics cutoff coefficient, input 0 for no cutoff")
             ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
             ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
-	    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth");
+	    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
+            ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
+            ("Neighbor list cutoff,L", value<double>(&NListCutoff)->default_value(4.0), "Neighbor list cutoff");
 
 
     variables_map vm;
@@ -213,12 +216,15 @@ int run_simulation(int argc, char *argv[]) {
 
 bool updatePairlist = true;
 
+   int NListVectorSize;
+   NListVectorSize = ceil( (NListCutoff + 0.5) * (NListCutoff + 0.5) * (NListCutoff + 0.5) ) ; //calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
+
    for (unsigned int i = 0; i < subunit_bead.size(); i ++) {
-      subunit_bead[i].itsN.assign(200, -1);                      //To run with no forces (ES & LJ), comment this line and uncomment the next one. Comment 50-67 in forces.cpp
+      subunit_bead[i].itsN.assign(NListVectorSize, -1);                      //To run with no forces (ES & LJ), comment this line and uncomment the next one. Comment 50-67 in forces.cpp
       //subunit_bead[i].itsN.assign(subunit_bead.size(), 0);                    //To run with neighborlist uncomment 50-67 in forces.cpp
    }
   
-    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist);
+  forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -308,66 +314,40 @@ if (restartFile == true) loopStart = restartStep;
 /*                                                                      UPDATE PAIRLIST                                                                                          */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////  
 
-VECTOR3D r_vec = VECTOR3D(0, 0, 0);
-long double r2 = 0.0;
-VECTOR3D box = subunit_bead[0].bx;
-double hbox = box.x / 2;
+// VECTOR3D r_vec = VECTOR3D(0, 0, 0);
+// long double r2 = 0.0;
+// VECTOR3D box = subunit_bead[0].bx;
+// double hbox = box.x / 2;
 updatePairlist = false;
 
-if ( a % 20 == 0) {
+if ( a % buildFrequency == 0) {
    updatePairlist = true;
 }
 
-if (updatePairlist == true) {
-   for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-      fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist to -1 (a number that cannot be bead index)
-      int test = 0;
-      for (unsigned int j = 0; j < subunit_bead.size(); j++) {
-         r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
-         if (r_vec.x > hbox) r_vec.x -= box.x;
-         else if (r_vec.x < -hbox) r_vec.x += box.x;
-         if (r_vec.y > hbox) r_vec.y -= box.y;
-         else if (r_vec.y < -hbox) r_vec.y += box.y;
-         if (r_vec.z > hbox) r_vec.z -= box.z;
-         else if (r_vec.z < -hbox) r_vec.z += box.z;
-         r2 = r_vec.GetMagnitudeSquared();
-         if (r2 < 3*3) {
-            subunit_bead[i].itsN[test] = subunit_bead[j].id;
-            test += 1;
-          //  cout << "here";
-         }
-      }// for j
-    // if(test > 400) cout << "test value is " << test << endl;
-   } // for i
-} //if
-
-// for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-//    if (updatePairlist == true) {
-//       fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), 0);  //clear the pairlist
-//       int test = 0;  
+// if (updatePairlist == true) {
+//    for (unsigned int i = 0; i < subunit_bead.size(); i++) {
+//       fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist to -1 (a number that cannot be bead index)
+//       int test = 0;
 //       for (unsigned int j = 0; j < subunit_bead.size(); j++) {
-//          r2 = 0.0;
-//          bool getDistance = false;
-//          if (i != j && subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id) getDistance = true;
-//          if (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0) getDistance = true;
-//          if (getDistance == true) {
-//             r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
-//             if (r_vec.x > hbox) r_vec.x -= box.x;
-//             else if (r_vec.x < -hbox) r_vec.x += box.x;
-//             if (r_vec.y > hbox) r_vec.y -= box.y;
-//             else if (r_vec.y < -hbox) r_vec.y += box.y;
-//             if (r_vec.z > hbox) r_vec.z -= box.z;
-//             else if (r_vec.z < -hbox) r_vec.z += box.z;
-//             r2 = r_vec.GetMagnitudeSquared();
+//          r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
+//          if (r_vec.x > hbox) r_vec.x -= box.x;
+//          else if (r_vec.x < -hbox) r_vec.x += box.x;
+//          if (r_vec.y > hbox) r_vec.y -= box.y;
+//          else if (r_vec.y < -hbox) r_vec.y += box.y;
+//          if (r_vec.z > hbox) r_vec.z -= box.z;
+//          else if (r_vec.z < -hbox) r_vec.z += box.z;
+//          r2 = r_vec.GetMagnitudeSquared();
+//          if (i != j && r2 < (4*4)) {
+//             subunit_bead[i].itsN[test] = subunit_bead[j].id;
+//             test += 1;
+//           //  cout << "here";
 //          }
-//          if (r2 < 3 * 3 && r2 != 0) {
-//           //  subunit_bead[i].itsN[test] = subunit_bead[j].id; 
-//             test +=1;
-//             if (test > 100) cout << "ERROR! Outgrew pairlist";
-//          }
-//       }
-//    }
-// }
+//       }// for j
+//      if(test > subunit_bead[0].itsN.size() ) cout << "ERROR! NEIGHBORLIST OUTGREW ALLOCATED VECTOR SIZE!" << endl;
+//    } // for i
+// } //if
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									MD LOOP FORCES												*/
@@ -375,7 +355,7 @@ if (updatePairlist == true) {
 
 
 
-        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist);
+        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
