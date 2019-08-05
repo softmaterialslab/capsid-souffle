@@ -51,7 +51,7 @@
 * stretching constant (kBT),          **-s**  50.0
 * bending constant (kBT),             **-S**  20.0
 * total time (MD units),              **-T**  100       
-    * # of computational steps = T/t
+    * number of computational steps = T/t
 * timestep (MD units),                **-t**  0.001
 * number subunits,                    **-S**  8         
 * temperature (K),                    **-K**  298.0
