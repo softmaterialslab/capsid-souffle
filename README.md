@@ -42,7 +42,7 @@
 
 * if testing on a separate folder, copy 41part and/or 41part_c and/or 41part_cu
 
-##### OPTIONS,                           **FLAG**  DEFAULT   
+##### OPTIONS                           FLAG  DEFAULT   
 * engine selection,                   **-D**  m         
     * set to 'b' for brownian, 'm' for molecular dynamics
 * filename,                           **-f**  41part
