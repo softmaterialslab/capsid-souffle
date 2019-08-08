@@ -24,7 +24,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile) {
 vector<vector<int> >
 generate_lattice(double capsomere_concentration, unsigned int number_capsomeres, string file_name, double &bondlength,
                  double &SIsigma, double &SImass, vector<BEAD> &subunit_bead,
-                 vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face) {
+                 vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, bool restartFile, int &restartStep) {
 
     ofstream inputfile("outfiles/input.GEN.out", ios::out);
 
@@ -124,12 +124,24 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
     // Create a master template with copies of original template for each
     // new position of the subunit. This is read in by the original data-reading
     // function, initialize_system
+    ifstream restart;
     if (world.rank() == 0) {
         inputfile << "# Number of Particles = " << np * number_capsomeres << endl << "Coordinates:" << endl;
         inputfile << "index x y z subunit charge type diameter mass" << endl;
     }
+    
+    if (restartFile == true) {
+       restart.open("outfiles/restart.out");
+       if (!restart) {                                        //check to make sure file is there
+          if (world.rank() == 0)
+             cerr << "ERR: RESTART FILE outfiles/restart.out NOT OPENED. Check directory and/or filename.";
+          exit(1);
+       }
+       restart >> dummy >> dummy >> dummy >> dummy >> restartStep;
+    }
+    
     int myindex = 0;
-
+    double vel_x, vel_y, vel_z;
 
     for (unsigned int i = 0; i < num_fill; i++) {
         for (unsigned int j = 0; j < num_fill; j++) {
@@ -137,9 +149,13 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
                 index += 1;
                 if (number_capsomeres > (index - 1)) {
                     for (unsigned int l = 0; l < np; l++) {
+                       if (restartFile == false) {
                         x = (((double) i * bxsz.x * (1 / (double) num_fill)) + part_template[0][l]);
                         y = (((double) j * bxsz.y * (1 / (double) num_fill)) + part_template[1][l]);
                         z = (((double) k * bxsz.z * (1 / (double) num_fill)) + part_template[2][l]);
+                       } else if (restartFile == true) {
+                          restart >> dummy >> vel_x >> vel_y >> vel_z >> x >> y >> z;
+                     }
                         myindex = index * np - np + l;
                         subunit_bead.push_back(BEAD(VECTOR3D(x, y, z)));
                         subunit_bead[myindex].id = myindex;
@@ -149,11 +165,14 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
                         subunit_bead[myindex].m = part_template[7][l];                           //assign mass (clone of user value)
                         subunit_bead[myindex].bx = bxsz;
                         subunit_bead[myindex].unit = index;
+                        if (restartFile == true) {
+                           subunit_bead[myindex].vel = VECTOR3D(vel_x, vel_y, vel_z);
+                        }
                         if (world.rank() == 0) {
                             inputfile << subunit_bead[myindex].id << setw(15) << setprecision(12)
-                                      << subunit_bead[myindex].pos.x << setw(15) << setprecision(12)
-                                      << subunit_bead[myindex].pos.y << setw(15) << setprecision(12)
-                                      << subunit_bead[myindex].pos.z << setw(15) << subunit_bead[myindex].unit
+                                      << subunit_bead[myindex].pos.x << setw(25) << setprecision(12)
+                                      << subunit_bead[myindex].pos.y << setw(25) << setprecision(12)
+                                      << subunit_bead[myindex].pos.z << setw(25) << subunit_bead[myindex].unit
                                       << setw(15)
                                       << subunit_bead[myindex].q << setw(15) << subunit_bead[myindex].type << setw(15)
                                       << subunit_bead[myindex].sigma << setw(20) << setprecision(12)

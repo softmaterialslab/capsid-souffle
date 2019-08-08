@@ -32,8 +32,9 @@ int run_simulation(int argc, char *argv[]) {
     //parameters from user
     char response;
     string file_name;
-    double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att;					
-    bool verbose;
+    double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att, NListCutoff;					
+    bool verbose, restartFile;
+    int buildFrequency ;
 
     //Progress bar paras
     double percentage = 0, percentagePre = -1;
@@ -60,8 +61,11 @@ int run_simulation(int argc, char *argv[]) {
 	    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
 	    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
 	    ("ecut_c,e", value<double>(&ecut_c)->default_value(20), "electrostatics cutoff coefficient, input 0 for no cutoff")
+            ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
             ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
-	    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth");
+	    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
+            ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
+            ("Neighbor list cutoff,L", value<double>(&NListCutoff)->default_value(4.0), "Neighbor list cutoff");
 
 
     variables_map vm;
@@ -71,12 +75,14 @@ int run_simulation(int argc, char *argv[]) {
         std::cout << desc << "\n";
         return 0;
     }
-
-
-    ofstream traj("outfiles/energy.out", ios::out);              //setting up file outputs
-    ofstream ofile("outfiles/ovito.lammpstrj", ios::out);
-    ofstream msdata("outfiles/ms.out", ios::out);
+    
+    
+    ofstream traj("outfiles/energy.out", ios_base::app);              //setting up file outputs
+    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
+  //  ofstream msdata("outfiles/ms.out", ios_base::app);
     ofstream sysdata("outfiles/model.parameters.out", ios::out);
+    ofstream restart;
+    int restartStep;
 
     initialize_outputfile(traj, ofile);
 
@@ -108,7 +114,7 @@ int run_simulation(int argc, char *argv[]) {
     vector<PAIR> lj_pairlist;                               //create vector to hold LJ pairings
     vector<THERMOSTAT> real_bath;                           //vector of thermostats
 
-    double ecut = 2.5 * (SIsigma / 1e-9);                    //lennard jones cut-off distance
+    
     double qs = 1;                                           //salt valency
     double T = 1;                                            //set temperature (reduced units)
     double Q = 10;                                           //nose hoover mass (reduced units)
@@ -116,7 +122,7 @@ int run_simulation(int argc, char *argv[]) {
 
     vector<vector<int> > lj_a;
     lj_a = generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass, 
-			    subunit_bead, subunit_edge, protein, subunit_face);     //Setting up the input file (uses user specified file to generate lattice)
+			    subunit_bead, subunit_edge, protein, subunit_face, restartFile, restartStep);     //Setting up the input file (uses user specified file to generate lattice)
                             
      double SIenergy =  temperature * Boltzmann; 		// Joules
      SItime = sqrt(SIsigma*SIsigma*SImass/SIenergy); 	//seconds
@@ -146,8 +152,9 @@ int run_simulation(int argc, char *argv[]) {
     double kappa = sqrt(8 * Pi * ni * lb * qs * qs);					//electrostatics parameter
     double screen = 1 / kappa;							 	// 
     double ecut_el = screen * ecut_c;							// screening length times a constant so that electrostatics is cutoff at approximately 0.015
-    
+    double ecut = 2.5 * (SIsigma / 1e-9);                                               //lennard jones cut-off distance
    
+    
 
     
     if (world.rank() == 0) {
@@ -207,8 +214,17 @@ int run_simulation(int argc, char *argv[]) {
 /*									Initial Force Calculation												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool updatePairlist = true;
 
-    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att);
+   int NListVectorSize;
+   NListVectorSize = ceil( (NListCutoff + 0.5) * (NListCutoff + 0.5) * (NListCutoff + 0.5) ) ; //calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
+
+   for (unsigned int i = 0; i < subunit_bead.size(); i ++) {
+      subunit_bead[i].itsN.assign(NListVectorSize, -1);                      //To run with no forces (ES & LJ), comment this line and uncomment the next one. Comment 50-67 in forces.cpp
+      //subunit_bead[i].itsN.assign(subunit_bead.size(), 0);                    //To run with neighborlist uncomment 50-67 in forces.cpp
+   }
+  
+  forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
 
 
     double senergy = 0;                                                //blank all the energy metrics
@@ -220,8 +236,10 @@ int run_simulation(int argc, char *argv[]) {
     double tpenergy = 0;
     double tkenergy = 0;
 
+    if (restartFile == false) {
     initialize_bead_velocities(protein, subunit_bead, T);        //assign random velocities based on initial temperature
 //    initialize_constant_bead_velocities(protein, subunit_bead, T);
+    }
 
     double particle_ke = particle_kinetic_energy(subunit_bead);     //thermostat variables for nose hoover
     double expfac_real;//= exp(-0.5 * delta_t * real_bath[0].xi);
@@ -239,7 +257,11 @@ int run_simulation(int argc, char *argv[]) {
    /   |/   |      |    /            |       |    |  |    |   |
   /         |      |___/             |_____   \__/    \__/    |                       */
 
-    for (unsigned int a = 0; a < (totaltime / delta_t); a++)         // BEGIN MD LOOP
+int loopStart;
+if (restartFile == false) loopStart = 0;
+if (restartFile == true) loopStart = restartStep;
+
+    for (unsigned int a = loopStart; a < (totaltime / delta_t); a++)         // BEGIN MD LOOP
     {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -286,12 +308,54 @@ int run_simulation(int argc, char *argv[]) {
         }
 
         dress_up(subunit_edge, subunit_face);                              //update edge and face properties
+        
+        
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*                                                                      UPDATE PAIRLIST                                                                                          */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////  
+
+// VECTOR3D r_vec = VECTOR3D(0, 0, 0);
+// long double r2 = 0.0;
+// VECTOR3D box = subunit_bead[0].bx;
+// double hbox = box.x / 2;
+updatePairlist = false;
+
+if ( a % buildFrequency == 0) {
+   updatePairlist = true;
+}
+
+// if (updatePairlist == true) {
+//    for (unsigned int i = 0; i < subunit_bead.size(); i++) {
+//       fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist to -1 (a number that cannot be bead index)
+//       int test = 0;
+//       for (unsigned int j = 0; j < subunit_bead.size(); j++) {
+//          r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
+//          if (r_vec.x > hbox) r_vec.x -= box.x;
+//          else if (r_vec.x < -hbox) r_vec.x += box.x;
+//          if (r_vec.y > hbox) r_vec.y -= box.y;
+//          else if (r_vec.y < -hbox) r_vec.y += box.y;
+//          if (r_vec.z > hbox) r_vec.z -= box.z;
+//          else if (r_vec.z < -hbox) r_vec.z += box.z;
+//          r2 = r_vec.GetMagnitudeSquared();
+//          if (i != j && r2 < (4*4)) {
+//             subunit_bead[i].itsN[test] = subunit_bead[j].id;
+//             test += 1;
+//           //  cout << "here";
+//          }
+//       }// for j
+//      if(test > subunit_bead[0].itsN.size() ) cout << "ERROR! NEIGHBORLIST OUTGREW ALLOCATED VECTOR SIZE!" << endl;
+//    } // for i
+// } //if
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*									MD LOOP FORCES												*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att);
+
+
+        forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,8 +400,24 @@ int run_simulation(int argc, char *argv[]) {
  *    |    |   |   \ |   |    |   |         |            \        |            \
  *    |    |   |    \|   |    |   |_____    |       \____/    ____|____   \____/                                */
 
-        if (a % 100000 == 0) {                                           //analysis loop
+        if (a % 1000 == 0) {                                           //analysis loop
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*                                                              MAKING RESTART FILE                                                                                                                */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////         
+
+         if (a % 1000 == 0 && world.rank() == 0) {
+            restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
+            
+            restart << "Velocities & Positions for " << a << endl;
+            for (unsigned int i = 0; i < subunit_bead.size(); i++) {
+               restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12)
+                       << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
+            }
+            restart.close();
+         }
+
+           
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								ANALYZE ENERGIES														*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
