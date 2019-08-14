@@ -79,12 +79,11 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
       VECTOR3D ljForce = VECTOR3D(0, 0, 0);
       
     //  for (k = 0; k < subunit_bead[i].itsN.size(); k++) {
-	  for (unsigned int m = 0; m < subunit_bead[i].itsN.size(); m++){
+      for (unsigned int m = 0; m < subunit_bead[i].itsN.size(); m++){
          
          if (subunit_bead[i].itsN[m] == -1) break; // checking for -1 because this is the "empty" value, an index no bead can have.
          
-         j = subunit_bead[i].itsN[m];
-            
+            j = subunit_bead[i].itsN[m];
             
             //Add electrostatic cut offs here.
             bool electrostatic = (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0);
@@ -145,34 +144,33 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                   double elj = 1;//subunit_bead[j].epsilon;
                   ljForce += (r_vec ^ (48 * elj * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                } 
-               }
- 
-            forvec[i - lowerBound] = eForce + ljForce;
-         }
-      }
+            } //if lj
+        } //for m (j)
+      forvec[i - lowerBound] = eForce + ljForce;
+      } //for i
       
-      //forvec broadcasting using all gather = gather + broadcast
-      if (world.size() > 1) {
-         all_gather(world, &forvec[0], forvec.size(), forvecGather);
-      } else {
-         for (i = lowerBound; i <= upperBound; i++)
-            forvecGather[i] = forvec[i - lowerBound];
-      }
-      
-      //cout << lowerBound << " " << upperBound << " "<< subunit_bead.size()<<endl;
-      //Total force accumulation
-      //for (i = 0; i < subunit_bead.size(); i++)
-      //    subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + lj[i];
-      
-      for (unsigned int i = 0; i < subunit_bead.size(); i++)
-         subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + forvecGather[i];
-      
-      
-      forvec.clear();
-      forvecGather.clear();
-      
-      
+   //forvec broadcasting using all gather = gather + broadcast
+   if (world.size() > 1) {
+      all_gather(world, &forvec[0], forvec.size(), forvecGather);
+   } else {
+      for (i = lowerBound; i <= upperBound; i++)
+         forvecGather[i] = forvec[i - lowerBound];
    }
+      
+   //cout << lowerBound << " " << upperBound << " "<< subunit_bead.size()<<endl;
+   //Total force accumulation
+   //for (i = 0; i < subunit_bead.size(); i++)
+   //    subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + lj[i];
+   
+   for (unsigned int i = 0; i < subunit_bead.size(); i++)
+      subunit_bead[i].tforce = subunit_bead[i].sforce + subunit_bead[i].bforce + forvecGather[i];
+   
+   
+   forvec.clear();
+   forvecGather.clear();
+      
+      
+} //void fxn
 
 
 
