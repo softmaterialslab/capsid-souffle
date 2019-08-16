@@ -11,14 +11,12 @@
 #include "thermostat.h"
 #include "rand_gen.h"
 
-
 class EDGE;
 class SUBUNIT;
 class FACE;
 class BOX;
 class OLIGOMER;
 class PAIR;
-
 
 class BEAD
 {
@@ -52,14 +50,12 @@ public:
     OLIGOMER* itsO;
 	std::vector<PAIR*> itsP;			// LJ pairs
  
-
-
 //member functions
 
-    BEAD(VECTOR3D position_i=VECTOR3D(0,0,0),double mi=0, int id_i=0, int unit_i=0, int type_i=0, OLIGOMER* itsO_i=NULL)
+    BEAD(VECTOR3D position_i=VECTOR3D(0,0,0), double mi=0, int id_i=0, int unit_i=0, int type_i=0, OLIGOMER* itsO_i=NULL)
     {                                                       //constructor fxn
-        m = mi;
-        pos = position_i;
+		m = mi;
+		pos = position_i;
 		id = id_i;
 		unit = unit_i;
 		type = type_i;
@@ -86,21 +82,18 @@ public:
 
     void update_velocity(double delt)                       //velocity updated half timestep (No thermostat)
     {
-        //tforce = sforce + bforce + ljforce + eforce;
         vel = ( vel + ( (tforce) ^ (0.5*delt/m) ) );
     }
 
     // update velocity with integrator that unifies velocity verlet and Nose-Hoover
     void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac)
     {
-        //tforce = sforce + bforce + ljforce + eforce;
         vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
         return;
     }
 
     void brownian_update_velocity(double delt, double fric_zeta){
         RAND_GEN ugsl;
-        //tforce = sforce + bforce + ljforce + eforce;
         vel.x += (vel.x*(-0.5*fric_zeta*delt)) + (tforce.x*(0.5*delt/m)) +
                          sqrt(2*6*delt*fric_zeta/m)*(gsl_rng_uniform(ugsl.r)-0.5);
         vel.y += (vel.y*(-0.5*fric_zeta*delt)) + (tforce.y*(0.5*delt/m)) +
@@ -111,13 +104,12 @@ public:
 
     void update_kinetic_energy()                             //kinetic energy of the particle
     {
-        ke = 0.5 * m * vel.GetMagnitude() * vel.GetMagnitude();
+        ke = 0.5 * m * vel.GetMagnitudeSquared();
     }
 
     void update_stretching_energy(double ks, double bondlength);
 
     void update_stretching_force(double ks, double bondlength);
-
 
 };
 

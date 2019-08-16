@@ -47,16 +47,28 @@ void update_chain_xi(unsigned int j, vector<THERMOSTAT> &bath, double dt, long d
 {
     if (bath[j].Q == 0)
         return;
-    if (j != 0) {
-        bath[j].xi = bath[j].xi * exp(-0.5 * dt * bath[j + 1].xi) + 0.5 * dt * (1.0 / bath[j].Q) *
-                                                                    (bath[j - 1].Q * bath[j - 1].xi * bath[j - 1].xi -
-                                                                     bath[j].dof * bath[j].kB * bath[j].T) *
-                                                                    exp(-0.25 * dt * bath[j + 1].xi);
+	 
+	 double expfactor = exp(-0.25 * dt * bath[j + 1].xi);
+	 
+	 if (j != 0) {
+        bath[j].xi = bath[j].xi * expfactor * expfactor + 
+        0.5 * dt * (1.0 / bath[j].Q) * (bath[j - 1].Q * bath[j - 1].xi * bath[j - 1].xi - 
+        bath[j].dof * bath[j].kB * bath[j].T) * expfactor;
     } else {
-        bath[j].xi = bath[j].xi * exp(-0.5 * dt * bath[j + 1].xi) +
-                     0.5 * dt * (1.0 / bath[j].Q) * (2 * ke - bath[j].dof * bath[j].kB * bath[j].T) *
-                     exp(-0.25 * dt * bath[j + 1].xi);
+        bath[j].xi = bath[j].xi * expfactor * expfactor + 
+        0.5 * dt * (1.0 / bath[j].Q) * (2 * ke - bath[j].dof * bath[j].kB * bath[j].T) * expfactor;
     }
+	 
+//     if (j != 0) {
+//         bath[j].xi = bath[j].xi * exp(-0.5 * dt * bath[j + 1].xi) + 0.5 * dt * (1.0 / bath[j].Q) *
+//                                                                     (bath[j - 1].Q * bath[j - 1].xi * bath[j - 1].xi -
+//                                                                      bath[j].dof * bath[j].kB * bath[j].T) *
+//                                                                     exp(-0.25 * dt * bath[j + 1].xi);
+//     } else {
+//         bath[j].xi = bath[j].xi * exp(-0.5 * dt * bath[j + 1].xi) +
+//                      0.5 * dt * (1.0 / bath[j].Q) * (2 * ke - bath[j].dof * bath[j].kB * bath[j].T) *
+//                      exp(-0.25 * dt * bath[j + 1].xi);
+//     }
     return;
 }
 

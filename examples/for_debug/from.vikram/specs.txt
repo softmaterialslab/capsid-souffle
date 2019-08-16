@@ -1,0 +1,2 @@
+time mpirun -np 2 -N 16 ./capsid-souffle -f 41part_c -T 10 -t 0.004 -e 12 -C 200 -c 500 -S 64 -B 20 -L 10
+~ 17 sec

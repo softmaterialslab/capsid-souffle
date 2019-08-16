@@ -9,11 +9,7 @@
 #include "face.h"
 #include "functions.h"
 
-
 using namespace std;
-
-
- 
 
 long double particle_kinetic_energy(vector <BEAD> &subunit_bead) {          //part of thermostat
 	for (unsigned int i = 0; i < subunit_bead.size(); i++)
