@@ -9,7 +9,6 @@
 #include "face.h"
 #include "functions.h"
 
-
 using namespace std;
 
 void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs, vector<BEAD> &subunit_bead,

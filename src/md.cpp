@@ -12,10 +12,8 @@
 #include "forces.h"
 #include "md.h"
 
-
 using namespace std;
 using namespace boost::program_options;
-
 
 //MPI boundary parameters
 unsigned int lowerBound;
@@ -32,13 +30,23 @@ int run_simulation(int argc, char *argv[]) {
                                                             //parameters from user
    char response;
    string file_name;
-   double capsomere_concentration, salt_concentration, ks, kb, number_capsomeres, totaltime, delta_t, fric_zeta, chain_length_real, temperature, ecut_c, elj_att, NListCutoff;					
+   double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;	// capsomere hamiltonian					
+   double salt_concentration, temperature;	// environmental or control parameters					
+   double totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff;	// computational parameters
    bool verbose, restartFile;
    int buildFrequency ;
-   
+	
+	double qs = 1;                                           //salt valency
+   double T = 1;                                            //set temperature (reduced units)
+   double Q = 10;                                           //nose hoover mass (reduced units)
+	
+	double const Avagadro = 6.022e23; // mol^-1					//useful constants
+   double const Boltzmann = 1.3806e-23; // m2kg/s2K
+   //double const e0 = 8.854187e-12; // C2/Nm2
+   //double const q_electron = 1.602e-19; // C
+   double const Pi = 3.14159;
                                                             //Progress bar paras
    double percentage = 0, percentagePre = -1;
-   
                                                             // Get input values from the user
    options_description desc("Usage:\nrandom_mesh <options>");
    desc.add_options()
@@ -67,7 +75,6 @@ int run_simulation(int argc, char *argv[]) {
    ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
    ("Neighbor list cutoff,L", value<double>(&NListCutoff)->default_value(4.0), "Neighbor list cutoff");
    
-   
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
    notify(vm);
@@ -76,15 +83,12 @@ int run_simulation(int argc, char *argv[]) {
          return 0;
    }
    
-   
    ofstream traj("outfiles/energy.out", ios_base::app);              //setting up file outputs
    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
    ofstream sysdata("outfiles/model.parameters.out", ios::out);
    ofstream restart;
    int restartStep;
-   
    initialize_outputfile(traj, ofile);
-   
    
    if (response == 'b') {                    			//set flag for brownian vs. molecular dynamics
       brownian = true;
@@ -95,16 +99,11 @@ int run_simulation(int argc, char *argv[]) {
       if (world.rank() == 0)
          sysdata << "Running molecular dynamics with Nose Hoover thermostat." << endl;
    }
-   
-   double bondlength;//= pow(2, 0.166666666667);       	//System specific paramters (modelled for HBV)
+																		//System specific paramters (modelled for HBV)
+   double bondlength;     
    double SImass;                             			//SI value for a single bead (kg)
-   double SIsigma;                                             // (nm)
-   double SItime;                                              // (seconds)
-   double const Avagadro = 6.022e23; // mol^-1			//useful constants
-   double const Boltzmann = 1.3806e-23; // m2kg/s2K
-   //double const e0 = 8.854187e-12; // c2/Nm2
-   //double const q_electron = 1.602e-19; // C
-   double const Pi = 3.14159;
+   double SIsigma;                                    // (nm)
+   double SItime;                                     // (seconds)
    
    vector<BEAD> subunit_bead;                              //Create particles, named subunit_bead
    vector<EDGE> subunit_edge;                              //create edges between subunit_bead's
@@ -112,20 +111,13 @@ int run_simulation(int argc, char *argv[]) {
    vector<FACE> subunit_face;                              //create faces of subunit_bead's on protein
    vector<PAIR> lj_pairlist;                               //create vector to hold LJ pairings
    vector<THERMOSTAT> real_bath;                           //vector of thermostats
-   
-   
-   double qs = 1;                                           //salt valency
-   double T = 1;                                            //set temperature (reduced units)
-   double Q = 10;                                           //nose hoover mass (reduced units)
-   
-   
+    
    vector<vector<int> > lj_a;
    lj_a = generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass, 
                         subunit_bead, subunit_edge, protein, subunit_face, restartFile, restartStep);     //Setting up the input file (uses user specified file to generate lattice)
                         
    double SIenergy =  temperature * Boltzmann; 		// Joules
    SItime = sqrt(SIsigma*SIsigma*SImass/SIenergy); 	//seconds
-                        
                         
    if (world.rank() == 0) {
       sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
@@ -140,30 +132,26 @@ int run_simulation(int argc, char *argv[]) {
       sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Total number of subunits is " << number_capsomeres << endl;
       sysdata << "Temperature is " << temperature << " K" << endl;
-
-
      }
      
-     
+	// LJ features
    double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),1.0 / 3.0);    //calculating box size, prefactor of 1000 used to combine units
-   VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);
-   double lb = (0.701e-9) / SIsigma;   // at 300 K only!!!                            	// e^2 / (4 pi Er E0 Kb T)
+   VECTOR3D box_size = VECTOR3D(box_x, box_x, box_x);
+   double ecut = 2.5 * (SIsigma / 1e-9);	// Lennard-Jones cut-off distance
+	
+	// Electrostatic features
+   double lb = (0.701e-9) / SIsigma;   // e^2 / (4 pi Er E0 Kb T) ; value for T = 298 K.
    //number density (1/sigma*^3)
    double ni = salt_concentration * Avagadro * SIsigma * SIsigma * SIsigma;
    //electrostatics parameter
    double kappa = sqrt(8 * Pi * ni * lb * qs * qs);
    double screen = 1 / kappa;							 	 // 
    double ecut_el = screen * ecut_c;			// screening length times a constant so that electrostatics is cutoff at approximately 0.015
-   double ecut = 2.5 * (SIsigma / 1e-9);                                               //lennard jones cut-off distance
-                        
-                        
-                        
-
+   
    if (world.rank() == 0) {
       sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Screening length is " << screen << " nanometers." << endl;
      }
-
 
    if (brownian == false) {             //for molecular, set up the nose hoover thermostat
       if (chain_length_real == 1)
@@ -174,13 +162,10 @@ int run_simulation(int argc, char *argv[]) {
             real_bath.push_back((THERMOSTAT(1, T, 1, 0, 0, 0, 1)));
          real_bath.push_back((THERMOSTAT(0, T, 3 * subunit_bead.size(), 0.0, 0, 0, 1)));
         // final bath is dummy bath (dummy bath always has zero mass)
-        }
+		}
    }
 
-   dress_up(subunit_edge,
-   subunit_face);             // Calculate initial forces
-
-
+   dress_up(subunit_edge, subunit_face);	// Calculate initial forces
 
    //MPI Boundary calculation for ions
    unsigned int rangeIons = subunit_bead.size() / world.size() + 1.5;
@@ -191,12 +176,11 @@ int run_simulation(int argc, char *argv[]) {
    if (world.rank() == world.size() - 1) {
       upperBound = subunit_bead.size() - 1;
       sizFVec = upperBound - lowerBound + 1 + extraElements;
-     }
+   }
    if (world.size() == 1) {
       lowerBound = 0;
       upperBound = subunit_bead.size() - 1;
-     }
-
+   }
 
    int numOfNodes = world.size();
    if (world.rank() == 0) {
@@ -226,7 +210,6 @@ int run_simulation(int argc, char *argv[]) {
    }
 
    forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
-
 
    double senergy = 0;                                                        //blank all the energy metrics
    double kenergy = 0;
@@ -474,10 +457,10 @@ int run_simulation(int argc, char *argv[]) {
          if (world.rank() == 0) {
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
             << endl
-            << "ITEM: BOX BOUNDS" << endl << -bxsz.x / 2 << setw(15) << bxsz.x / 2 << endl << -bxsz.y / 2
+            << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
             << setw(15)
-            << bxsz.y / 2 << endl << -bxsz.z / 2 << setw(15) \
-            << bxsz.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+            << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
+            << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
             
             
             traj << a * delta_t << setw(15) << kenergy / subunit_bead.size() << setw(15)
