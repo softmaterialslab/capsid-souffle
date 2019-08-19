@@ -259,7 +259,7 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < real_bath.size(); i++)
             real_bath[i].update_eta(delta_t);
                                  
-         expfac_real = exp(-0.5 * delta_t * real_bath[0].xi);
+         expfac_real = exp(-0.25 * delta_t * real_bath[0].xi);
                                  
          for (unsigned int i = 0; i < protein.size(); i++) {               //velocity verlet loop
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
