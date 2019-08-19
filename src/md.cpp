@@ -390,11 +390,13 @@ int run_simulation(int argc, char *argv[]) {
          //////////////////////////////////////////////////////////////////////////////////////////////////////////         
    
          if (a % 1000 == 0 && world.rank() == 0) {
-            restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
-            restart << "Velocities & Positions for " << a << endl;
+            restart.open("outfiles/forcescatter.out", ofstream::out | ofstream::trunc);
+          //  restart << "Velocities & Positions for " << a << endl;
             for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-               restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12)
-                       << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
+              // restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12)
+                //       << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
+               restart << subunit_bead[i].tforce.x << setw(25) << setprecision(12) << subunit_bead[i].tforce.y << setw(25) << setprecision(12) << subunit_bead[i].tforce.z  << setw(25) << setprecision(12)
+                       << endl;
             }
             restart.close();
          }
