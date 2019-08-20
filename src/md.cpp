@@ -227,8 +227,7 @@ int run_simulation(int argc, char *argv[]) {
 
                                                                            //thermostat variables for nose hoover
    double particle_ke = particle_kinetic_energy(subunit_bead);
-   double expfac_real;                 //= exp(-0.5 * delta_t * real_bath[0].xi);
-                        
+   double expfac_real = 0;                     
                                                                            //setting up random seed for brownian
    gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
    unsigned long int Seed = 23410981;
@@ -252,13 +251,14 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								VELOCITY VERLET															*/
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      
                                  
       if (brownian == false) {   //FOR MOLECULAR DYNAMICS
          for (int i = real_bath.size() - 1; i > -1; i--)                    //thermostat update
             update_chain_xi(i, real_bath, delta_t, particle_ke);
          for (unsigned int i = 0; i < real_bath.size(); i++)
             real_bath[i].update_eta(delta_t);
-                                 
+			
          expfac_real = exp(-0.25 * delta_t * real_bath[0].xi);
                                  
          for (unsigned int i = 0; i < protein.size(); i++) {               //velocity verlet loop

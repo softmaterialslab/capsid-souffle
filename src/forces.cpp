@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iomanip>
 #include"forces.h"
-#include "bead.h"
 #include "LJpair.h"
 #include "subunit.h"
 #include "edge.h"

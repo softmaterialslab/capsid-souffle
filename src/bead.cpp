@@ -15,10 +15,11 @@ void BEAD::update_stretching_energy(double ks, double bondlength)
     }
 }
 
+// consider moving to EDGE class
 void BEAD::update_stretching_force(double ks, double bondlength)
 {
     sforce = VECTOR3D(0,0,0);
-    for(unsigned int i=0; i< itsE.size(); i++)
+    for(unsigned int i=0; i < itsE.size(); i++)
     {
         VECTOR3D r_vec = dist(this, (itsE[i]->opposite(this)));
         sforce += ((r_vec) ^ ((itsE[i]->len0 - itsE[i]->length) * ks / itsE[i]->length));

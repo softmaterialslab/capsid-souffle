@@ -33,9 +33,22 @@ FACE* EDGE::opposite(FACE* theF){           //Find face on the opposite side of 
 
 
 void EDGE::update_length() {                //update's the length of a edge (PBC)
-    VECTOR3D r_vec = dist(itsB[0], itsB[1]);
-    length = r_vec.GetMagnitude();              //edgelength
-    lengthvec = r_vec;                          //length vector (useful for some computations)
+	
+    lengthvec = itsB[0]->pos - itsB[1]->pos;
+	 
+	 VECTOR3D box = (itsB[0]->bx);
+	 VECTOR3D halfbox = (itsB[0]->bx) ^ 0.5;
+    if (lengthvec.x > halfbox.x) lengthvec.x -= box.x;
+    else if (lengthvec.x < -halfbox.x) lengthvec.x += box.x;
+    if (lengthvec.y > halfbox.y) lengthvec.y -= box.y;
+    else if (lengthvec.y < -halfbox.y) lengthvec.y += box.y;
+    if (lengthvec.z > halfbox.z) lengthvec.z -= box.z;
+    else if (lengthvec.z < -halfbox.z) lengthvec.z += box.z;
+	 
+    length = lengthvec.GetMagnitude();              //edgelength
+//    VECTOR3D r_vec = dist(itsB[0], itsB[1]);
+//    length = r_vec.GetMagnitude();              //edgelength
+//    lengthvec = r_vec;                          //length vector (useful for some computations)
 }
 
 
@@ -67,7 +80,7 @@ void EDGE::update_bending_forces(double Kb)
     r[3] = itsF[1]->across(this);       //          r[3]
 
 
-    double S = (itsF[0]->direction * itsF[1]->direction);
+    double S = (itsF[0]->areavector * itsF[1]->areavector) * 4;
     VECTOR3D dist01 = lengthvec;
     VECTOR3D dist02 = dist(r[0],r[2]);
     VECTOR3D dist03 = dist(r[0],r[3]);

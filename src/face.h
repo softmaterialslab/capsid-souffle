@@ -21,8 +21,8 @@ public:
     int id;                                 //subunit id
     int type;
     VECTOR3D normvec;                       //normal vector
-    VECTOR3D direction;                     //direction of vector
-    double a;                          //area
+    VECTOR3D areavector;              			//area vector
+    double a;                          		//area
     std::vector<BEAD*> itsB;                //particles making up the face
     std::vector<EDGE*> itsE;               //bending edges on the face
 
@@ -32,8 +32,6 @@ public:
         normvec=initial;
         id = id_i;
     }
-
-    void update_normal();
 
     void update_area();
 
