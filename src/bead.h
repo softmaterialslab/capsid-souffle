@@ -27,6 +27,7 @@ public:
     double m;                           //mass of the particle (amu)
     double sigma;                       //diameter of particle (unitless)
     VECTOR3D bx;
+    VECTOR3D hbx;
     int unit ;
     int type ;
     VECTOR3D cell_id;                          //cell array index
@@ -66,17 +67,17 @@ public:
     {
         pos = ( pos + (vel ^ delt) );
         // periodic boundary
-        if (pos.x > bx.x/2.0)
+        if (pos.x > hbx.x)
             pos.x = pos.x - bx.x;
-        if (pos.x < -bx.x/2.0)
+        else if (pos.x < -hbx.x)
             pos.x = pos.x + bx.x;
-        if (pos.y > bx.y/2.0)
+        if (pos.y > hbx.y)
             pos.y = pos.y - bx.y;
-        if (pos.y < -bx.y/2.0)
+        else if (pos.y < -hbx.y)
             pos.y = pos.y + bx.y;
-        if (pos.z > bx.z/2.0)
+        if (pos.z > hbx.z)
             pos.z = pos.z - bx.z;
-        if (pos.z < -bx.z/2.0)
+        else if (pos.z < -hbx.z)
             pos.z = pos.z + bx.z;
     }
 
