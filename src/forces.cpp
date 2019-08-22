@@ -23,6 +23,10 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    //global variables
    unsigned int i, j, k;
    VECTOR3D box = subunit_bead[0].bx;
+   VECTOR3D hbox = subunit_bead[0].hbx;
+	double ecut_el2 = ecut_el * ecut_el;
+	double ecut2 = ecut * ecut;
+	double replj2 = 1.12246205 * 1.12246205;
    
    //////////////////////////////////////////////////////////////////////////////////////////////////////////
    /*									INTRA MOLECULAR FORCES												*/
@@ -40,37 +44,36 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
       }
    }
    
-   
    //LJ forces calculation and update ES forces between subunits
    #pragma omp parallel for schedule(dynamic) default(shared) private(i, j, k)
    for (i = lowerBound; i <= upperBound; i++) {
       
       VECTOR3D r_vec = VECTOR3D(0, 0, 0);
       long double r2 = 0.0;
-      double hbox = box.x / 2;
       
       if (updatePairlist == true) {
          fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist to -1 (a number that cannot be bead index)
-         unsigned int test = 0;
+         double NListCutoff2 = NListCutoff * NListCutoff;
+         unsigned int NLindex = 0;
          for (unsigned int bead_j = 0; bead_j < subunit_bead.size(); bead_j++) {
             bool electrostatic = (i != bead_j && subunit_bead[i].q != 0 && subunit_bead[bead_j].q != 0);
             bool lj = subunit_bead[i].itsS[0]->id != subunit_bead[bead_j].itsS[0]->id;
             if (electrostatic || lj) {
                r_vec = subunit_bead[i].pos - subunit_bead[bead_j].pos;
-               if (r_vec.x > hbox) r_vec.x -= box.x;
-               else if (r_vec.x < -hbox) r_vec.x += box.x;
-               if (r_vec.y > hbox) r_vec.y -= box.y;
-               else if (r_vec.y < -hbox) r_vec.y += box.y;
-               if (r_vec.z > hbox) r_vec.z -= box.z;
-               else if (r_vec.z < -hbox) r_vec.z += box.z;
+               if (r_vec.x > hbox.x) r_vec.x -= box.x;
+               else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+               if (r_vec.y > hbox.y) r_vec.y -= box.y;
+               else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+               if (r_vec.z > hbox.z) r_vec.z -= box.z;
+               else if (r_vec.z < -hbox.z) r_vec.z += box.z;
                r2 = r_vec.GetMagnitudeSquared();
-               if ( r2 < (NListCutoff * NListCutoff) ) {
-                  subunit_bead[i].itsN[test] = subunit_bead[bead_j].id;
-                  test += 1;
+               if ( r2 < NListCutoff2 ) {
+                  subunit_bead[i].itsN[NLindex] = subunit_bead[bead_j].id;
+                  NLindex += 1;
                }
             } //if lj||es
          }// for j
-         if(test > subunit_bead[0].itsN.size()) cout << endl << "ERROR! Neighborlist outgrew allocated vector size!" << endl;
+         if(NLindex > subunit_bead[0].itsN.size()) cout << endl << "ERROR! Neighborlist outgrew allocated vector size!" << endl;
       } //if
       
       VECTOR3D eForce = VECTOR3D(0, 0, 0);
@@ -87,24 +90,20 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             bool electrostatic = (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0);
             bool lj = subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id;
             
-            
             long double r = 0.0;
             
-            
             if (electrostatic || lj) {
-               
                r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
-               if (r_vec.x > hbox) r_vec.x -= box.x;
-               else if (r_vec.x < -hbox) r_vec.x += box.x;
-               if (r_vec.y > hbox) r_vec.y -= box.y;
-               else if (r_vec.y < -hbox) r_vec.y += box.y;
-               if (r_vec.z > hbox) r_vec.z -= box.z;
-               else if (r_vec.z < -hbox) r_vec.z += box.z;
+               if (r_vec.x > hbox.x) r_vec.x -= box.x;
+               else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+               if (r_vec.y > hbox.y) r_vec.y -= box.y;
+               else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+               if (r_vec.z > hbox.z) r_vec.z -= box.z;
+               else if (r_vec.z < -hbox.z) r_vec.z += box.z;
                r2 = r_vec.GetMagnitudeSquared();
-               
             }
             
-            if (electrostatic && r2 < (ecut_el * ecut_el) && ecut_el != 0) {
+            if (electrostatic && r2 < ecut_el2 && ecut_el != 0) {
                r = sqrt(r2);
                eForce += r_vec ^ ((subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)
                / (r2)) * (kappa + 1 / r));
@@ -118,25 +117,23 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             double sig2 = subunit_bead[j].sigma;
             double shc = (sig1 +sig2)/2;
             
-            if (r2 >= ecut*ecut && r2 >= ((1.12246205 * shc) * (1.12246205 * shc)))
+            if (r2 >= ecut2 && r2 >= (replj2 * shc * shc))
                continue;
             
             if (lj) {
-               
                bool lj_attractive = false;
                for (k = 0; k < lj_a[0].size(); k++) {
                   if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]) {
                      lj_attractive = true;
                   }
                }
-               
               
-               if (lj_attractive == true && r2 < (ecut*ecut)) {
+               if (lj_attractive == true && r2 < ecut2) {
                   double r6 = r2 * r2 * r2;
                   double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
                   ljForce += (r_vec ^ (48 * elj_att * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                }
-               else if (lj_attractive == false && r2 < ((1.12246205 * shc) * (1.12246205 * shc))) {
+               else if (lj_attractive == false && r2 < (replj2 * shc * shc)) {
                   double r6 = r2 * r2 * r2;
                   double sigma6 = shc * shc * shc * shc * shc * shc;
                   double elj = 1;//subunit_bead[j].epsilon;

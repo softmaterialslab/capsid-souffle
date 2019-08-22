@@ -129,20 +129,18 @@ VECTOR3D EDGE::get_grad0(BEAD* wrt, VECTOR3D r01, VECTOR3D r12, VECTOR3D r02){
 
     if (wrt == itsB[0]){ 
        
-        result = (r12 & ( (r02^-1) & (r01^-1) )) ^ -1;
+        result = (r12 & ( r02 & r01 )) ^ -1;
         
     } else if (wrt == itsB[1]){
        
-        result = (r02 & ( (r12^-1) & r01 )) ^ -1;  
+        result = (r02 & ( r12 & r01 ));  
         
     } else if (wrt == itsF[0]->across(this)){
        
-        result = ((r01^-1) & ((r02^-1) & (r01^-1)));
+        result = (r01 & ( r02 & r01 )) ^ -1;
         
     } else if (wrt == itsF[1]->across(this)){
-        result.x = 0;
-        result.y = 0;
-        result.z = 0;
+        result = VECTOR3D(0,0,0);
     }
     result = result ^ ( 0.25/(itsF[0]->a) );  
     
