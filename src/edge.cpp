@@ -98,47 +98,28 @@ void EDGE::update_bending_forces(double Kb)
 VECTOR3D EDGE::get_gradS(BEAD* wrt, VECTOR3D r13, VECTOR3D r01, VECTOR3D r12, VECTOR3D r02, VECTOR3D r03){
                         //distances computed in update_bending_forces input into this fxn
     VECTOR3D result;
-
+    
     if (wrt == itsB[0]) {//if this bead is itsB[0]...
-
-        VECTOR3D dist23 = r13;      //dist## (left) and r(##) (right) may not be the same numbers. That's OK. dist## refers to the original
-        VECTOR3D dist32 = r13^-1;   //orientation (shown in comments in update_bending_forces), whereas r## refers to the orientation
-        VECTOR3D dist20 = r01^-1;   //with respect to the bead that was input. r## will be different for each if statement.
-        VECTOR3D dist21 = r12;
-
-        result.x = (dist23 & (dist20 & dist21)).x - (dist21 & (dist20 & dist32)).x ; 
-        result.y =  (dist23 & (dist20 & dist21)).y - (dist21 & (dist20 & dist32)).y;
-        result.z = (dist23 & (dist20 & dist21)).z - (dist21 & (dist20 & dist32)).z;
+       
+        result = (r13 & ((r01^-1) & r12)) - (r12 & ((r01^-1) & (r13^-1))); 
         
     } else if (wrt == itsB[1]){
        
-        VECTOR3D dist23 = r03;
-        VECTOR3D dist32 = r03^-1;
-        VECTOR3D dist20 = r01;
-        VECTOR3D dist21 = r02;
-        
-        result.x = (dist23 & (dist20 & dist21)).x - (dist21 & (dist20 & dist32)).x ; 
-        result.y =  (dist23 & (dist20 & dist21)).y - (dist21 & (dist20 & dist32)).y;
-        result.z = (dist23 & (dist20 & dist21)).z - (dist21 & (dist20 & dist32)).z;
+        result = (r03 & (r01 & r02)) - (r02 & (r01 & (r03^-1))); 
         
     } else {
-
-        VECTOR3D dist32;
+        VECTOR3D r1x;
         for (unsigned int i=0; i < itsF[0]->itsB.size(); i++)
             if (itsF[0]->itsB[i] != itsB[0] && itsF[0]->itsB[i] != itsB[1] && itsF[0]->itsB[i] != wrt) {
-                dist32 = r12 ^-1;
+                r1x = r12 ^-1;
             }
         for (unsigned int i=0; i < itsF[1]->itsB.size(); i++) {
             if (itsF[1]->itsB[i] != itsB[0] && itsF[1]->itsB[i] != itsB[1] && itsF[1]->itsB[i] != wrt) {
-                dist32 = r13 ^-1;
+                r1x = r13 ^-1;
             }
         }
-        
-        VECTOR3D dist20 = r01^-1;
-        result.x = (dist20 & (dist20 & dist32)).x;
-        result.y = (dist20 & (dist20 & dist32)).y;
-        result.z = (dist20 & (dist20 & dist32)).z;
-    }
+        result = ((r01^-1) & ((r01^-1) & r1x));
+    } // else
     return result;
 }
 
@@ -146,42 +127,24 @@ VECTOR3D EDGE::get_grad0(BEAD* wrt, VECTOR3D r01, VECTOR3D r12, VECTOR3D r02){
 
     VECTOR3D result;
 
-    if (wrt == itsB[0]){
+    if (wrt == itsB[0]){ 
        
-        VECTOR3D dist21 = r12;
-        VECTOR3D dist10 = r02^-1;
-        VECTOR3D dist20 = r01^-1;
-
-        result.x = - (dist21 & ( dist10 & dist20 )).x;
-        result.y = - (dist21 & ( dist10 & dist20 )).y;
-        result.z = - (dist21 & ( dist10 & dist20 )).z;
-
+        result = (r12 & ( (r02^-1) & (r01^-1) )) ^ -1;
+        
     } else if (wrt == itsB[1]){
        
-        VECTOR3D dist21 = r02;
-        VECTOR3D dist10 = r12^-1;
-        VECTOR3D dist20 = r01;
-
-        result.x = - (dist21 & ( dist10 & dist20 )).x;
-        result.y = - (dist21 & ( dist10 & dist20 )).y;
-        result.z = - (dist21 & ( dist10 & dist20 )).z;
+        result = (r02 & ( (r12^-1) & r01 )) ^ -1;  
         
     } else if (wrt == itsF[0]->across(this)){
-
-        VECTOR3D dist10 = r02^-1;
-        VECTOR3D dist20 = r01^-1;
-
-        result.x = (dist20 & (dist10 & dist20)).x;
-        result.y = (dist20 & (dist10 & dist20)).y;
-        result.z = (dist20 & (dist10 & dist20)).z;
-
+       
+        result = ((r01^-1) & ((r02^-1) & (r01^-1)));
+        
     } else if (wrt == itsF[1]->across(this)){
         result.x = 0;
         result.y = 0;
         result.z = 0;
     }
-    
-    result = result ^ ( 0.25/(itsF[0]->a) );
+    result = result ^ ( 0.25/(itsF[0]->a) );  
     
     return result;
 }
@@ -192,40 +155,22 @@ VECTOR3D EDGE::get_grad1(BEAD* wrt, VECTOR3D r13, VECTOR3D r01, VECTOR3D r03){
     VECTOR3D result;
 
     if (wrt == itsB[0]){
-
-        VECTOR3D dist21 = r13;
-        VECTOR3D dist10 = r03^-1;
-        VECTOR3D dist20 = r01^-1;
-
-        result.x = - (dist21 & (dist10 & dist20)).x;
-        result.y = - (dist21 & (dist10 & dist20)).y;
-        result.z = - (dist21 & (dist10 & dist20)).z;
+       
+        result = (r13 & ((r03^-1) & (r01^-1))) ^ -1;
         
     } else if (wrt == itsB[1]){
        
-        VECTOR3D dist21 = r03;
-        VECTOR3D dist10 = r13^-1;
-        VECTOR3D dist20 = r01;
-        
-        result.x = - (dist21 & (dist10 & dist20)).x;
-        result.y = - (dist21 & (dist10 & dist20)).y;
-        result.z = - (dist21 & (dist10 & dist20)).z;
+        result = (r03 & ((r13^-1) & r01)) ^ -1;
 
     } else if (wrt == itsF[1]->across(this)) {
 
-        VECTOR3D dist10 = r03^-1;
-        VECTOR3D dist20 = r01^-1;
-
-        result.x = (dist20 & (dist10 & dist20)).x;
-        result.y = (dist20 & (dist10 & dist20)).y;
-        result.z = (dist20 & (dist10 & dist20)).z;
+        result = ((r01^-1) & ((r03^-1) & (r01^-1)));
         
     } else if (wrt == itsF[0]->across(this)) {
         result.x = 0;
         result.y = 0;
         result.z = 0;
     }
-    
     result = result ^ ( 0.25/(itsF[1]->a) );
     
     return result;
