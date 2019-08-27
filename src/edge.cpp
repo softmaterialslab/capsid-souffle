@@ -101,11 +101,49 @@ VECTOR3D EDGE::get_gradS(BEAD* wrt, VECTOR3D r13, VECTOR3D r01, VECTOR3D r12, VE
     
     if (wrt == itsB[0]) {//if this bead is itsB[0]...
        
-        result = (r13 & ((r01^-1) & r12)) - (r12 & ((r01^-1) & (r13^-1))); 
+       VECTOR3D dist23 = r13;      //dist## (left) and r(##) (right) may not be the same numbers. That's OK. dist## refers to the original
+       VECTOR3D dist32 = r13^-1;   //orientation (shown in comments in update_bending_forces), whereas r## refers to the orientation
+       VECTOR3D dist20 = r01^-1;   //with respect to the bead that was input. r## will be different for each if statement.
+       VECTOR3D dist21 = r12;
+       
+       result.x = dist23.y * (dist20 & dist21).z  
+       - dist21.y * (dist20 & dist32).z 
+       + dist32.z * (dist20 & dist21).y 
+       + dist21.z * (dist20 & dist32).y;
+       
+       
+       result.y = dist32.x * (dist20 & dist21).z
+       + dist21.x * (dist20 & dist32).z
+       + dist23.z * (dist20 & dist21).x
+       - dist21.z * (dist20 & dist32).x;
+       
+       result.z = dist23.x * (dist20 & dist21).y
+       - dist21.x * (dist20 & dist32).y
+       + dist32.y * (dist20 & dist21).x
+       + dist21.y * (dist20 & dist32).x;
         
     } else if (wrt == itsB[1]){
        
-        result = (r03 & (r01 & r02)) - (r02 & (r01 & (r03^-1))); 
+       VECTOR3D dist23 = r03;
+       VECTOR3D dist32 = r03^-1;
+       VECTOR3D dist20 = r01;
+       VECTOR3D dist21 = r02;
+       
+       result.x = dist23.y * (dist20 & dist21).z  
+       - dist21.y * (dist20 & dist32).z 
+       + dist32.z * (dist20 & dist21).y 
+       + dist21.z * (dist20 & dist32).y;
+       
+       
+       result.y = dist32.x * (dist20 & dist21).z
+       + dist21.x * (dist20 & dist32).z
+       + dist23.z * (dist20 & dist21).x
+       - dist21.z * (dist20 & dist32).x;
+       
+       result.z = dist23.x * (dist20 & dist21).y
+       - dist21.x * (dist20 & dist32).y
+       + dist32.y * (dist20 & dist21).x
+       + dist21.y * (dist20 & dist32).x;
         
     } else {
         VECTOR3D r1x;
@@ -118,7 +156,7 @@ VECTOR3D EDGE::get_gradS(BEAD* wrt, VECTOR3D r13, VECTOR3D r01, VECTOR3D r12, VE
                 r1x = r13 ^-1;
             }
         }
-        result = ((r01^-1) & ((r01^-1) & r1x));
+        result = (r01 & (r01 & r1x));
     } // else
     return result;
 }
@@ -154,15 +192,15 @@ VECTOR3D EDGE::get_grad1(BEAD* wrt, VECTOR3D r13, VECTOR3D r01, VECTOR3D r03){
 
     if (wrt == itsB[0]){
        
-        result = (r13 & ((r03^-1) & (r01^-1))) ^ -1;
+        result = (r13 & (r03 & r01)) ^ -1;
         
     } else if (wrt == itsB[1]){
        
-        result = (r03 & ((r13^-1) & r01)) ^ -1;
+        result = (r03 & (r13 & r01));
 
     } else if (wrt == itsF[1]->across(this)) {
 
-        result = ((r01^-1) & ((r03^-1) & (r01^-1)));
+        result = (r01 & (r03 & r01)) ^ -1;
         
     } else if (wrt == itsF[0]->across(this)) {
         result.x = 0;

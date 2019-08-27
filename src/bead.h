@@ -89,8 +89,8 @@ public:
     // update velocity with integrator that unifies velocity verlet and Nose-Hoover
     void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac)
     {
-//        vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
-        vel = ( ( vel ^ (expfac * expfac)  ) + ( tforce ^ (0.5 * dt * (expfac) / m) ) );
+        vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
+     //   vel = ( ( vel ^ (expfac * expfac)  ) + ( tforce ^ (0.5 * dt * (expfac) / m) ) );
         return;
     }
 

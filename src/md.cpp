@@ -168,19 +168,20 @@ int run_simulation(int argc, char *argv[]) {
    dress_up(subunit_edge, subunit_face);	// Calculate initial forces
 
    //MPI Boundary calculation for ions
-   unsigned int rangeIons = subunit_bead.size() / world.size() + 1.5;
+   unsigned int rangeIons = protein.size() / world.size() + 1.5;
    lowerBound = world.rank() * rangeIons;
    upperBound = (world.rank() + 1) * rangeIons - 1;
-   extraElements = world.size() * rangeIons - subunit_bead.size();
+   extraElements = world.size() * rangeIons - protein.size();
    sizFVec = upperBound - lowerBound + 1;
    if (world.rank() == world.size() - 1) {
-      upperBound = subunit_bead.size() - 1;
+      upperBound = protein.size() - 1;
       sizFVec = upperBound - lowerBound + 1 + extraElements;
    }
    if (world.size() == 1) {
       lowerBound = 0;
-      upperBound = subunit_bead.size() - 1;
+      upperBound = protein.size() - 1;
    }
+
 
    int numOfNodes = world.size();
    if (world.rank() == 0) {
@@ -259,7 +260,7 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < real_bath.size(); i++)
             real_bath[i].update_eta(delta_t);
 			
-         expfac_real = exp(-0.25 * delta_t * real_bath[0].xi);
+         expfac_real = exp(-0.5 * delta_t * real_bath[0].xi);
                                  
          for (unsigned int i = 0; i < protein.size(); i++) {               //velocity verlet loop
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -296,50 +297,18 @@ int run_simulation(int argc, char *argv[]) {
       /*                                                                      UPDATE PAIRLIST                                                                                          */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////  
                         
-      // VECTOR3D r_vec = VECTOR3D(0, 0, 0);
-      // long double r2 = 0.0;
-      // VECTOR3D box = subunit_bead[0].bx;
-      // double hbox = box.x / 2;
       updatePairlist = false;
 
       if ( a % buildFrequency == 0) {
          updatePairlist = true;
       }
-
-      // if (updatePairlist == true) {
-      //    for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-      //       fill(subunit_bead[i].itsN.begin(), subunit_bead[i].itsN.end(), -1);  //clear the pairlist to -1 (a number that cannot be bead index)
-      //       int test = 0;
-      //       for (unsigned int j = 0; j < subunit_bead.size(); j++) {
-      //          r_vec = subunit_bead[i].pos - subunit_bead[j].pos;
-      //          if (r_vec.x > hbox) r_vec.x -= box.x;
-      //          else if (r_vec.x < -hbox) r_vec.x += box.x;
-      //          if (r_vec.y > hbox) r_vec.y -= box.y;
-      //          else if (r_vec.y < -hbox) r_vec.y += box.y;
-      //          if (r_vec.z > hbox) r_vec.z -= box.z;
-      //          else if (r_vec.z < -hbox) r_vec.z += box.z;
-      //          r2 = r_vec.GetMagnitudeSquared();
-      //          if (i != j && r2 < (4*4)) {
-      //             subunit_bead[i].itsN[test] = subunit_bead[j].id;
-      //             test += 1;
-      //           //  cout << "here";
-      //          }
-      //       }// for j
-      //      if(test > subunit_bead[0].itsN.size() ) cout << "ERROR! NEIGHBORLIST OUTGREW ALLOCATED VECTOR SIZE!" << endl;
-      //    } // for i
-      // } //if
-                        
-                        
-                        
+                 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*									MD LOOP FORCES												*/
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
                         
-                        
-                        
       forceCalculation(protein, lb, ni, qs, subunit_bead, lj_pairlist, ecut, ks, bondlength, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
-                        
-                        
+            
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								VELOCITY VERLET															*/
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
