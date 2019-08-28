@@ -106,7 +106,7 @@ public:
 
     void update_kinetic_energy()                             //kinetic energy of the particle
     {
-        ke = 0.5 * m * vel.GetMagnitudeSquared();
+        ke = 0.5 * m * vel.GetMagnitude() * vel.GetMagnitude();
     }
 
     void update_stretching_energy(double ks, double bondlength);
