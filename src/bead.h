@@ -11,14 +11,12 @@
 #include "thermostat.h"
 #include "rand_gen.h"
 
-
 class EDGE;
 class SUBUNIT;
 class FACE;
 class BOX;
 class OLIGOMER;
 class PAIR;
-
 
 class BEAD
 {
@@ -29,6 +27,7 @@ public:
     double m;                           //mass of the particle (amu)
     double sigma;                       //diameter of particle (unitless)
     VECTOR3D bx;
+    VECTOR3D hbx;
     int unit ;
     int type ;
     VECTOR3D cell_id;                          //cell array index
@@ -52,14 +51,12 @@ public:
     OLIGOMER* itsO;
 	std::vector<PAIR*> itsP;			// LJ pairs
  
-
-
 //member functions
 
-    BEAD(VECTOR3D position_i=VECTOR3D(0,0,0),double mi=0, int id_i=0, int unit_i=0, int type_i=0, OLIGOMER* itsO_i=NULL)
+    BEAD(VECTOR3D position_i=VECTOR3D(0,0,0), double mi=0, int id_i=0, int unit_i=0, int type_i=0, OLIGOMER* itsO_i=NULL)
     {                                                       //constructor fxn
-        m = mi;
-        pos = position_i;
+		m = mi;
+		pos = position_i;
 		id = id_i;
 		unit = unit_i;
 		type = type_i;
@@ -70,37 +67,35 @@ public:
     {
         pos = ( pos + (vel ^ delt) );
         // periodic boundary
-        if (pos.x > bx.x/2.0)
+        if (pos.x > hbx.x)
             pos.x = pos.x - bx.x;
-        if (pos.x < -bx.x/2.0)
+        else if (pos.x < -hbx.x)
             pos.x = pos.x + bx.x;
-        if (pos.y > bx.y/2.0)
+        if (pos.y > hbx.y)
             pos.y = pos.y - bx.y;
-        if (pos.y < -bx.y/2.0)
+        else if (pos.y < -hbx.y)
             pos.y = pos.y + bx.y;
-        if (pos.z > bx.z/2.0)
+        if (pos.z > hbx.z)
             pos.z = pos.z - bx.z;
-        if (pos.z < -bx.z/2.0)
+        else if (pos.z < -hbx.z)
             pos.z = pos.z + bx.z;
     }
 
     void update_velocity(double delt)                       //velocity updated half timestep (No thermostat)
     {
-        //tforce = sforce + bforce + ljforce + eforce;
         vel = ( vel + ( (tforce) ^ (0.5*delt/m) ) );
     }
 
     // update velocity with integrator that unifies velocity verlet and Nose-Hoover
     void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac)
     {
-        //tforce = sforce + bforce + ljforce + eforce;
         vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
+     //   vel = ( ( vel ^ (expfac * expfac)  ) + ( tforce ^ (0.5 * dt * (expfac) / m) ) );
         return;
     }
 
     void brownian_update_velocity(double delt, double fric_zeta){
         RAND_GEN ugsl;
-        //tforce = sforce + bforce + ljforce + eforce;
         vel.x += (vel.x*(-0.5*fric_zeta*delt)) + (tforce.x*(0.5*delt/m)) +
                          sqrt(2*6*delt*fric_zeta/m)*(gsl_rng_uniform(ugsl.r)-0.5);
         vel.y += (vel.y*(-0.5*fric_zeta*delt)) + (tforce.y*(0.5*delt/m)) +
@@ -117,7 +112,6 @@ public:
     void update_stretching_energy(double ks, double bondlength);
 
     void update_stretching_force(double ks, double bondlength);
-
 
 };
 

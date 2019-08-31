@@ -7,22 +7,14 @@
 #include "edge.h"
 #include "functions.h"
 
-
-
-void FACE::update_normal()                                                  //updates the normal
-{
-    VECTOR3D first = dist(itsB[1],itsB[0]);
-    VECTOR3D second = dist(itsB[2],itsB[1]);
-    direction = first&second;                                                           //cross product
-    normvec = ( first&second ) ^ ( 1/((first&second).GetMagnitude()) );
-}
-
 void FACE::update_area_normal(){                                            //updates both area and normal
     VECTOR3D first = dist(itsB[1],itsB[0]);
     VECTOR3D second = dist(itsB[2],itsB[1]);
-    a = 0.5 * ((first&second).GetMagnitude());
-    direction = first&second;                                                           //cross product
-    normvec = ( first&second ) ^ ( 1/((first&second).GetMagnitude()) );
+	 
+	 areavector = (first&second) ^ 0.5;
+	 
+    a = areavector.GetMagnitude();
+    normvec = (areavector) ^ (1 / a);
 }
 
 void FACE::update_area(){                                                   //updates the area

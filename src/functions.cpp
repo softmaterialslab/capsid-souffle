@@ -26,27 +26,22 @@ void ProgressBar(double fraction_completed) {
     fflush(stdout);
 }
 
-
-VECTOR3D dist(BEAD *A, BEAD *B) {                    //finds distance considering periodic boundaries.
-    VECTOR3D r_vec; //= (A->pos - B->pos);
-    r_vec.x = A->pos.x - B->pos.x;
-    r_vec.y = A->pos.y - B->pos.y;
-    r_vec.z = A->pos.z - B->pos.z;
-    VECTOR3D box = A->bx;
-    if (r_vec.x > box.x / 2) r_vec.x -= box.x;
-    if (r_vec.x < -box.x / 2) r_vec.x += box.x;
-    if (r_vec.y > box.y / 2) r_vec.y -= box.y;
-    if (r_vec.y < -box.y / 2) r_vec.y += box.y;
-    if (r_vec.z > box.z / 2) r_vec.z -= box.z;
-    if (r_vec.z < -box.z / 2) r_vec.z += box.z;
-    return r_vec;
-}
-
-
 void update_chain_xi(unsigned int j, vector<THERMOSTAT> &bath, double dt, long double ke)   //part of thermostat
 {
     if (bath[j].Q == 0)
         return;
+	 
+// 	 double expfactor = exp(-0.25 * dt * bath[j + 1].xi);
+// 	 
+// 	 if (j != 0) {
+//         bath[j].xi = bath[j].xi * expfactor * expfactor + 
+//         0.5 * dt * (1.0 / bath[j].Q) * (bath[j - 1].Q * bath[j - 1].xi * bath[j - 1].xi - 
+//         bath[j].dof * bath[j].kB * bath[j].T) * expfactor;
+//     } else {
+//         bath[j].xi = bath[j].xi * expfactor * expfactor + 
+//         0.5 * dt * (1.0 / bath[j].Q) * (2 * ke - bath[j].dof * bath[j].kB * bath[j].T) * expfactor;
+//     }
+	 
     if (j != 0) {
         bath[j].xi = bath[j].xi * exp(-0.5 * dt * bath[j + 1].xi) + 0.5 * dt * (1.0 / bath[j].Q) *
                                                                     (bath[j - 1].Q * bath[j - 1].xi * bath[j - 1].xi -

@@ -164,6 +164,7 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
                         subunit_bead[myindex].sigma = part_template[6][l];
                         subunit_bead[myindex].m = part_template[7][l];                           //assign mass (clone of user value)
                         subunit_bead[myindex].bx = bxsz;
+                        subunit_bead[myindex].hbx = bxsz ^ 0.5;
                         subunit_bead[myindex].unit = index;
                         if (restartFile == true) {
                            subunit_bead[myindex].vel = VECTOR3D(vel_x, vel_y, vel_z);
