@@ -15,6 +15,8 @@ void update_LJ_energies_simplified(std::vector<BEAD>& subunit_bead, double ecut,
 
 void update_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double lb, double ni, double qs, double ecut_el, double kappa);
 
+void update_LJ_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double ecut, std::vector<std::vector<int> > lj_a, double elj_att, double lb, double ni, double qs, double ecut_el, double kappa);
+
 long double particle_kinetic_energy(std::vector <BEAD> &subunit_bead);
 
 

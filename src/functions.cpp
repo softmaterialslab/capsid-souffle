@@ -26,6 +26,8 @@ void ProgressBar(double fraction_completed) {
     fflush(stdout);
 }
 
+
+
 void update_chain_xi(unsigned int j, vector<THERMOSTAT> &bath, double dt, long double ke)   //part of thermostat
 {
     if (bath[j].Q == 0)
@@ -56,6 +58,7 @@ void update_chain_xi(unsigned int j, vector<THERMOSTAT> &bath, double dt, long d
 }
 
 
+
 void dress_up(vector<EDGE> &subunit_edge, vector<FACE> &subunit_face) {
     for (unsigned int i = 0; i < subunit_edge.size(); i++) {
         subunit_edge[i].update_length();
@@ -64,6 +67,57 @@ void dress_up(vector<EDGE> &subunit_edge, vector<FACE> &subunit_face) {
         subunit_face[i].update_area_normal();
     }
 }
+
+
+
+void update_pairlist(unsigned int i, vector<SUBUNIT> &protein, double NListCutoff, VECTOR3D box, VECTOR3D hbox) {
+   VECTOR3D r_vec = VECTOR3D(0, 0, 0);
+   long double r2 = 0.0;
+   double NListCutoff2 = NListCutoff * NListCutoff;
+   std::vector<unsigned int> NLindex( protein[i].itsB.size() );
+   for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+      fill(protein[i].itsB[ii]->itsN.begin(), protein[i].itsB[ii]->itsN.end(), -1); //clear the pairlist to -1 (a number that cannot be bead index)
+      NLindex[ii] = 0;
+   }
+   for (unsigned int j = 0; j < protein.size(); j++) { // loop over subunits for ~(N/40)^2 scaling
+        if (i != j){
+            r_vec = protein[i].centerBead->pos - protein[j].centerBead->pos;  //Check center bead (determined in generate lattice)
+            if (r_vec.x > hbox.x) r_vec.x -= box.x;
+            else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+            if (r_vec.y > hbox.y) r_vec.y -= box.y;
+            else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+            if (r_vec.z > hbox.z) r_vec.z -= box.z;
+            else if (r_vec.z < -hbox.z) r_vec.z += box.z;
+            r2 = r_vec.GetMagnitudeSquared();
+      } else r2 = 0; //(i == j)
+      if (r2 < (NListCutoff2 * 2.25) ) { //if the subunits are close together...
+         for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+            for (unsigned int jj = 0; jj < protein[j].itsB.size(); jj++) {
+               bool electrostatic = (protein[i].itsB[ii]->id != protein[j].itsB[jj]->id && protein[i].itsB[ii]->q != 0 && protein[j].itsB[jj]->q != 0);
+               bool lj = protein[i].id != protein[j].id;
+               if (electrostatic || lj) {
+                  if ( ii != protein[i].centerBead->id && jj != protein[j].centerBead->id) { //don't recalculate dist. center-to-center
+                     r_vec = protein[i].itsB[ii]->pos - protein[j].itsB[jj]->pos;
+                     if (r_vec.x > hbox.x) r_vec.x -= box.x;
+                     else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+                     if (r_vec.y > hbox.y) r_vec.y -= box.y;
+                     else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+                     if (r_vec.z > hbox.z) r_vec.z -= box.z;
+                     else if (r_vec.z < -hbox.z) r_vec.z += box.z;
+                     r2 = r_vec.GetMagnitudeSquared();
+                  }
+                  if ( r2 < (NListCutoff2) ) {
+                     protein[i].itsB[ii]->itsN[NLindex[ii]] = protein[j].itsB[jj]->id; //add to pairlist
+                     NLindex[ii] += 1;
+                  }
+               } //if lj||es
+            } //for jj
+            if(NLindex[ii] > protein[i].itsB[0]->itsN.size()) cout << endl << "ERROR! Neighborlist outgrew allocated vector size!" << endl;
+         } //for ii
+      } //if r2
+   }// for j
+} // update pairlist fxn
+
 
 
 // compute MD trust factor R

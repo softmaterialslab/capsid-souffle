@@ -178,13 +178,38 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
                                       << subunit_bead[myindex].q << setw(15) << subunit_bead[myindex].type << setw(15)
                                       << subunit_bead[myindex].sigma << setw(20) << setprecision(12)
                                       << subunit_bead[myindex].m << endl;
-                        }
+                        } //if
 
-                    }
-                }
-            }
-        }
-    }
+                    } //for l
+                } //if
+            } // for k
+        } //for j
+    } //for i
+    
+    //finding center bead for later use
+    VECTOR3D centroid = VECTOR3D(0,0,0);
+    for (unsigned int i = 0; i < np; i++) {
+       centroid += subunit_bead[i].pos; 
+   }
+   centroid = centroid / np; // average the positions of all the beads in a subunit in order to get centroid of cluster
+   long double oldDistance = 1000;
+   long double newDistance;
+   int centerBeadID = 0;
+   for (unsigned int i = 0; i < np; i++) {
+      VECTOR3D r_vec = (subunit_bead[i].pos - centroid);
+      VECTOR3D hbox = bxsz / 2;
+      if (r_vec.x > hbox.x) r_vec.x -= bxsz.x;
+      else if (r_vec.x < -hbox.x) r_vec.x += bxsz.x;
+      if (r_vec.y > hbox.y) r_vec.y -= bxsz.y;
+      else if (r_vec.y < -hbox.y) r_vec.y += bxsz.y;
+      if (r_vec.z > hbox.z) r_vec.z -= bxsz.z;
+      else if (r_vec.z < -hbox.z) r_vec.z += bxsz.z;
+      newDistance = r_vec.GetMagnitudeSquared();
+      if (newDistance < oldDistance) {    //find bead closest to the centroid
+         oldDistance = newDistance;
+         centerBeadID = subunit_bead[i].id; 
+      }
+   }
 
 
     index = 0;
@@ -197,6 +222,7 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
     for (unsigned int i = 0; i < number_capsomeres; i++) {
 
         protein[i].id = i;
+        protein[i].centerBead = & subunit_bead[((i + 1) * np - np + centerBeadID)];
         if (world.rank() == 0)
             inputfile << protein[i].id << setw(5);
         for (unsigned int j = 0; j < np; j++) {
@@ -275,6 +301,7 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
             subunit_bead[g1].itsF.push_back(&subunit_face[index]);
             subunit_bead[g2].itsF.push_back(&subunit_face[index]);
             subunit_bead[g3].itsF.push_back(&subunit_face[index]);
+            protein[i].itsF.push_back(&subunit_face[index]);
 
             if (world.rank() == 0) {
                 inputfile << subunit_face[index].id << setw(5) << subunit_face[index].itsB[0]->id << setw(5)
@@ -283,8 +310,7 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
             }
 
 
-            for (unsigned int j = 0; j <
-                                     (subunit_edge.size()); j++)                 //Finding edge between faces and storing the result for later use
+            for (unsigned int j = 0; j <(subunit_edge.size()); j++)     //Finding edge between faces and storing the result for later use
             {
                 if ((*subunit_face[index].itsB[0]).id == (*subunit_edge[j].itsB[0]).id && \
                 (*subunit_face[index].itsB[1]).id == (*subunit_edge[j].itsB[1]).id) {
@@ -317,8 +343,8 @@ generate_lattice(double capsomere_concentration, unsigned int number_capsomeres,
                 }
             }                                               //edge_btw function --assigning edges/faces to each other
             index += 1;
-        }
-    }
+        } //for nt
+    } //for number capsomeres
 
 
     return lj_a_template;

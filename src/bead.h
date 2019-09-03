@@ -23,7 +23,7 @@ class BEAD
 public:
 
 //member variables
-    int id ;                         //particle ID
+    unsigned int id ;                         //particle ID
     double m;                           //mass of the particle (amu)
     double sigma;                       //diameter of particle (unitless)
     VECTOR3D bx;

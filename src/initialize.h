@@ -17,6 +17,7 @@
 #include "LJpair.h"
 #include "oligomer.h"
 #include "vector3d.h"           //stores VECTOR3D class
+#include "functions.h"
 
 
 void initialize_outputfile(std::ofstream & reftraj, std::ofstream & refofile);

@@ -28,6 +28,8 @@ void update_chain_xi(unsigned int j, std::vector<THERMOSTAT>& bath, double dt, l
 
 void dress_up(std::vector<EDGE> &subunit_edge, std::vector<FACE> &subunit_face);
 
+void update_pairlist(unsigned int i, std::vector<SUBUNIT> &protein, double NListCutoff, VECTOR3D box, VECTOR3D hbox);
+
 double compute_MD_trust_factor_R(int hiteqm);
 
 //finds distance considering periodic boundaries.
