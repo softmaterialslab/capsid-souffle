@@ -32,52 +32,50 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    
    //#pragma omp parallel for schedule(dynamic) default(shared) private(i)
    //LJ forces calculation and update ES forces between subunits
+   
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+   /*                               PARALLEL LOOP                                                          */
+   ////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+   
    #pragma omp parallel for schedule(dynamic) default(shared) private(i, k)
    for (i = lowerBound; i <= upperBound; i++) {
       
       VECTOR3D r_vec = VECTOR3D(0, 0, 0);
       long double r2 = 0.0;
-      
-      if (updatePairlist == true) {
-         for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-            fill(protein[i].itsB[ii]->itsN.begin(), protein[i].itsB[ii]->itsN.end(), -1); //clear the pairlist to -1 (a number that cannot be bead index)
-            double NListCutoff2 = NListCutoff * NListCutoff;
-            unsigned int NLindex = 0;
-            for ( unsigned int j = 0; j < protein.size(); j++) {
-               for (unsigned int jj = 0; jj < protein[j].itsB.size(); jj++) {
-                  bool electrostatic = (protein[i].itsB[ii]->id != protein[j].itsB[jj]->id && protein[i].itsB[ii]->q != 0 && protein[j].itsB[jj]->q != 0);
-                  bool lj = protein[i].id != protein[j].id;
-                  if (electrostatic || lj) {
-                     r_vec = protein[i].itsB[ii]->pos - protein[j].itsB[jj]->pos;
-                     if (r_vec.x > hbox.x) r_vec.x -= box.x;
-                     else if (r_vec.x < -hbox.x) r_vec.x += box.x;
-                     if (r_vec.y > hbox.y) r_vec.y -= box.y;
-                     else if (r_vec.y < -hbox.y) r_vec.y += box.y;
-                     if (r_vec.z > hbox.z) r_vec.z -= box.z;
-                     else if (r_vec.z < -hbox.z) r_vec.z += box.z;
-                     r2 = r_vec.GetMagnitudeSquared();
-                     if ( r2 < (NListCutoff2) ) {
-                        protein[i].itsB[ii]->itsN[NLindex] = protein[j].itsB[jj]->id;
-                        NLindex += 1;
-                     }
-                  } //if lj||es
-               } //for jj
-            } //for j
-            if(NLindex > subunit_bead[0].itsN.size()) cout << endl << "ERROR! Neighborlist outgrew allocated vector size!" << endl;
-         } //for ii
-      } //if
-      
-      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-         protein[i].itsB[ii]->update_stretching_force(ks, bondlength);
-         protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);        //resetting bending force here
-      }
-      for (unsigned int mm = 0; mm < protein[i].itsE.size(); mm++) {
-         if (protein[i].itsE[mm]->type != 0)                    //if it is a bending edge...
-            protein[i].itsE[mm]->update_bending_forces(kb);
-      }
-      
       VECTOR3D sForce = VECTOR3D(0, 0, 0);
       VECTOR3D bForce = VECTOR3D(0, 0, 0);
+      
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /*                               DRESSING UP PROTEIN[i]                                                 */
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////  
+      
+         for (unsigned int ii = 0; ii < protein[i].itsE.size(); ii++) {
+            protein[i].itsE[ii]->update_length();
+         }
+         for (unsigned int ii = 0; ii < protein[i].itsF.size(); ii++) {
+            protein[i].itsF[ii]->update_area_normal();
+         }
+      
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /*                               INTRAMOLECULAR FORCES                                                  */
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+     for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+        protein[i].itsB[ii]->update_stretching_force(ks, bondlength);
+        protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);        //resetting bending force here
+     }
+     for (unsigned int mm = 0; mm < protein[i].itsE.size(); mm++) {
+        if (protein[i].itsE[mm]->type != 0)                    //if it is a bending edge...
+           protein[i].itsE[mm]->update_bending_forces(kb);
+     }
+     
+     //////////////////////////////////////////////////////////////////////////////////////////////////////////
+     /*                               INTERMOLECULAR FORCES                                                  */
+     //////////////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+      if (updatePairlist == true) {
+         update_pairlist(i, protein, NListCutoff, box, hbox);                 //Updating the pairlist
+      } 
       
       for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
          
@@ -151,6 +149,10 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
          forvec[(i - lowerBound)*protein[i].itsB.size()+ii] = sForce + bForce + eljforces;
       } // for ii
    } //for i
+   
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+   /*                               BROADCASTING & ACCUMULATION                                            */
+   ////////////////////////////////////////////////////////////////////////////////////////////////////////// 
    
    //forvec broadcasting using all gather = gather + broadcast
    if (world.size() > 1) {

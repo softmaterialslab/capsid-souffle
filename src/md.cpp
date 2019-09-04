@@ -32,7 +32,7 @@ int run_simulation(int argc, char *argv[]) {
    string file_name;
    double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;	// capsomere hamiltonian					
    double salt_concentration, temperature;	// environmental or control parameters					
-   double totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff;	// computational parameters
+   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff;	// computational parameters
    bool verbose, restartFile;
    int buildFrequency ;
 	
@@ -53,27 +53,27 @@ int run_simulation(int argc, char *argv[]) {
    ("help,h", "print usage message")
    ("Dynamics Response,D", value<char>(&response)->default_value('m'),
    "To run brownian dynamics (overdamped langevin) enter 'b'. Otherwise, to run molecular dynamics with nose' hoover thermostat enter 'm'. [b/m]")
-   ("filename,f", value<string>(&file_name)->default_value("41part"), "Filename?")
-   ("capsomere concentration,C", value<double>(&capsomere_concentration)->default_value(75),
+   ("filename,f", value<string>(&file_name)->default_value("41part_c"), "Filename?")
+   ("capsomere concentration,C", value<double>(&capsomere_concentration)->default_value(200),
    "capsomere concentration (micromolar)") // box size adjusteded for micromolar conc.
-   ("salt concentration,c", value<double>(&salt_concentration)->default_value(200),
+   ("salt concentration,c", value<double>(&salt_concentration)->default_value(500),
    "salt concentration (millimolar)") // electrostatic variables adjusted for millimolar conc.
-   ("number of subunits,S", value<double>(&number_capsomeres)->default_value(8),
+   ("number of subunits,S", value<double>(&number_capsomeres)->default_value(64),
    "number of subunits")
    ("stretching constant,s", value<double>(&ks)->default_value(50), "stretching constant (KbT)")
    ("bending constant,b", value<double>(&kb)->default_value(20), "bending constant (KbT)")
-   ("total time,T", value<double>(&totaltime)->default_value(100), "total time (MD steps)") // # of steps is total time / timestep
-   ("timestep,t", value<double>(&delta_t)->default_value(0.001), "timestep (MD steps)")
+   ("total time,T", value<double>(&computationSteps)->default_value(2500), "total time (computational steps)") // # of steps is total time / timestep
+   ("timestep,t", value<double>(&delta_t)->default_value(0.004), "timestep (MD steps)")
    ("friction coefficient,r", value<double>(&fric_zeta)->default_value(1),
    "friction coefficient (reduced unit)") //used in brownian
    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
-   ("ecut_c,e", value<double>(&ecut_c)->default_value(20), "electrostatics cutoff coefficient, input 0 for no cutoff")
+   ("ecut_c,e", value<double>(&ecut_c)->default_value(12), "electrostatics cutoff coefficient, input 0 for no cutoff")
    ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
    ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
    ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
-   ("Neighbor list cutoff,L", value<double>(&NListCutoff)->default_value(4.0), "Neighbor list cutoff");
+   ("Neighbor list cutoff,L", value<double>(&NListCutoff)->default_value(10.0), "Neighbor list cutoff");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -118,6 +118,7 @@ int run_simulation(int argc, char *argv[]) {
                         
    double SIenergy =  temperature * Boltzmann; 		// Joules
    SItime = sqrt(SIsigma*SIsigma*SImass/SIenergy); 	//seconds
+   totaltime = computationSteps * delta_t;
                         
    if (world.rank() == 0) {
       sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
@@ -290,7 +291,7 @@ int run_simulation(int argc, char *argv[]) {
          }  // for i
       }  // else
                         
-      dress_up(subunit_edge, subunit_face);                              //update edge and face properties
+   //   dress_up(subunit_edge, subunit_face);                              //update edge and face properties
                         
                         
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,13 +353,13 @@ int run_simulation(int argc, char *argv[]) {
       *    |    |   |   \ |   |    |   |         |            \        |            \
       *    |    |   |    \|   |    |   |_____    |       \____/    ____|____   \____/                                */
 
-      if (a % 1000 == 0) {                                           //analysis loop
+      if (a % 10000 == 0) {                                           //analysis loop
    
          //////////////////////////////////////////////////////////////////////////////////////////////////////////
          /*                                                              MAKING RESTART FILE                                                                                                                */
          //////////////////////////////////////////////////////////////////////////////////////////////////////////         
    
-         if (a % 1000 == 0 && world.rank() == 0) {
+         if (a % 50000 == 0 && world.rank() == 0) {
             restart.open("outfiles/forcescatter.out", ofstream::out | ofstream::trunc);
           //  restart << "Velocities & Positions for " << a << endl;
             for (unsigned int i = 0; i < subunit_bead.size(); i++) {
@@ -370,11 +371,11 @@ int run_simulation(int argc, char *argv[]) {
             restart.close();
          }
    
-   
          //////////////////////////////////////////////////////////////////////////////////////////////////////////
          /*								ANALYZE ENERGIES														*/
          //////////////////////////////////////////////////////////////////////////////////////////////////////////
    
+         dress_up(subunit_edge, subunit_face);                     //update edge and face properties
    
          for (unsigned int i = 0; i < protein.size(); i++) {       //blanking out energies here
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -383,7 +384,6 @@ int run_simulation(int argc, char *argv[]) {
                protein[i].itsB[ii]->ce = 0;
             }
          }
-   
    
          for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -396,8 +396,7 @@ int run_simulation(int argc, char *argv[]) {
             }
          }
                                                                //Intermolecular Energies
-         update_ES_energies_simplified(subunit_bead, lb, ni, qs, ecut_el, kappa);
-         update_LJ_energies_simplified(subunit_bead, ecut, lj_a, elj_att);
+         update_LJ_ES_energies_simplified(subunit_bead, ecut, lj_a, elj_att, lb, ni, qs, ecut_el, kappa);
    
          for (unsigned int i = 0; i < protein.size(); i++) {       //blanking out energies here
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -408,7 +407,6 @@ int run_simulation(int argc, char *argv[]) {
                cenergy += protein[i].itsB[ii]->ce;
             }
          }
-   
    
          for (unsigned int i = 0; i < real_bath.size(); i++) {        //thermostat energies
             real_bath[i].potential_energy();
@@ -434,7 +432,7 @@ int run_simulation(int argc, char *argv[]) {
             << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
             
             
-            traj << a * delta_t << setw(15) << kenergy / subunit_bead.size() << setw(15)
+            traj << a << setw(15) << kenergy / subunit_bead.size() << setw(15)
             << senergy / subunit_bead.size() << setw(15) <<
             benergy / subunit_bead.size() << setw(15) << ljenergy / subunit_bead.size() << setw(15)
             << cenergy / subunit_bead.size()
