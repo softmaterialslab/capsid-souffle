@@ -2,21 +2,19 @@
 // Created by lauren on 1/25/18.
 //
 
-#ifndef LEMONSOUFFLE_INITIALIZE_H
-#define LEMONSOUFFLE_INITIALIZE_H
+#ifndef SOUFFLE_INITIALIZE_H
+#define SOUFFLE_INITIALIZE_H
 
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <vector>
 #include <map>
-#include "bead.h"           //stores particle class (subunit_bead)
+#include "bead.h"           
 #include "edge.h"
 #include "subunit.h"
 #include "face.h"
-#include "LJpair.h"
-#include "oligomer.h"
-#include "vector3d.h"           //stores VECTOR3D class
+#include "vector3d.h"          
 #include "functions.h"
 
 
@@ -31,4 +29,4 @@ void initialize_bead_velocities(std::vector<SUBUNIT> &protein, std::vector<BEAD>
 void initialize_constant_bead_velocities(std::vector<SUBUNIT> &protein, std::vector<BEAD> &subunit_bead, double T);
 
 
-#endif //LEMONSOUFFLE_INITIALIZE_H
+#endif //SOUFFLE_INITIALIZE_H

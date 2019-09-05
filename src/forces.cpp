@@ -3,7 +3,6 @@
 #include <iomanip>
 #include"forces.h"
 #include "bead.h"
-#include "LJpair.h"
 #include "subunit.h"
 #include "edge.h"
 #include "face.h"
@@ -12,10 +11,8 @@
 using namespace std;
 
 void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs, vector<BEAD> &subunit_bead,
-                      vector<PAIR> &lj_pairlist, double ecut, double ks, double bondlength, double kb,
-                      vector<vector<int> > lj_a, double ecut_el, double kappa, double elj_att, bool updatePairlist, double NListCutoff) {
-   
-   //ofstream forces("outfiles/forces.out", ios::app);
+                      double ecut, double ks, double kb, vector<vector<int> > lj_a, double ecut_el, 
+                      double kappa, double elj_att, bool updatePairlist, double NListCutoff){
    
    //Common MPI Message objects
    vector<VECTOR3D> forvec(sizFVec * protein[0].itsB.size(), VECTOR3D(0, 0, 0));
@@ -29,16 +26,12 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    double ecut2 = ecut * ecut;
    double replj2 = 1.12246205 * 1.12246205;
    
-   
-   //#pragma omp parallel for schedule(dynamic) default(shared) private(i)
-   //LJ forces calculation and update ES forces between subunits
-   
    //////////////////////////////////////////////////////////////////////////////////////////////////////////
    /*                               PARALLEL LOOP                                                          */
    ////////////////////////////////////////////////////////////////////////////////////////////////////////// 
    
    #pragma omp parallel for schedule(dynamic) default(shared) private(i, k)
-   for (i = lowerBound; i <= upperBound; i++) {
+   for (i = lowerBound; i <= upperBound; i++){
       
       VECTOR3D r_vec = VECTOR3D(0, 0, 0);
       long double r2 = 0.0;
@@ -49,32 +42,32 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
       /*                               DRESSING UP PROTEIN[i]                                                 */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////  
       
-         for (unsigned int ii = 0; ii < protein[i].itsE.size(); ii++) {
-            protein[i].itsE[ii]->update_length();
-         }
-         for (unsigned int ii = 0; ii < protein[i].itsF.size(); ii++) {
-            protein[i].itsF[ii]->update_area_normal();
-         }
+      for (unsigned int ii = 0; ii < protein[i].itsE.size(); ii++){
+         protein[i].itsE[ii]->update_length();
+      }
+      for (unsigned int ii = 0; ii < protein[i].itsF.size(); ii++){
+         protein[i].itsF[ii]->update_area_normal();
+      }
       
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*                               INTRAMOLECULAR FORCES                                                  */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////  
      
-     for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-        protein[i].itsB[ii]->update_stretching_force(ks, bondlength);
-        protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);        //resetting bending force here
-     }
-     for (unsigned int mm = 0; mm < protein[i].itsE.size(); mm++) {
-        if (protein[i].itsE[mm]->type != 0)                    //if it is a bending edge...
-           protein[i].itsE[mm]->update_bending_forces(kb);
-     }
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+         protein[i].itsB[ii]->update_stretching_force(ks);
+         protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);         //resetting bending force here
+      }
+      for (unsigned int mm = 0; mm < protein[i].itsE.size(); mm++){
+         if (protein[i].itsE[mm]->type != 0)                      //if it is a bending edge...
+            protein[i].itsE[mm]->update_bending_forces(kb);
+      }
      
      //////////////////////////////////////////////////////////////////////////////////////////////////////////
      /*                               INTERMOLECULAR FORCES                                                  */
      //////////////////////////////////////////////////////////////////////////////////////////////////////////  
      
-      if (updatePairlist == true) {
-         update_pairlist(i, protein, NListCutoff, box, hbox);                 //Updating the pairlist
+      if (updatePairlist == true){
+         update_pairlist(i, protein, NListCutoff, box, hbox);     //Updating the pairlist
       } 
       
       for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
@@ -88,7 +81,6 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             int j_bead = protein[i].itsB[ii]->itsN[jj];
             
             if (j_bead == -1) break; // checking for -1 because this is the "empty" value, an index no bead can have.
-            
             
             bool electrostatic = (i_bead != j_bead && subunit_bead[i_bead].q != 0 && subunit_bead[j_bead].q != 0);
             bool lj =(protein[i].id != subunit_bead[j_bead].itsS[0]->id);
@@ -106,11 +98,11 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                r2 = r_vec.GetMagnitudeSquared();
             } 
             
-            if (electrostatic && r2 < (ecut_el2) && ecut_el != 0) {
+            if (electrostatic && r2 < (ecut_el2) && ecut_el != 0){
                r = sqrt(r2);
                eForce += r_vec ^ ((subunit_bead[i_bead].q * subunit_bead[j_bead].q * lb * exp(-kappa * r)
                / (r2)) * (kappa + 1 / r));
-            } else if (electrostatic && ecut_el == 0) {
+            } else if (electrostatic && ecut_el == 0){
                r = sqrt(r2);
                eForce += r_vec ^ ((subunit_bead[i_bead].q * subunit_bead[j_bead].q * lb * exp(-kappa * r)
                / (r2)) * (kappa + 1 / r));
@@ -123,22 +115,22 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             if (r2 >= ecut2 && r2 >= (replj2 * shc * shc))
                continue;
             
-            if (lj) {
+            if (lj){
                bool lj_attractive = false;
-               for (k = 0; k < lj_a[0].size(); k++) {
-                  if (subunit_bead[i_bead].type == lj_a[1][k] && subunit_bead[j_bead].type == lj_a[2][k]) {
+               for (k = 0; k < lj_a[0].size(); k++){
+                  if (subunit_bead[i_bead].type == lj_a[1][k] && subunit_bead[j_bead].type == lj_a[2][k]){
                      lj_attractive = true;
                   }
                }
-               if (lj_attractive == true && r2 < (ecut2)) {
+               if (lj_attractive == true && r2 < (ecut2)){
                   double r6 = r2 * r2 * r2;
                   double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
                   ljForce += (r_vec ^ (48 * elj_att * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                }
-               else if (lj_attractive == false && r2 < (replj2 * shc * shc)) {
+               else if (lj_attractive == false && r2 < (replj2 * shc * shc)){
                   double r6 = r2 * r2 * r2;
                   double sigma6 = shc * shc * shc * shc * shc * shc;
-                  double elj = 1;//subunit_bead[j].epsilon;
+                  double elj = 1;//fixed @ 1. Also fixed in energies.cpp
                   ljForce += (r_vec ^ (48 * elj * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                } 
             } //if lj

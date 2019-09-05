@@ -7,12 +7,12 @@
 #include <cstdlib>
 
 void SUBUNIT::update_com(){
-    comvec = VECTOR3D(0,0,0);
-    for(unsigned int i=0;i<itsB.size();i++){
-        comvec += itsB[i]->pos;
-        vsumvec = itsB[i]->vel;
-    }
-    com = comvec.GetMagnitude();
-    vsum = vsumvec.GetMagnitude();
+   comvec = VECTOR3D(0,0,0);
+   for(unsigned int i=0;i<itsB.size();i++){
+      comvec += itsB[i]->pos;
+      vsumvec = itsB[i]->vel;
+   }
+   com = comvec.GetMagnitude();
+   vsum = vsumvec.GetMagnitude();
 }
 

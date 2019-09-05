@@ -2,8 +2,8 @@
 // This file includes standard library files and gsl functions that are utilized in the code
 // This file also has useful constant parameters for the problem at hand
 
-#ifndef _UTILITY_H
-#define _UTILITY_H
+#ifndef SOUFFLE_UTILITY_H
+#define SOUFFLE_UTILITY_H
 
 //OPENMP
 #include <omp.h>
@@ -28,4 +28,4 @@ extern unsigned int upperBound;
 extern unsigned int sizFVec;
 extern unsigned int extraElements;
 
-#endif
+#endif //SOUFFLE_UTILITY_H
