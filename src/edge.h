@@ -2,8 +2,8 @@
 // Created by lauren on 1/25/18.
 //
 
-#ifndef LEMONSOUFFLE_EDGE_H
-#define LEMONSOUFFLE_EDGE_H
+#ifndef SOUFFLE_EDGE_H
+#define SOUFFLE_EDGE_H
 
 #include <vector>
 #include "vector3d.h"
@@ -12,43 +12,39 @@ class BEAD;
 class SUBUNIT;
 class FACE;
 
-
-
 class EDGE {
 public:
-    //member variables
-    int id;                                         //identification
-    int type;                                       //0=non-bending , 1=hard-bend , 2=soft-bend
-    double length;                                  //actual length
-    double len0;                                    //ideal length
-    VECTOR3D lengthvec;
-    std::vector<BEAD *> itsB;                        //vector of particles in the bond
-    std::vector<FACE *> itsF;                       //vector of faces attached to the bond
+//member variables
+   int id;                                      //identification
+   int type;                                    //bond type; 0=non-bending , 1=hard-bend , 2=soft-bend
+   double length;                               //actual length
+   double len0;                                 //ideal length
+   VECTOR3D lengthvec;                          //actual length vector
+   std::vector<BEAD *> itsB;                    //vector of beads in the bond
+   std::vector<FACE *> itsF;                    //vector of faces attached to the bond
 
+//member fxns
+//constructor
+   EDGE(VECTOR3D initial = VECTOR3D(0, 0, 0), int id_i = 0){                
+      id = id_i;
+      lengthvec = initial;
+   }
 
+   void update_length();
 
-    //member fxns
-    EDGE(VECTOR3D initial = VECTOR3D(0, 0, 0), int id_i = 0)                  //constructor
-    {
-        id = id_i;
-        lengthvec = initial;
-    }
+   void update_bending_forces(double Kb);
 
-    void update_length();
+   void update_bending_energy(double Kb);
 
-    void update_bending_forces(double Kb);
+   BEAD *opposite(BEAD *theB);
 
-    void update_bending_energy(double Kb);
+   FACE *opposite(FACE *theF);
 
-    BEAD *opposite(BEAD *theB);
+   VECTOR3D get_gradS(BEAD *wrt, VECTOR3D, VECTOR3D, VECTOR3D, VECTOR3D, VECTOR3D);
 
-    FACE *opposite(FACE *theF);
+   VECTOR3D get_grad0(BEAD *wrt, VECTOR3D, VECTOR3D, VECTOR3D);
 
-    VECTOR3D get_gradS(BEAD *wrt, VECTOR3D, VECTOR3D, VECTOR3D, VECTOR3D, VECTOR3D);
-
-    VECTOR3D get_grad0(BEAD *wrt, VECTOR3D, VECTOR3D, VECTOR3D);
-
-    VECTOR3D get_grad1(BEAD *wrt, VECTOR3D, VECTOR3D, VECTOR3D);
+   VECTOR3D get_grad1(BEAD *wrt, VECTOR3D, VECTOR3D, VECTOR3D);
 };
 
-#endif //LEMONSOUFFLE_EDGE_H
+#endif //SOUFFLE_EDGE_H

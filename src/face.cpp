@@ -7,30 +7,28 @@
 #include "edge.h"
 #include "functions.h"
 
-void FACE::update_area_normal(){                                            //updates both area and normal
-    VECTOR3D first = dist(itsB[1],itsB[0]);
-    VECTOR3D second = dist(itsB[2],itsB[1]);
-	 
-	 areavector = (first&second) ^ 0.5;
-	 
-    a = areavector.GetMagnitude();
-    normvec = (areavector) ^ (1 / a);
+//updates both area and normal
+void FACE::update_area_normal(){                                            
+   VECTOR3D first = dist(itsB[1],itsB[0]);
+   VECTOR3D second = dist(itsB[2],itsB[1]);
+   areavector = (first&second) ^ 0.5;
+   a = areavector.GetMagnitude();
+   normvec = (areavector) ^ (1 / a);
 }
 
-void FACE::update_area(){                                                   //updates the area
+//updates the area
+void FACE::update_area(){                                                   
     VECTOR3D first = dist(itsB[1],itsB[0]);
     VECTOR3D second = dist(itsB[2],itsB[1]);
     a = 0.5 * ((first&second).GetMagnitude());
 }
 
-BEAD* FACE::across(EDGE* theE)                                              //finds the face across from an edge
-{
-    for(unsigned int i=0;i<itsB.size();i++)
-    {
-        if (this->itsB[i] != theE->itsB[0] && this->itsB[i] != theE->itsB[1])
-        {
-            return this->itsB[i];
-        }
-    }
-    return NULL;
+//finds the face across from an edge
+BEAD* FACE::across(EDGE* theE){
+   for(unsigned int i=0;i<itsB.size();i++){
+      if (this->itsB[i] != theE->itsB[0] && this->itsB[i] != theE->itsB[1]){
+         return this->itsB[i];
+      }
+   }
+   return NULL;
 }
