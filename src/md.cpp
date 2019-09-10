@@ -32,7 +32,7 @@ int run_simulation(int argc, char *argv[]) {
    string file_name;
    double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;            // capsomere hamiltonian					
    double salt_concentration, temperature;	                                          // environmental or control parameters					
-   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff;// computational parameters
+   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff;// computational parameters
    bool verbose, restartFile;
    int buildFrequency ;
 	
@@ -73,7 +73,7 @@ int run_simulation(int argc, char *argv[]) {
    ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
    ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
-   ("Neighbor list cutoff,L", value<double>(&NListCutoff)->default_value(10.0), "Neighbor list cutoff (reduced unit)");
+   ("Neighbor list cutoff,L", value<double>(&NListCutoff_c)->default_value(7.5), "Neighbor list cutoff (x + es & lj cutoff)");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -147,10 +147,14 @@ int run_simulation(int argc, char *argv[]) {
    double kappa = sqrt(8 * Pi * ni * lb * qs * qs);
    double screen = 1 / kappa;	
    double ecut_el = screen * ecut_c;			      // screening length times a constant so that electrostatics is cutoff at approximately 0.015
+   if (ecut_el > ecut) NListCutoff = ecut_el + NListCutoff_c;
+       else NListCutoff = ecut + NListCutoff_c;
    
    if (world.rank() == 0) {
       sysdata << "Box length is " << box_x * SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Screening length is " << screen << " nanometers." << endl;
+      sysdata << "electrostatic cutoff is " << ecut_el * SIsigma / (1e-9) << " nanometers." << endl;
+      sysdata << "Neighborlist cutoff is " << NListCutoff * SIsigma / (1e-9) << " nanometers." << endl;
      }
 
    if (brownian == false) {                                 //for molecular, set up the nose hoover thermostat
@@ -165,19 +169,19 @@ int run_simulation(int argc, char *argv[]) {
    }
 
    //MPI Boundary calculation for ions
-   unsigned int rangeIons = protein.size() / world.size() + 1.5;
+   unsigned int rangeIons = (protein.size() + world.size() - 1) / (1.0 * world.size());
    lowerBound = world.rank() * rangeIons;
    upperBound = (world.rank() + 1) * rangeIons - 1;
-   extraElements = world.size() * rangeIons - protein.size();
-   sizFVec = upperBound - lowerBound + 1;
+  // extraElements = world.size() * rangeIons - protein.size();
+   sizFVec = rangeIons; //upperBound - lowerBound + 1;
    if (world.rank() == world.size() - 1) {
       upperBound = protein.size() - 1;
-      sizFVec = upperBound - lowerBound + 1 + extraElements;
+    //  sizFVec = upperBound - lowerBound + 1;// + extraElements;
    }
-   if (world.size() == 1) {
-      lowerBound = 0;
-      upperBound = protein.size() - 1;
-   }
+//    if (world.size() == 1) {
+//       lowerBound = 0;
+//       upperBound = protein.size() - 1;
+//    }
 
    int numOfNodes = world.size();
    if (world.rank() == 0) {
@@ -198,6 +202,11 @@ int run_simulation(int argc, char *argv[]) {
    bool updatePairlist = true;
    int NListVectorSize;//calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
    NListVectorSize = ceil( (NListCutoff + 0.5) * (NListCutoff + 0.5) * (NListCutoff + 0.5) ) ;
+   if (NListVectorSize > subunit_bead.size()) NListVectorSize = subunit_bead.size();
+   if (world.rank() == 0) {
+      sysdata << "Neighborlist has a maximum of " << NListVectorSize << " neighbors per bead." << endl;
+     }
+
    for (unsigned int i = 0; i < subunit_bead.size(); i ++) {
       subunit_bead[i].itsN.assign(NListVectorSize, -1);                       //Making "empty" pairlist (fill with -1)                    
    }
@@ -332,14 +341,13 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*                                                              MAKING RESTART FILE                                                                                                                */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////         
-      if (a % 50000 == 0 && world.rank() == 0) {
-         restart.open("outfiles/forcescatter.out", ofstream::out | ofstream::trunc);
-         //  restart << "Velocities & Positions for " << a << endl;
+      if (a % 100000 == 0 && world.rank() == 0) {
+         restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
+         restart << "Velocities & Positions for " << a << endl;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            // restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12)
-               //       << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
-            restart << subunit_bead[i].tforce.x << setw(25) << setprecision(12) << subunit_bead[i].tforce.y << setw(25) << setprecision(12) << subunit_bead[i].tforce.z  << setw(25) << setprecision(12)
-                     << endl;
+             restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12) << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
+       //     restart << subunit_bead[i].tforce.x << setw(25) << setprecision(12) << subunit_bead[i].tforce.y << setw(25) << setprecision(12) << subunit_bead[i].tforce.z  << setw(25) << setprecision(12)
+                //     << endl;
          }
          restart.close();
       }
@@ -347,7 +355,7 @@ int run_simulation(int argc, char *argv[]) {
       /*								ANALYZE ENERGIES							     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
          
-      if (a % 1000 == 0 && world.rank() == 0) {
+      if (a % 100000 == 0 && world.rank() == 0) {
    
          dress_up(subunit_edge, subunit_face);                     //update edge and face properties
    

@@ -16,7 +16,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    
    //Common MPI Message objects
    vector<VECTOR3D> forvec(sizFVec * protein[0].itsB.size(), VECTOR3D(0, 0, 0));
-   vector<VECTOR3D> forvecGather(subunit_bead.size() + extraElements, VECTOR3D(0, 0, 0));
+   vector<VECTOR3D> forvecGather(subunit_bead.size(), VECTOR3D(0, 0, 0));
    
    //global variables
    unsigned int i, k;
