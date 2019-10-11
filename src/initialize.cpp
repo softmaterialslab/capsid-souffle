@@ -22,7 +22,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile) {
 vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned int number_capsomeres, string file_name, 
                                       double &bondlength,double &SIsigma, double &SImass, vector<BEAD> &subunit_bead,
                                       vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, 
-                                      bool restartFile, int &restartStep) {
+                                      bool restartFile, int &restartStep, bool clusters, unsigned int &cluster_size) {
    ofstream inputfile("outfiles/input.GEN.out", ios::out);
    ifstream crds;                                     //open coordinates file
    crds.open(file_name.c_str());
@@ -31,6 +31,18 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
          cerr << "ERR: FILE " << file_name << " NOT OPENED. Check directory and/or filename.";
       exit(1);
    }
+   
+   string file_name2 = "xyz_T4";                      //File for T3/T4 chunks
+   ifstream clust_crds;                                      //open coordinates file
+   if (clusters){
+      clust_crds.open(file_name2.c_str());
+      if (!clust_crds) {                                        //check to make sure file is there
+         if (world.rank() == 0)
+            cerr << "ERR: FILE " << file_name2 << " NOT OPENED. Check directory and/or filename.";
+         exit(1);
+      }
+   }
+   
    string dummy;                                      //reading in data
    crds >> dummy >> dummy >> bondlength >> dummy >> dummy >> SImass >> dummy >> dummy >> SIsigma;
                                                       //Determine box size:
@@ -38,6 +50,20 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
                             1.0 / 3.0);               // pre factor of 1000 accounts for units
    VECTOR3D bxsz = VECTOR3D(box_x, box_x, box_x);     //determine box size based on desired concentration
    unsigned int num_fill = int(ceil(pow((double(number_capsomeres)), 1.0 / 3.0)));
+   unsigned int number_clusters;
+  // unsigned int cluster_size;
+   if (!clusters) {
+      num_fill = int(ceil(pow((double(number_capsomeres)), 1.0 / 3.0)));
+   } else if (clusters) {
+      clust_crds >> dummy >> dummy >> cluster_size;
+      number_clusters = int(double(number_capsomeres)/double(cluster_size));
+      if ( number_capsomeres % cluster_size != 0) {
+         if (world.rank() == 0)
+            cerr << "ERR: Number of capsomeres (" << number_capsomeres << ") is not divisible by cluster_size (" << cluster_size << ")"; 
+         exit(1);
+      }
+      num_fill = int(ceil(pow((double(number_clusters)), 1.0 / 3.0)));
+   }
    unsigned int index = 0;
    //////////////////////////////////////////////////////////////////////////////////////////////////////////
    /*                               READING FILE                                                          */
@@ -100,6 +126,16 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
       lj_a_template[3][i] = epsilon;
       lj_a_template[4][i] = sigma;
    }
+   long double cluster_template[3][(np*cluster_size)];   //read in coordinates if there is a cluster file
+   if (clusters){
+      for (unsigned int i = 0; i < (np*cluster_size); i++){
+         clust_crds >> dummy >> x >> y >> z;
+         cluster_template[0][i] = x;
+         cluster_template[1][i] = y;
+         cluster_template[2][i] = z;
+      }
+   }
+   
    /* not reading repulsive LJ
    int nr = 0;
    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> nr >> dummy >> dummy >> dummy >> dummy >> dummy;
@@ -121,7 +157,7 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
    // function, initialize_system
    ifstream restart;
    if (world.rank() == 0) {                                 // MAKING BEAD OBJECT
-      inputfile << "# Number of Particles = " << np * number_capsomeres << endl << "Coordinates:" << endl;
+      inputfile << "# Number of Beads = " << np * number_capsomeres << endl << "Coordinates:" << endl;
       inputfile << "index x y z subunit charge type diameter mass" << endl;
    }
    if (restartFile == true) {
@@ -134,31 +170,59 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
       restart >> dummy >> dummy >> dummy >> dummy >> restartStep;
    }
    int myindex = 0;
+   unsigned int loopIndex;
+   int subIndex = 0;
+   unsigned int tempIndex = 0;
    double vel_x, vel_y, vel_z;
+   unsigned int check;
 
    for (unsigned int i = 0; i < num_fill; i++) {
       for (unsigned int j = 0; j < num_fill; j++) {
          for (unsigned int k = 0; k < num_fill; k++) {
                index += 1;
-               if (number_capsomeres > (index - 1)) {
-                  for (unsigned int l = 0; l < np; l++) {
-                     if (restartFile == false) {
-                     x = (((double) i * bxsz.x * (1 / (double) num_fill)) + part_template[0][l]);
-                     y = (((double) j * bxsz.y * (1 / (double) num_fill)) + part_template[1][l]);
-                     z = (((double) k * bxsz.z * (1 / (double) num_fill)) + part_template[2][l]);
+               if (!clusters) check = index - 1;
+               if (clusters) check = (index -1)*cluster_size;
+               if (number_capsomeres > check) {
+                  if (clusters) loopIndex = np * cluster_size;
+                  if (!clusters) loopIndex = np;
+                  for (unsigned int l = 0; l < loopIndex; l++) {
+                     if (restartFile == false && clusters == false) {
+                        x = (((double) i * bxsz.x * (1 / (double) num_fill)) + part_template[0][l]);
+                        y = (((double) j * bxsz.y * (1 / (double) num_fill)) + part_template[1][l]);
+                        z = (((double) k * bxsz.z * (1 / (double) num_fill)) + part_template[2][l]);
                      } else if (restartFile == true) {
                         restart >> dummy >> vel_x >> vel_y >> vel_z >> x >> y >> z;
-                  }
-                     myindex = index * np - np + l;
-                     subunit_bead.push_back(BEAD(VECTOR3D(x, y, z)));
-                     subunit_bead[myindex].id = myindex;
-                     subunit_bead[myindex].q = part_template[4][l];
-                     subunit_bead[myindex].type = part_template[3][l];
-                     subunit_bead[myindex].sigma = part_template[6][l];
-                     subunit_bead[myindex].m = part_template[7][l];//assign mass (clone of user value)
-                     subunit_bead[myindex].bx = bxsz;
-                     subunit_bead[myindex].hbx = bxsz ^ 0.5;
-                     subunit_bead[myindex].unit = index;
+                     } else if (restartFile == false && clusters == true) {
+                        x = (((double) i * bxsz.x * (1 / (double) num_fill)) + cluster_template[0][l]);
+                        y = (((double) j * bxsz.x * (1 / (double) num_fill)) + cluster_template[1][l]);
+                        z = (((double) k * bxsz.x * (1 / (double) num_fill)) + cluster_template[2][l]);
+                     }
+                     if (!clusters) {     // If there are no clusters...
+                        myindex = index * np - np + l;
+                        subunit_bead.push_back(BEAD(VECTOR3D(x, y, z)));
+                        subunit_bead[myindex].id = myindex;
+                        subunit_bead[myindex].q = part_template[4][l];
+                        subunit_bead[myindex].type = part_template[3][l];
+                        subunit_bead[myindex].sigma = part_template[6][l];
+                        subunit_bead[myindex].m = part_template[7][l];//assign mass (clone of user value)
+                        subunit_bead[myindex].bx = bxsz;
+                        subunit_bead[myindex].hbx = bxsz ^ 0.5;
+                        subunit_bead[myindex].unit = index;
+                     }
+                     if (clusters) {      // If there are clusters...
+                        if (tempIndex == np) tempIndex = 0;
+                        if (myindex % np == 0) subIndex ++;
+                        subunit_bead.push_back(BEAD(VECTOR3D(x, y, z)));
+                        subunit_bead[myindex].id = myindex;
+                        subunit_bead[myindex].q = part_template[4][tempIndex];
+                        subunit_bead[myindex].type = part_template[3][tempIndex];
+                        subunit_bead[myindex].sigma = part_template[6][tempIndex];
+                        subunit_bead[myindex].m = part_template[7][tempIndex];//assign mass (clone of user value)
+                        subunit_bead[myindex].bx = bxsz;
+                        subunit_bead[myindex].hbx = bxsz ^ 0.5;
+                        subunit_bead[myindex].unit = subIndex;
+                        tempIndex ++;
+                     }
                      if (restartFile == true) {
                         subunit_bead[myindex].vel = VECTOR3D(vel_x, vel_y, vel_z);
                      }
@@ -172,6 +236,7 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
                                     << subunit_bead[myindex].sigma << setw(20) << setprecision(12)
                                     << subunit_bead[myindex].m << endl;
                      } //if
+                     if (clusters) myindex ++;
                   } //for l
                } //if
          } // for k
@@ -373,7 +438,7 @@ void initialize_constant_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> 
 
 
 void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_bead,
-                                double T) { 
+                                double T, bool cluster, unsigned int cluster_size) { 
    //double sigma = sqrt(T);// a rough estimate of how large is the spread in the velocities of the particles at a given temperature
    // Maxwell distribution width
    // assumes all lj atoms have the same mass
@@ -381,7 +446,11 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
 
    // initialized velocities
    // choose uniformly between -0.5 and 0.5
-   for (unsigned int i = 0; i < protein.size(); i++) {
+   unsigned int maxValue;
+   if (!cluster) maxValue = protein.size();
+   if (cluster) maxValue = int(double(protein.size())/double(cluster_size));
+      
+   for (unsigned int i = 0; i < maxValue; i++) {
       double rnumber;
       rnumber = gsl_rng_uniform(ugsl.r);
       double ux = 0.5 * (rnumber) + (-0.5) * (1 - rnumber); // scale to get the number between -0.5 and 0.5
@@ -389,18 +458,39 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
       double uy = 0.5 * (rnumber) + (-0.5) * (1 - rnumber); // scale to get the number between -0.5 and 0.5
       rnumber = gsl_rng_uniform(ugsl.r);
       double uz = 0.5 * (rnumber) + (-0.5) * (1 - rnumber); // scale to get the number between -0.5 and 0.5
-      for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
-         protein[i].itsB[j]->vel = VECTOR3D(ux, uy, uz);
+      if (cluster){
+         for (unsigned int j = 0; j < cluster_size; j++) {
+            for (unsigned int k = 0; k < protein[( (i*cluster_size) + j)].itsB.size(); k++){
+               protein[( (i*cluster_size) + j)].itsB[k]->vel = VECTOR3D(ux, uy, uz);
+            }
+         }
+      }
+      if (!cluster){
+         for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+            protein[i].itsB[j]->vel = VECTOR3D(ux, uy, uz);
+         }
       }
    }
 
    // average velocity should be 0; as there is no net flow of the system in any particular direction; we do this next
    VECTOR3D average_velocity_vector = VECTOR3D(0, 0, 0);
-   for (unsigned int i = 0; i < protein.size(); i++) {
-      for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
-         average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
+   if (!cluster){
+      for (unsigned int i = 0; i < protein.size(); i++) {
+         for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+            average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
+         }
       }
    }
+   if (cluster){
+      for (unsigned int i = 0; i < maxValue; i++) {
+         for (unsigned int j = 0; j < cluster_size; j++) {
+            for (unsigned int k = 0; k < protein[( (i*cluster_size) + j)].itsB.size(); k++){
+               average_velocity_vector = average_velocity_vector + protein[( (i*cluster_size) + j)].itsB[k]->vel;
+            }
+         }
+      }
+   }
+   
    average_velocity_vector = average_velocity_vector ^ (1.0 / subunit_bead.size());
 
    // subtract this computed average_velocity_vector from the velocity of each particle to ensure that the total average after this operation is 0
