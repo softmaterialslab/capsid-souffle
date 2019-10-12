@@ -33,7 +33,7 @@ int run_simulation(int argc, char *argv[]) {
    double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;            // capsomere hamiltonian					
    double salt_concentration, temperature;	                                          // environmental or control parameters					
    double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff;// computational parameters
-   bool verbose, restartFile;
+   bool verbose, restartFile, clusters;
    int buildFrequency ;
 	
    double qs = 1;                                           //salt valency
@@ -70,6 +70,7 @@ int run_simulation(int argc, char *argv[]) {
    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
    ("ecut_c,e", value<double>(&ecut_c)->default_value(12), "electrostatics cutoff coefficient, input 0 for no cutoff")
    ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
+   ("Chunks bool,X", value<bool>(&clusters)->default_value(false), "clusters true: initializes from preformed clusters/")
    ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
    ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
@@ -104,6 +105,7 @@ int run_simulation(int argc, char *argv[]) {
    double SImass;//SI value for a single bead (kg)
    double SIsigma;// (nm)
    double SItime;// (seconds)
+   unsigned int cluster_size;
    
    vector<BEAD> subunit_bead;                               //Create particles, named subunit_bead
    vector<EDGE> subunit_edge;                               //create edges between subunit_bead's
@@ -113,7 +115,7 @@ int run_simulation(int argc, char *argv[]) {
     
    vector<vector<int> > lj_a;
    lj_a = generate_lattice(capsomere_concentration, number_capsomeres, file_name, bondlength, SIsigma, SImass, 
-                        subunit_bead, subunit_edge, protein, subunit_face, restartFile, restartStep);     //Setting up the input file (uses user specified file to generate lattice)
+                           subunit_bead, subunit_edge, protein, subunit_face, restartFile, restartStep, clusters, cluster_size);     //Setting up the input file (uses user specified file to generate lattice)
                         
    double SIenergy =  temperature * Boltzmann;// Joules
    SItime = sqrt(SIsigma*SIsigma*SImass/SIenergy);//seconds
@@ -223,7 +225,7 @@ int run_simulation(int argc, char *argv[]) {
    double tkenergy = 0;
 
    if (restartFile == false) {                                                //assign random velocities based on initial temperature
-      initialize_bead_velocities(protein, subunit_bead, T);
+      initialize_bead_velocities(protein, subunit_bead, T, clusters, cluster_size);
      //initialize_constant_bead_velocities(protein, subunit_bead, T);
    }
                                                                               
@@ -423,7 +425,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if (a % 5000 == 0 && world.rank() == 0) {
+      if (a % 100000 == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
             << endl
