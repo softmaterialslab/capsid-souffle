@@ -25,14 +25,14 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
                                       bool restartFile, int &restartStep, bool clusters, unsigned int &cluster_size) {
    ofstream inputfile("outfiles/input.GEN.out", ios::out);
    ifstream crds;                                     //open coordinates file
-   crds.open(file_name.c_str());
+   crds.open(("infiles/"+file_name).c_str());
    if (!crds) {                                       //check to make sure file is there
       if (world.rank() == 0)
          cerr << "ERR: FILE " << file_name << " NOT OPENED. Check directory and/or filename.";
       exit(1);
    }
    
-   string file_name2 = "xyz_T4";                      //File for T3/T4 chunks
+   string file_name2 = "infiles/xyz_T4";                      //File for T3/T4 chunks
    ifstream clust_crds;                                      //open coordinates file
    if (clusters){
       clust_crds.open(file_name2.c_str());
@@ -161,7 +161,19 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
       inputfile << "index x y z subunit charge type diameter mass" << endl;
    }
    if (restartFile == true) {
-      restart.open("outfiles/restart.out");
+      // Look at all the restart files
+      vector<string> names = getFileNames("outfiles/"); // get all the files in the directory
+      filter(names,"restart"); // filter out everything but restart files
+      sort(names.begin(), names.end(), [](const string& s1, const string& s2){ // Sort to find most recent
+         if (s1.length() < s2.length()) //You need this to sort integers in file name
+            return true;
+         if (s2.length() < s1.length())
+            return false;
+         else
+            return (s1 < s2);
+      });
+       cout << "Restarting from: " << names.back();
+      restart.open("outfiles/" + names.back());
       if (!restart) {                                       //check to make sure file is there
          if (world.rank() == 0)
             cerr << "ERR: RESTART FILE outfiles/restart.out NOT OPENED. Check directory and/or filename.";

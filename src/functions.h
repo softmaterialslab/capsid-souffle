@@ -8,6 +8,7 @@
 #include "vector3d.h"
 #include "bead.h"
 #include <vector>
+#include <boost/filesystem.hpp>
 
 class SUBUNIT;
 class EDGE;
@@ -24,6 +25,12 @@ void dress_up(std::vector<EDGE> &subunit_edge, std::vector<FACE> &subunit_face);
 void update_pairlist(unsigned int i, std::vector<SUBUNIT> &protein, double NListCutoff, VECTOR3D box, VECTOR3D hbox);
 
 double compute_MD_trust_factor_R(int hiteqm);
+
+std::vector<std::string> getFileNames(std::string path = ".") ;
+
+void filter(std::vector<std::string>& strings, std::string pattern) ;
+
+void print(const std::vector<std::string> & v) ;
 
 //finds distance considering periodic boundaries.
 inline VECTOR3D dist(BEAD *A, BEAD *B) {   

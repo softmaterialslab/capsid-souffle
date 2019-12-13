@@ -115,6 +115,8 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             if (r2 >= ecut2 && r2 >= (replj2 * shc * shc))
                continue;
             
+            double test;
+            
             if (lj){
                bool lj_attractive = false;
                for (k = 0; k < lj_a[0].size(); k++){
@@ -123,9 +125,11 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                   }
                }
                if (lj_attractive == true && r2 < (ecut2)){
+                  if (subunit_bead[j_bead].type == 7) test = 50;
+                  else test = elj_att;
                   double r6 = r2 * r2 * r2;
                   double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
-                  ljForce += (r_vec ^ (48 * elj_att * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
+                  ljForce += (r_vec ^ (48 * test * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                }
                else if (lj_attractive == false && r2 < (replj2 * shc * shc)){
                   double r6 = r2 * r2 * r2;

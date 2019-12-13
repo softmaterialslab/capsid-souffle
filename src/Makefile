@@ -11,8 +11,8 @@ BigRed2CFLAG = -c
 BigRed2OFLAG = -o
 
 # General purpose flags.
-CC = mpicxx -O3 -g -Wall -fopenmp
-LFLAG = -lgsl -lgslcblas -lm -L${BOOST_LIBDIR} -lboost_program_options -lboost_mpi -lboost_serialization
+CC = mpicxx -O3 -g -Wall -fopenmp -std=c++0x
+LFLAG = -lgsl -lgslcblas -lm -L${BOOST_LIBDIR} -lboost_program_options -lboost_mpi -lboost_serialization -lboost_filesystem -lboost_system
 CFLAG = -c
 OFLAG = -o
 

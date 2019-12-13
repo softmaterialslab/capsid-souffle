@@ -165,3 +165,37 @@ double compute_MD_trust_factor_R(int hiteqm) {
    return R;
 }
 
+vector<string> getFileNames(string directoryPath)
+{
+   namespace fs = boost::filesystem ;
+   vector<string> names ;
+   
+   if ( fs::exists(directoryPath) )
+   {
+      fs::directory_iterator it(directoryPath) ;
+      fs::directory_iterator end ;
+      
+      while ( it != end )
+      {
+         names.push_back(it->path().filename().string()) ;
+         ++it ;
+      }
+   }
+   
+   return names ;
+}
+
+void filter(vector<string>& strings, string pattern)
+{
+   auto pos = remove_if(begin(strings), end(strings), 
+                             [&](string& s) { return s.find(pattern) == string::npos ; }) ; 
+                             
+                             strings.erase(pos, end(strings)) ;
+}
+
+void print(const vector<string>& strings)
+{
+   for ( auto& s : strings )
+      cout << s << '\n' ;
+}
+

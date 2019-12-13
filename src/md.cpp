@@ -88,6 +88,7 @@ int run_simulation(int argc, char *argv[]) {
    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
    ofstream sysdata("outfiles/model.parameters.out", ios::out);
    ofstream restart;
+   string restartFilename;
    int restartStep;
    initialize_outputfile(traj, ofile);
    
@@ -202,7 +203,7 @@ int run_simulation(int argc, char *argv[]) {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    bool updatePairlist = true;
-   int NListVectorSize;//calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
+   unsigned int NListVectorSize;//calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
    NListVectorSize = ceil( (NListCutoff + 0.5) * (NListCutoff + 0.5) * (NListCutoff + 0.5) ) ;
    if (NListVectorSize > subunit_bead.size()) NListVectorSize = subunit_bead.size();
    if (world.rank() == 0) {
@@ -231,10 +232,12 @@ int run_simulation(int argc, char *argv[]) {
                                                                               
    double particle_ke = particle_kinetic_energy(subunit_bead);                //thermostat variables for nose hoover
    double expfac_real = 0;                     
-                                                                             
+                   
    gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                               //setting up random seed for brownian
    unsigned long int Seed = 23410981;
    gsl_rng_set(r, Seed);
+   
+   
 
    /*                  ___                        __      __      ___
    *      /|   /|      |   \             |        /  \    /  \    |   \
@@ -272,15 +275,15 @@ int run_simulation(int argc, char *argv[]) {
             subunit_bead[i].vel.x +=
             (subunit_bead[i].vel.x * (-0.5 * fric_zeta * delta_t)) +
             (subunit_bead[i].tforce.x * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_rng_uniform(r) - 0.5);
+            sqrt(0.5* delta_t * fric_zeta / subunit_bead[i].m) * (gsl_ran_gaussian(r,1) );
             subunit_bead[i].vel.y +=
             (subunit_bead[i].vel.y * (-0.5 * fric_zeta * delta_t)) +
             (subunit_bead[i].tforce.y * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_rng_uniform(r) - 0.5);
+            sqrt(0.5 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_ran_gaussian(r,1) );
             subunit_bead[i].vel.z +=
             (subunit_bead[i].vel.z * (-0.5 * fric_zeta * delta_t)) +
             (subunit_bead[i].tforce.z * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_rng_uniform(r) - 0.5);
+            sqrt(0.5 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_ran_gaussian(r,1) );
          }
          for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -318,18 +321,17 @@ int run_simulation(int argc, char *argv[]) {
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            subunit_bead[i].vel.x += (subunit_bead[i].vel.x * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.x * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
-            (gsl_rng_uniform(r) - 0.5);
-            subunit_bead[i].vel.y += (subunit_bead[i].vel.y * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.y * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
-            (gsl_rng_uniform(r) - 0.5);
-            subunit_bead[i].vel.z += (subunit_bead[i].vel.z * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.z * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
-            (gsl_rng_uniform(r) - 0.5);
+            subunit_bead[i].vel.x += ( subunit_bead[i].vel.x * 2 / (fric_zeta * delta_t) ) + 
+            ( ( subunit_bead[i].tforce.x / subunit_bead[i].m ) * ((0.5*delta_t) + (1/fric_zeta)) ) + 
+            (gsl_ran_gaussian(r,1) * sqrt(0.5 * delta_t * fric_zeta / subunit_bead[i].m) / (1 + (fric_zeta * delta_t * 0.5)));
+            
+            subunit_bead[i].vel.y += ( subunit_bead[i].vel.y * 2 / (fric_zeta * delta_t) ) + 
+            ( ( subunit_bead[i].tforce.y / subunit_bead[i].m ) * ((0.5*delta_t) + (1/fric_zeta)) ) + 
+            (gsl_ran_gaussian(r,1) * sqrt(0.5 * delta_t * fric_zeta / subunit_bead[i].m) / (1 + (fric_zeta * delta_t * 0.5)));
+            
+            subunit_bead[i].vel.z += ( subunit_bead[i].vel.z * 2 / (fric_zeta * delta_t) ) + 
+            ( ( subunit_bead[i].tforce.z / subunit_bead[i].m ) * ((0.5*delta_t) + (1/fric_zeta)) ) + 
+            (gsl_ran_gaussian(r,1) * sqrt(0.5 * delta_t * fric_zeta / subunit_bead[i].m) / (1 + (fric_zeta * delta_t * 0.5)));
          }  
       }  // else
 
@@ -343,8 +345,12 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*                                                              MAKING RESTART FILE                                                                                                                */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////         
-      if (a % 100000 == 0 && world.rank() == 0) {
-         restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
+      if (a % 1000 == 0 && world.rank() == 0) {
+         stringstream step;
+         step << a;
+         restartFilename = "outfiles/restart_" + step.str();
+         restartFilename += ".out";
+         restart.open(restartFilename.c_str(), ios::out);
          restart << "Velocities & Positions for " << a << endl;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
              restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12) << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
@@ -357,7 +363,7 @@ int run_simulation(int argc, char *argv[]) {
       /*								ANALYZE ENERGIES							     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
          
-      if (a % 100000 == 0 && world.rank() == 0) {
+      if (a % 10000 == 0 && world.rank() == 0) {
    
          dress_up(subunit_edge, subunit_face);                     //update edge and face properties
    
@@ -425,7 +431,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if (a % 100000 == 0 && world.rank() == 0) {
+      if (a % 10000 == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
             << endl
