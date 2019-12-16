@@ -69,7 +69,7 @@ int run_simulation(int argc, char *argv[]) {
    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
    ("ecut_c,e", value<double>(&ecut_c)->default_value(12), "electrostatics cutoff coefficient, input 0 for no cutoff")
-   ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
+   ("Restart bool,R", value<bool>(&restartFile)->default_value(true), "restartFile true: initializes from a restart file in outfiles/")
    ("Chunks bool,X", value<bool>(&clusters)->default_value(false), "clusters true: initializes from preformed clusters/")
    ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")

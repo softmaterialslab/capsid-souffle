@@ -22,7 +22,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile) {
 vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned int number_capsomeres, string file_name, 
                                       double &bondlength,double &SIsigma, double &SImass, vector<BEAD> &subunit_bead,
                                       vector<EDGE> &subunit_edge, vector<SUBUNIT> &protein, vector<FACE> &subunit_face, 
-                                      bool restartFile, int &restartStep, bool clusters, unsigned int &cluster_size) {
+                                      bool &restartFile, int &restartStep, bool clusters, unsigned int &cluster_size) {
    ofstream inputfile("outfiles/input.GEN.out", ios::out);
    ifstream crds;                                     //open coordinates file
    crds.open(("infiles/"+file_name).c_str());
@@ -160,10 +160,16 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
       inputfile << "# Number of Beads = " << np * number_capsomeres << endl << "Coordinates:" << endl;
       inputfile << "index x y z subunit charge type diameter mass" << endl;
    }
+  
+   vector<string> names = getFileNames("outfiles/"); // get all the files in the directory
+   filter(names,"restart"); // filter out everything but restart files
+   if (names.size() == 0) {
+      if (world.rank() == 0) {
+         cout << "No restart files found! Starting simulation from scratch." << endl;
+      }
+      restartFile = false;
+   }
    if (restartFile == true) {
-      // Look at all the restart files
-      vector<string> names = getFileNames("outfiles/"); // get all the files in the directory
-      filter(names,"restart"); // filter out everything but restart files
       sort(names.begin(), names.end(), [](const string& s1, const string& s2){ // Sort to find most recent
          if (s1.length() < s2.length()) //You need this to sort integers in file name
             return true;
@@ -172,7 +178,7 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
          else
             return (s1 < s2);
       });
-       cout << "Restarting from: " << names.back();
+       cout << "Restarting from: " << names.back() << endl;
       restart.open("outfiles/" + names.back());
       if (!restart) {                                       //check to make sure file is there
          if (world.rank() == 0)
