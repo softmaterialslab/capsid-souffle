@@ -10,6 +10,10 @@
 #include "subunit.h"
 #include "edge.h"
 #include "face.h"
+#include <iterator>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
@@ -164,4 +168,49 @@ double compute_MD_trust_factor_R(int hiteqm) {
    cout << endl << endl << "R is: " << R;
    return R;
 }
+
+vector<string> getFileNames(string directoryPath)
+{
+   namespace fs = boost::filesystem ;
+   vector<string> names ;
+   
+   if ( fs::exists(directoryPath) )
+   {
+      fs::directory_iterator it(directoryPath) ;
+      fs::directory_iterator end ;
+      
+      while ( it != end )
+      {
+         names.push_back(it->path().filename().string()) ;
+         ++it ;
+      }
+   }
+   
+   return names ;
+}
+
+
+
+
+void filter(vector<string>& strings, string pattern)
+{
+   vector<string>::iterator pos = remove_if(strings.begin(), strings.end(), isRestart) ; 
+   strings.erase(pos, strings.end()) ;
+}
+
+bool numeric_string_compare(const std::string& s1, const std::string& s2) {
+   if (s1.length() < s2.length()) //You need this to sort integers in file name
+      return true;
+   if (s2.length() < s1.length())
+      return false;
+   else
+      return (s1 < s2);
+}
+
+
+
+bool isRestart (string& s) {
+   return s.find("restart") == std::string::npos ; 
+}
+
 

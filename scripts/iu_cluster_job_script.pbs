@@ -1,19 +1,20 @@
 #! /bin/bash
-#PBS -l	nodes=4:ppn=16,walltime=1:00:00
-#PBS -q	gpu
-#PBS -m	ae
-#PBS -o	out.log
-#PBS -e	err.log
-#PBS -N	D_m__f_41part_c__C_750__c_200__s_100__b_20__T_1000__t_0.002
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1 
+#SBATCH --time=00:10:00
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=lm44@iu.edu
+#SBATCH --output=out.log
+#SBATCH --error=err.log
+#SBATCH --job-name=MVM_INPUT_TEMP
 
 # below are the modules you will need to compile the code on bigred2 (see README)
 # uncomment the following 3 lines to load the modules at the time of job launch
-module swap PrgEnv-cray PrgEnv-gnu
-module load boost/1.65.0
+module swap PrgEnv-intel/6.0.5 PrgEnv-gnu
+module load boost/gnu
 module load gsl
 
-cd $PBS_O_WORKDIR
-
-export OMP_NUM_THREADS=16
+export OMP_NUM_THREADS=1
 # -d refers to number of cores. this should match ppn in Line 2.
-time aprun -n 4 -d 16 ./capsid-souffle -D m -f 41part_cu -n 8 -C 75 -c 200 -s 50 -b 20 -T 1000 -t 0.001
+cd $SLURM_SUBMIT_DIR
+time srun -n 1 -d 1 ./capsid-souffle -D m -f 43part_25_20 -S 100 -C 520 -c 1000 -s 500 -b 500 -T 10000 -t 0.004 -K INPUT_TEMP

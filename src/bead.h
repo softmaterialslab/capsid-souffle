@@ -43,6 +43,7 @@ public:
    std::vector<SUBUNIT*> itsS;           //its Subunit(s)
    std::vector<FACE*> itsF;              //its Faces
    std::vector<int> itsN;                //Its neighbors (pairlist)
+   VECTOR3D noise;                       //noise term -- gaussian random number
  
 //member functions
 //constructor fxn
@@ -64,6 +65,19 @@ public:
       else if (pos.y < -hbx.y) pos.y = pos.y + bx.y;
       if (pos.z > hbx.z) pos.z = pos.z - bx.z;
       else if (pos.z < -hbx.z) pos.z = pos.z + bx.z;
+    }
+    
+    //position updated full step
+    void update_position_brownian(double delta_t, double c2){ 
+      // pos =  pos + (vel + (tforce ^ (delta_t * (0.5 / m))) + (noise / m)) ^ (delta_t / c2);
+       pos =  pos + ((vel + (noise / m)) ^ (delta_t / c2));
+       // periodic boundary is accounted for
+       if (pos.x > hbx.x) pos.x = pos.x - bx.x;
+       else if (pos.x < -hbx.x) pos.x = pos.x + bx.x;
+       if (pos.y > hbx.y) pos.y = pos.y - bx.y;
+       else if (pos.y < -hbx.y) pos.y = pos.y + bx.y;
+       if (pos.z > hbx.z) pos.z = pos.z - bx.z;
+       else if (pos.z < -hbx.z) pos.z = pos.z + bx.z;
     }
 
 //velocity updated half timestep (No thermostat)

@@ -60,11 +60,15 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
          
          if (r >= ecut && r >= (1.12246205 * shc)) continue;  
          
+         double test;
+         
          if (lj) {
             bool lj_attractive = false;
             for (unsigned int k = 0; k < lj_a[0].size(); k++){
                if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
                   lj_attractive = true;
+                  //elj_att = lj_a[3][k];
+                  break;
                }
             }
             if (r < (1.12246205*shc) && lj_attractive == false){        //Repulsive
@@ -73,10 +77,12 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
                double r6 = r * r * r * r * r * r;
                subunit_bead[i].ne += ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
             } else if ( r < ecut && lj_attractive == true ){            //Attractive
+               if (subunit_bead[j].type == 7) test = 50;
+               else test = elj_att;
                double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
                double sigma12 = sigma6 * sigma6;
                double r6 = r * r * r * r * r * r;
-               subunit_bead[i].ne += (((4 * elj_att * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * elj_att * ((sigma12 / ecut12) - (sigma6 / ecut6)))));
+               subunit_bead[i].ne += (((4 * test * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * test * ((sigma12 / ecut12) - (sigma6 / ecut6)))));
             } else {
                subunit_bead[i].ne += 0;
             }

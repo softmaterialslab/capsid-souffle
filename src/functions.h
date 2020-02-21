@@ -5,9 +5,14 @@
 #ifndef SOUFFLE_FUNCTIONS_H
 #define SOUFFLE_FUNCTIONS_H
 
+#include <iostream>
+#include <string>
+#include <sstream>
 #include "vector3d.h"
 #include "bead.h"
 #include <vector>
+#include <boost/filesystem.hpp>
+#include <algorithm>
 
 class SUBUNIT;
 class EDGE;
@@ -25,6 +30,12 @@ void update_pairlist(unsigned int i, std::vector<SUBUNIT> &protein, double NList
 
 double compute_MD_trust_factor_R(int hiteqm);
 
+std::vector<std::string> getFileNames(std::string path = ".") ;
+
+void filter(std::vector<std::string>& strings, std::string pattern) ;
+
+bool numeric_string_compare(const std::string& s1, const std::string& s2) ;
+
 //finds distance considering periodic boundaries.
 inline VECTOR3D dist(BEAD *A, BEAD *B) {   
    VECTOR3D r_vec; //= (A->pos - B->pos);
@@ -41,5 +52,7 @@ inline VECTOR3D dist(BEAD *A, BEAD *B) {
    else if (r_vec.z < -hbox.z) r_vec.z += box.z;
    return r_vec;
 }
+
+bool isRestart (std::string& s);
 
 #endif //SOUFFLE_FUNCTIONS_H

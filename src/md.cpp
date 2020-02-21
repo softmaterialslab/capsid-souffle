@@ -37,7 +37,7 @@ int run_simulation(int argc, char *argv[]) {
    int buildFrequency ;
 	
    double qs = 1;                                           //salt valency
-   double T = 1;                                            //set temperature (reduced units)
+   double T;                                            //set temperature (reduced units)
    double Q = 10;                                           //nose hoover mass (reduced units)
 	
    double const Avagadro = 6.022e23; // mol^-1		      //useful constants
@@ -69,7 +69,7 @@ int run_simulation(int argc, char *argv[]) {
    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
    ("ecut_c,e", value<double>(&ecut_c)->default_value(12), "electrostatics cutoff coefficient, input 0 for no cutoff")
-   ("Restart bool,R", value<bool>(&restartFile)->default_value(false), "restartFile true: initializes from a restart file in outfiles/")
+   ("Restart bool,R", value<bool>(&restartFile)->default_value(true), "restartFile true: initializes from a restart file in outfiles/")
    ("Chunks bool,X", value<bool>(&clusters)->default_value(false), "clusters true: initializes from preformed clusters/")
    ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
@@ -88,6 +88,7 @@ int run_simulation(int argc, char *argv[]) {
    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
    ofstream sysdata("outfiles/model.parameters.out", ios::out);
    ofstream restart;
+   string restartFilename;
    int restartStep;
    initialize_outputfile(traj, ofile);
    
@@ -120,20 +121,24 @@ int run_simulation(int argc, char *argv[]) {
    double SIenergy =  temperature * Boltzmann;// Joules
    SItime = sqrt(SIsigma*SIsigma*SImass/SIenergy);//seconds
    totaltime = computationSteps * delta_t;
+   T = temperature / double(298);
+   double UnitEnergy = SIenergy * SItime * SItime / (SImass * SIsigma * (1e-9));
+   cout << "Unit energy is " << UnitEnergy << endl;
                         
    if (world.rank() == 0) {                                 // making model.parameters file
       sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
       << delta_t * SItime / (1e-12) << " picosecond timestep." << endl;
       sysdata << "Capsomere concentration: " << capsomere_concentration << " micromolar" << endl;
       sysdata << "Salt concentration: " << salt_concentration << " millimolar" << endl;
-      sysdata << "Stretching constant: " << ks << " KbT" << endl;
-      sysdata << "Bending constant: " << kb << " KbT" << endl;
+      sysdata << "Stretching constant: " << ks << " KbT" << "( " << (ks * SImass / (SItime * SItime)) << " N/m)" << endl;
+      sysdata << "Bending constant: " << kb << " KbT" << "( " << (kb * SImass * SIsigma * SIsigma / (SItime * SItime)) << " J)" << endl;;
       sysdata << "Bondlength between beads is " << bondlength << " LJ reduced units, which is "
       << bondlength * SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Mass of a bead is " << SImass << " kg." << endl;
       sysdata << "Diameter of a bead is " << SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Total number of subunits is " << number_capsomeres << endl;
-      sysdata << "Temperature is " << temperature << " K" << endl;
+      sysdata << "Temperature is " << temperature << " K" << " Which is " << T << " in reduced units" << endl;
+      sysdata << "Attractive LJ paramerter is " << elj_att << " Which is " << elj_att * (SIenergy * Avagadro / (1000 * UnitEnergy) ) << " kJ/mol." << endl;
      }
      
 	// LJ features
@@ -202,7 +207,7 @@ int run_simulation(int argc, char *argv[]) {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    bool updatePairlist = true;
-   int NListVectorSize;//calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
+   unsigned int NListVectorSize;//calculating max number of neighbors (conservative estimate assuming 100% packing efficiency)
    NListVectorSize = ceil( (NListCutoff + 0.5) * (NListCutoff + 0.5) * (NListCutoff + 0.5) ) ;
    if (NListVectorSize > subunit_bead.size()) NListVectorSize = subunit_bead.size();
    if (world.rank() == 0) {
@@ -231,10 +236,12 @@ int run_simulation(int argc, char *argv[]) {
                                                                               
    double particle_ke = particle_kinetic_energy(subunit_bead);                //thermostat variables for nose hoover
    double expfac_real = 0;                     
-                                                                             
+                   
    gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                               //setting up random seed for brownian
    unsigned long int Seed = 23410981;
    gsl_rng_set(r, Seed);
+   
+   
 
    /*                  ___                        __      __      ___
    *      /|   /|      |   \             |        /  \    /  \    |   \
@@ -267,24 +274,21 @@ int run_simulation(int argc, char *argv[]) {
                protein[i].itsB[ii]->update_position(delta_t);                                   //update position full step
             }
          } // for i
-      } else {                                                                // FOR BROWNIAN DYNAMICS
+      } else {                                                                    // FOR BROWNIAN DYNAMICS
+         double c1, c2;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            subunit_bead[i].vel.x +=
-            (subunit_bead[i].vel.x * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.x * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_rng_uniform(r) - 0.5);
-            subunit_bead[i].vel.y +=
-            (subunit_bead[i].vel.y * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.y * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_rng_uniform(r) - 0.5);
-            subunit_bead[i].vel.z +=
-            (subunit_bead[i].vel.z * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.z * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) * (gsl_rng_uniform(r) - 0.5);
+            c1 = 1 - (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
+            c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
+            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(2 * fric_zeta * UnitEnergy * delta_t);                  //determine noise term
+            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(2 * fric_zeta * UnitEnergy * delta_t);
+            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(2 * fric_zeta * UnitEnergy * delta_t);
+            subunit_bead[i].vel = ((subunit_bead[i].noise / subunit_bead[i].m) + ((subunit_bead[i].vel + (subunit_bead[i].tforce ^ (delta_t * 0.5 / subunit_bead[i].m))) ^ c1)) ^ (1 / c2);
+           // cout << "velocities are " << subunit_bead[i].vel.x << " , " << subunit_bead[i].vel.y << " , " << subunit_bead[i].vel.z << endl;
          }
          for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               protein[i].itsB[ii]->update_position(delta_t);                                   //update position full step
+               c2 = 1 + (delta_t * 0.5 * fric_zeta / protein[i].itsB[ii]->m);
+               protein[i].itsB[ii]->update_position_brownian(delta_t, c2);                                   //update position full step
             }  // for ii
          }  // for i
       }  // else
@@ -318,18 +322,9 @@ int run_simulation(int argc, char *argv[]) {
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            subunit_bead[i].vel.x += (subunit_bead[i].vel.x * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.x * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
-            (gsl_rng_uniform(r) - 0.5);
-            subunit_bead[i].vel.y += (subunit_bead[i].vel.y * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.y * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
-            (gsl_rng_uniform(r) - 0.5);
-            subunit_bead[i].vel.z += (subunit_bead[i].vel.z * (-0.5 * fric_zeta * delta_t)) +
-            (subunit_bead[i].tforce.z * (0.5 * delta_t / subunit_bead[i].m)) +
-            sqrt(2 * 6 * delta_t * fric_zeta / subunit_bead[i].m) *
-            (gsl_rng_uniform(r) - 0.5);
+            double c1 = 1 - (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
+            double c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
+            subunit_bead[i].vel = (subunit_bead[i].tforce ^ (delta_t * 0.5 / subunit_bead[i].m)) + ((((subunit_bead[i].vel ^ c1) + (subunit_bead[i].noise / subunit_bead[i].m) ) ^ c1) ^ (1 / c2));  
          }  
       }  // else
 
@@ -343,8 +338,12 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*                                                              MAKING RESTART FILE                                                                                                                */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////         
-      if (a % 100000 == 0 && world.rank() == 0) {
-         restart.open("outfiles/restart.out", ofstream::out | ofstream::trunc);
+      if (a % 1000000 == 0 && world.rank() == 0) {
+         stringstream step;
+         step << a;
+         restartFilename = "outfiles/restart_" + step.str();
+         restartFilename += ".out";
+         restart.open(restartFilename.c_str(), ios::out);
          restart << "Velocities & Positions for " << a << endl;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
              restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12) << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
