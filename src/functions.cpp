@@ -10,6 +10,10 @@
 #include "subunit.h"
 #include "edge.h"
 #include "face.h"
+#include <iterator>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
@@ -185,17 +189,28 @@ vector<string> getFileNames(string directoryPath)
    return names ;
 }
 
+
+
+
 void filter(vector<string>& strings, string pattern)
 {
-   auto pos = remove_if(begin(strings), end(strings), 
-                             [&](string& s) { return s.find(pattern) == string::npos ; }) ; 
-                             
-                             strings.erase(pos, end(strings)) ;
+   vector<string>::iterator pos = remove_if(strings.begin(), strings.end(), isRestart) ; 
+   strings.erase(pos, strings.end()) ;
 }
 
-void print(const vector<string>& strings)
-{
-   for ( auto& s : strings )
-      cout << s << '\n' ;
+bool numeric_string_compare(const std::string& s1, const std::string& s2) {
+   if (s1.length() < s2.length()) //You need this to sort integers in file name
+      return true;
+   if (s2.length() < s1.length())
+      return false;
+   else
+      return (s1 < s2);
 }
+
+
+
+bool isRestart (string& s) {
+   return s.find("restart") == std::string::npos ; 
+}
+
 

@@ -126,8 +126,11 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
       lj_a_template[3][i] = epsilon;
       lj_a_template[4][i] = sigma;
    }
-   long double cluster_template[3][(np*cluster_size)];   //read in coordinates if there is a cluster file
+   vector<vector<long double> > cluster_template(3,vector<long double>(1)); //[3][(np*cluster_size)];   //read in coordinates if there is a cluster file
    if (clusters){
+      for (unsigned int i = 0; i < 3; i++){
+         cluster_template[i].resize(np*cluster_size);              
+      }
       for (unsigned int i = 0; i < (np*cluster_size); i++){
          clust_crds >> dummy >> x >> y >> z;
          cluster_template[0][i] = x;
@@ -135,7 +138,6 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
          cluster_template[2][i] = z;
       }
    }
-   
    /* not reading repulsive LJ
    int nr = 0;
    crds >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> nr >> dummy >> dummy >> dummy >> dummy >> dummy;
@@ -163,6 +165,11 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
   
    vector<string> names = getFileNames("outfiles/"); // get all the files in the directory
    filter(names,"restart"); // filter out everything but restart files
+   for (unsigned int i = 0; i < names.size(); i++) {
+      if (world.rank() == 0) {
+         //cout << names[i] << endl;
+      }
+   }
    if (names.size() == 0) {
       if (world.rank() == 0) {
          cout << "No restart files found! Starting simulation from scratch." << endl;
@@ -170,16 +177,11 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
       restartFile = false;
    }
    if (restartFile == true) {
-      sort(names.begin(), names.end(), [](const string& s1, const string& s2){ // Sort to find most recent
-         if (s1.length() < s2.length()) //You need this to sort integers in file name
-            return true;
-         if (s2.length() < s1.length())
-            return false;
-         else
-            return (s1 < s2);
-      });
+      sort(names.begin(), names.end(), numeric_string_compare);
+      if (world.rank() == 0) {
        cout << "Restarting from: " << names.back() << endl;
-      restart.open("outfiles/" + names.back());
+      }
+      restart.open(("outfiles/" + names.back()).c_str());
       if (!restart) {                                       //check to make sure file is there
          if (world.rank() == 0)
             cerr << "ERR: RESTART FILE outfiles/restart.out NOT OPENED. Check directory and/or filename.";
@@ -400,6 +402,17 @@ vector<vector<int> > generate_lattice(double capsomere_concentration, unsigned i
          index += 1;
       } //for j
    } //for i
+   
+   /*
+   for (unsigned int i = 0; i < subunit_bead.size(); i++) {
+      if (subunit_bead[i].unit % 3 == 0) {
+         if (subunit_bead[i].type == 1 || subunit_bead[i].type == 11) {
+            subunit_bead[i].type = 10;
+         } else if (subunit_bead[i].type == 2 || subunit_bead[i].type == 9) {
+            subunit_bead[i].type = 8;
+         }
+      }
+   } */
 
    return lj_a_template; //not a member variable, so returned from this fxn
 } //generate lattice fxn

@@ -67,6 +67,8 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
             for (unsigned int k = 0; k < lj_a[0].size(); k++){
                if (subunit_bead[i].type == lj_a[1][k] && subunit_bead[j].type == lj_a[2][k]){
                   lj_attractive = true;
+                  //elj_att = lj_a[3][k];
+                  break;
                }
             }
             if (r < (1.12246205*shc) && lj_attractive == false){        //Repulsive

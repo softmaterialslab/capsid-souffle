@@ -122,6 +122,8 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                for (k = 0; k < lj_a[0].size(); k++){
                   if (subunit_bead[i_bead].type == lj_a[1][k] && subunit_bead[j_bead].type == lj_a[2][k]){
                      lj_attractive = true;
+                     //elj_att = lj_a[3][k];
+                     break;
                   }
                }
                if (lj_attractive == true && r2 < (ecut2)){
