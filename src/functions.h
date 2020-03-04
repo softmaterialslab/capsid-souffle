@@ -13,11 +13,13 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <algorithm>
+#include "RunningStat.h"
 
 class SUBUNIT;
 class EDGE;
 class FACE;
 class THERMOSTAT;
+class OLIGOMER;
 
 // display progress
 void ProgressBar (double fraction_completed);
@@ -28,7 +30,7 @@ void dress_up(std::vector<EDGE> &subunit_edge, std::vector<FACE> &subunit_face);
 
 void update_pairlist(unsigned int i, std::vector<SUBUNIT> &protein, double NListCutoff, VECTOR3D box, VECTOR3D hbox);
 
-double compute_MD_trust_factor_R(int hiteqm);
+double compute_MD_trust_factor_R(int &hiteqm, bool &done, std::string directory) ;
 
 std::vector<std::string> getFileNames(std::string path = ".") ;
 

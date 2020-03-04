@@ -2,7 +2,7 @@
 
 HOME = ./
 PROG = capsid-souffle
-OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o energies.o forces.o
+OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o analysis.o energies.o forces.o
 
 # BigRed2 flags. 
 BigRed2CC = CC -O3 -g -Wall -fopenmp

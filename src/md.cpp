@@ -241,6 +241,22 @@ int run_simulation(int argc, char *argv[]) {
    unsigned long int Seed = 23410981;
    gsl_rng_set(r, Seed);
    
+   if (world.rank() == 0) {
+      ofile << "ITEM: TIMESTEP" << endl << 0 << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
+      << endl
+      << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
+      << setw(15)
+      << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
+      << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+   }
+   if (world.rank() == 0) {
+      for (unsigned int b = 0; b < subunit_bead.size(); b++) {
+         ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
+         << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
+         << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
+      }
+   }
+   
    
 
    /*                  ___                        __      __      ___
