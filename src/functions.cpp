@@ -10,6 +10,7 @@
 #include "subunit.h"
 #include "edge.h"
 #include "face.h"
+#include "oligomer.h"
 #include <iterator>
 #include <sys/types.h>
 #include <dirent.h>
@@ -116,58 +117,148 @@ void update_pairlist(unsigned int i, vector<SUBUNIT> &protein, double NListCutof
 } // update pairlist fxn
 
 // compute MD trust factor R
-double compute_MD_trust_factor_R(int hiteqm) {
-   string inPath = "sub_beads.traj.out";
+double compute_MD_trust_factor_R(int &hiteqm, bool &done, string directory) {
+   string inPath = directory+"/energy.out";
    ifstream in(inPath.c_str(), ios::in);
    if (!in) {
       if (!in)
-         if (world.rank() == 0)
-            cout << "File could not be opened" << endl;
+         cout << "ERR: FILE " << directory+"/energy.out" << " NOT OPENED. Check directory and/or filename." << endl;
       return 0;
    }
    string dummy;
-   double col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11;
-   vector<double> ext, ke, pe;
+   string col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11;
+   double col2_db, col7_db, col8_db, col5_db, col1_db;
+   vector<double> ext, ke, pe, lj, time;
    in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-   while (in >> col1 >> col2 >> col3 >> col4 >> col5 >> col6 >> col7 >> col8 >> col9 >> col10 >> col11) {
-   ext.push_back(col7);
-   ke.push_back(col2);
-   pe.push_back(col8);
+   while (in >> col1 >> col2 >> col3 >> col4 >> col5 >> col6 >> col7 >> col8 >> col9) {
+      try {  
+         col1_db = boost::lexical_cast<double>(col1);
+         col2_db = boost::lexical_cast<double>(col2); //use boost lexical_cast to look for extra headers from restart files
+         col7_db = boost::lexical_cast<double>(col7);
+         col8_db = boost::lexical_cast<double>(col8);
+         col5_db = boost::lexical_cast<double>(col5);
+      } catch (boost::bad_lexical_cast&) {
+         cout << "Caught a restart header! This will artificially inflate R value." << endl;
+         goto next;
+      }
+      in >> col10 >> col11;
+      time.push_back(col1_db);
+      ext.push_back(col7_db);
+      ke.push_back(col2_db);
+      pe.push_back(col8_db);
+      lj.push_back(col5_db);
+      next: ;
    }
+   //determine when equilibrium is reached
+   double x_sum, y_sum, xy_sum, x_m, y_m;
+   double xx_sum, slope;
+   int number_sections = 10;
+   int section_size = floor(pe.size()/number_sections);
+   vector<double> slope_vec;
+   slope_vec.resize(number_sections);
+   vector<double> stdev_vec;
+   stdev_vec.resize(number_sections);
+   cout << "Each energy section has " << section_size << " points." << endl;
+   
+   vector<RunningStat> RS;
+   RS.resize(number_sections);
+   double mean;
+   double variance;
+   double stdev;
+   
+   for (int i = 0; i < number_sections; i++){ //loop over sections
+      x_sum = 0;
+      y_sum = 0;
+      xy_sum = 0;
+      xx_sum = 0;
+      for (int j = 0; j < section_size; j++){ //loop over points in sections
+         x_sum += j;
+         y_sum += pe[(i*section_size + j)];
+         xy_sum += j * pe[(i*section_size + j)];
+         xx_sum += j * j;
 
+         RS[i].Push(pe[(i*section_size + j)]);
+      }
+      x_m = x_sum / double(section_size);
+      y_m = y_sum / double(section_size);
+      slope = ((xy_sum) - (double(section_size) * x_m * y_m) ) / (xx_sum - (double(section_size) * x_m * y_m) ); 
+      //   cout << "For section " << i << " the slope is " << slope << endl;
+      slope_vec[i] = slope;
+      
+      mean = RS[i].Mean();
+      variance = RS[i].Variance();
+      stdev = RS[i].StandardDeviation();
+      stdev_vec[i] = stdev;
+   }
+   RunningStat rs;
+   //find sections which have a slope +- 1e-6
+   vector<bool> flat_vec;
+   flat_vec.resize(number_sections);
+   for (int i = 0; i < number_sections; i++) {
+      //if (slope_vec[i] < 1e-6 && slope_vec[i] > -1e-6) {
+      if (stdev_vec[i] < 0.02 && slope_vec[i] < 1e-4 && slope_vec[i] > -1e-4) {
+         flat_vec[i] = true;
+         //  cout << "section " << i << " is flat." << endl; 
+      }
+      else flat_vec[i] = false;
+   }
+   flat_vec[9] = true;
+   //See how many of the final sections are at equilibrium
+   int flat_sections = 0;
+   for (int i = (number_sections - 1); i > -1; i--) {
+      if (flat_vec[i] == true) {
+         flat_sections += 1;
+         hiteqm = i*section_size;
+      }
+      else break;
+   }
+   hiteqm = time[hiteqm];
+   cout << "There are " << flat_sections << " ending consecutive flat sections" << endl;
+   done = true;
+   //Let the user know how long equilibrium has been reached (or if it needs restart)
+   if (flat_sections > 1) {
+      cout << 100.0*double(flat_sections)/double(number_sections) << "% of simulation is in equilibrium. Analyzing..." << endl;
+      cout << "Equilibrium starts at timestep " << hiteqm << "." << endl;
+   } else if (flat_sections ==1) {
+      cout << "Simulation has not reached equilibrium! Analyzing last 10% anyway..." << endl;
+      done = false;
+   } 
+   //Compute R
    double ext_mean = 0;
    for (unsigned int i = 0; i < ext.size(); i++)
       ext_mean += ext[i];
-   ext_mean = ext_mean / ext.size();
+   ext_mean = ext_mean / (ext.size() - 0 );
    double ke_mean = 0;
    for (unsigned int i = 0; i < ke.size(); i++)
       ke_mean += ke[i];
    ke_mean = ke_mean / ke.size();
-
+   
    double ext_sd = 0;
    for (unsigned int i = 0; i < ext.size(); i++)
       ext_sd += (ext[i] - ext_mean) * (ext[i] - ext_mean);
-   ext_sd = ext_sd / ext.size();
+   ext_sd = ext_sd / (ext.size() - 0 );
    ext_sd = sqrt(ext_sd);
-
+   
    double ke_sd = 0;
    for (unsigned int i = 0; i < ke.size(); i++)
       ke_sd += (ke[i] - ke_mean) * (ke[i] - ke_mean);
-   ke_sd = ke_sd / ke.size();
+   ke_sd = ke_sd / (ke.size() - 0 );
    ke_sd = sqrt(ke_sd);
-
+   
    double R = ext_sd / ke_sd;
-//    if (world.rank() == 0)
-//    {
-   string outPath = "R.dat";
-   ofstream out(outPath.c_str());
+   //    if (world.rank() == 0)
+   //    {
+   ofstream out( (directory+"/analysis.rdat").c_str() );
    out << "Sample size " << ext.size() << endl;
    out << "Sd: ext, kinetic energy and R" << endl;
    out << ext_sd << setw(15) << ke_sd << setw(15) << R << endl;
-//    }
-   cout << endl << endl << "R is: " << R;
+   //    }
+   cout << endl << endl << "R is: " << R << endl << endl;
+   
    return R;
 }
+
+
 
 vector<string> getFileNames(string directoryPath)
 {
@@ -197,6 +288,8 @@ void filter(vector<string>& strings, string pattern)
    vector<string>::iterator pos = remove_if(strings.begin(), strings.end(), isRestart) ; 
    strings.erase(pos, strings.end()) ;
 }
+
+
 
 bool numeric_string_compare(const std::string& s1, const std::string& s2) {
    if (s1.length() < s2.length()) //You need this to sort integers in file name

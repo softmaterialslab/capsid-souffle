@@ -9,7 +9,7 @@
 void BEAD::update_stretching_energy(double ks){
    se = 0;
    for(unsigned int i = 0; i < (itsE.size()); i++){
-      se += ( 0.25 * ks * ( itsE[i]->len0-itsE[i]->length ) * ( itsE[i]->len0-itsE[i]->length ) );
+      se += ( 0.25 * ks * ( itsE[i]->len0 - itsE[i]->length ) * ( itsE[i]->len0 - itsE[i]->length ) );
    }
 }
 

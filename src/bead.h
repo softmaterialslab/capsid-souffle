@@ -10,11 +10,16 @@
 #include "vector3d.h"
 #include "thermostat.h"
 #include "rand_gen.h"
+#include "oligomer.h"
 
 class EDGE;                               //forward declarations
 class SUBUNIT;
 class FACE;
 class BOX;
+//class OLIGOMER;
+
+
+
 
 class BEAD {
 public:
@@ -44,10 +49,13 @@ public:
    std::vector<FACE*> itsF;              //its Faces
    std::vector<int> itsN;                //Its neighbors (pairlist)
    VECTOR3D noise;                       //noise term -- gaussian random number
+   std::vector<OLIGOMER> itsSO;         //its sub_oligomer
+   OLIGOMER* itsO;
  
 //member functions
 //constructor fxn
-   BEAD(VECTOR3D position_i=VECTOR3D(0,0,0), double mi=0, int id_i=0, int unit_i=0, int type_i=0){ 
+   BEAD(VECTOR3D position_i=VECTOR3D(0,0,0),double mi=0, int id_i=0, int unit_i=0, int type_i=0)
+   {                                                       //constructor fxn
       m = mi;
       pos = position_i;
       id = id_i;

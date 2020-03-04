@@ -12,6 +12,7 @@ class BEAD;
 class EDGE;
 class FACE;
 class BOX;
+class OLIGOMER;
 
 class SUBUNIT {
 public:
@@ -20,6 +21,7 @@ public:
    std::vector<BEAD*> itsB;                     //particles making up the subunit
    std::vector<EDGE*> itsE;			      //edges within the subunit
    std::vector<FACE*> itsF;                     //faces within the subunit
+   std::vector<OLIGOMER> itsO;                  //its oligmer
    VECTOR3D comvec;                             //center of mass of the subunit
    VECTOR3D vsumvec;
    double com;                                  // center of mass magnitude
