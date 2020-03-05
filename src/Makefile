@@ -6,7 +6,7 @@ OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o analys
 
 # nanoHUB flags. 
 nanoHUBCC = mpicxx -O3 -g -Wall -fopenmp -std=c++11 -Wunused-variable -Wunknown-pragmas
-nanoHUBLFLAG = -lgsl -lgslcblas -lm -L${BOOST_LIBDIR} -lboost_program_options -lboost_mpi -lboost_serialization -lboost_filesystem -lboost_system
+nanoHUBLFLAG = -lgsl -lgslcblas -lm -L${BOOST_LIBDIR} -lboost_filesystem -lboost_system -lboost_program_options -lboost_mpi -lboost_serialization
 nanoHUBCFLAG = -I${BOOST_INCDIR}
 nanoHUBOFLAG = -o
 
@@ -41,6 +41,10 @@ ifeq ($(CCF),BigRed2)
 	$(BigRed2CC) $(BigRed2OFLAG) $(PROG) $(OBJ) $(BigRed2LFLAG)
 %.o : %.cpp
 	$(BigRed2CC) -c $(BigRed2CFLAG) $< -o $@
+else ifeq ($(CCF),nanoHUB)
+	$(nanoHUBCC) $(nanoHUBOFLAG) $(PROG) $(OBJ) $(nanoHUBLFLAG)
+%.o : %.cpp
+	$(nanoHUBCC) -c $(nanoHUBCFLAG) $< -o $@
 else
 	$(CC) $(OFLAG) $(PROG) $(OBJ) $(LFLAG)
 %.o : %.cpp
