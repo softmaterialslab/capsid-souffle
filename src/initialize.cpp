@@ -14,7 +14,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile) {
       //create files for data analysis
       reftraj << "time" << setw(15) << "kinetic" << setw(15) << "stretching" << setw(15) << "bending" << setw(15)
               << "LJ" << setw(15) << "electrostatics" << setw(15) << "total" << setw(15) << "potential" << setw(15)
-              << "temperature" << endl;
+              << "temperature" << setw(15) << "thermo_potential" << setw(15) << "thermo_kinetic" << endl;
    } //if
 } // void fxn
 

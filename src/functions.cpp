@@ -221,7 +221,7 @@ double compute_MD_trust_factor_R(int &hiteqm, bool &done, string directory) {
       cout << "Equilibrium starts at timestep " << hiteqm << "." << endl;
    } else if (flat_sections ==1) {
       cout << "Simulation has not reached equilibrium! Analyzing last 10% anyway..." << endl;
-      done = false;
+     // done = false;
    } 
    //Compute R
    double ext_mean = 0;

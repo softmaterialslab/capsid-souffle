@@ -263,29 +263,33 @@ int analyze_output(int argc, char *argv[]) {
       grinfo << "Box size: " << box_size*2 << " " << box_size*2 << " " << box_size*2 << endl;
       grinfo << "Number density: " << rho << endl;
       grinfo << "Bead Type: " << beadType << endl;
+      
+      vector<double> ms_histogram(protein.size());
+      //Make histogram for mass spectrum
+      for (unsigned int i = 0; i < ms_bin.size(); i++) {
+         for (unsigned int j = 0; j < ms_bin[i].size(); j++) {
+            ms_histogram[j] += ms_bin[i][j] * (j + 1);                     //sum and weight the bin
+         }
+      }
+      for (unsigned int i = 0; i < ms_histogram.size(); i++) {
+         ms_histogram[i] = ms_histogram[i]/(ms_bin.size());                //average the bin
+      }
+      cout << "Size of histogram is " << ms_histogram.size() << endl;
+      while (!ms_histogram.empty() && ms_histogram[ms_histogram.size() -1] == 0) {
+         ms_histogram.pop_back();                                          //remove trailing 0s
+      }
+      cout << "New size of histogram is " << ms_histogram.size() << endl;
+      for (unsigned int i = 0; i < ms_histogram.size(); i++) {
+         msdata << ms_histogram[i] << setw(15);                            //save msdata to file
+      }
+      msdata << endl;
    }//if (done)
    
    if (!done) {
       remove( (directory+"/info.gr").c_str() );
    }
    
-   vector<double> ms_histogram(protein.size());
-                                                                        //Make histogram for mass spectrum
-   for (unsigned int i = 0; i < ms_bin.size(); i++) {
-      for (unsigned int j = 0; j < ms_bin[i].size(); j++) {
-         ms_histogram[j] += ms_bin[i][j] * (j + 1);                     //sum and weight the bin
-      }
-   }
-   for (unsigned int i = 0; i < ms_histogram.size(); i++) {
-      ms_histogram[i] = ms_histogram[i]/(ms_bin.size());                //average the bin
-   }
-   while (!ms_histogram.empty() && ms_histogram[ms_histogram.size() -1] == 0) {
-      ms_histogram.pop_back();                                          //remove trailing 0s
-   }
-   for (unsigned int i = 0; i < ms_histogram.size(); i++) {
-      msdata << ms_histogram[i] << setw(15);                            //save msdata to file
-   }
-   msdata << endl;
+ 
    
    
    

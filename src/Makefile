@@ -24,7 +24,7 @@ OFLAG = -o
 
 all: $(PROG)
 
-install:
+nanoHUB-install:
 	. /etc/environ.sh; use -e -r boost-1.62.0-mpich2-1.3-gnu-4.7.2; make CCF=nanoHUB all
 	@echo "compiling the souffle code on Nanohub"
 	cp -f $(PROG) $(BIN)
