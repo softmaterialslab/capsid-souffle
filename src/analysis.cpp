@@ -116,7 +116,7 @@ int analyze_output(int argc, char *argv[]) {
          }         
          
          if (timestep >= hiteqm && (a % 1 == 0)) {
-            cout << "Analyzing position file " << a << " with timestep " << timestep << endl;
+          //  cout << "Analyzing position file " << a << " with timestep " << timestep << endl;
             ms_bin.push_back(vector<int>() );
             so_bin.push_back(vector<int>() );
                                                                            //Generate pair_correlation bin
@@ -235,7 +235,7 @@ int analyze_output(int argc, char *argv[]) {
             }
             sodata << endl;
             
-            cout << "Printed mass data from step " << a << " to file" << endl;
+          //  cout << "Printed mass data from step " << a << " to file" << endl;
             
             
             
@@ -274,11 +274,11 @@ int analyze_output(int argc, char *argv[]) {
       for (unsigned int i = 0; i < ms_histogram.size(); i++) {
          ms_histogram[i] = ms_histogram[i]/(ms_bin.size());                //average the bin
       }
-      cout << "Size of histogram is " << ms_histogram.size() << endl;
-      while (!ms_histogram.empty() && ms_histogram[ms_histogram.size() -1] == 0) {
+     // cout << "Size of histogram is " << ms_histogram.size() << endl;
+    /*  while (!ms_histogram.empty() && ms_histogram[ms_histogram.size() -1] == 0) {
          ms_histogram.pop_back();                                          //remove trailing 0s
-      }
-      cout << "New size of histogram is " << ms_histogram.size() << endl;
+      }*/
+     // cout << "New size of histogram is " << ms_histogram.size() << endl;
       for (unsigned int i = 0; i < ms_histogram.size(); i++) {
          msdata << ms_histogram[i] << setw(15);                            //save msdata to file
       }

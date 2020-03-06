@@ -123,7 +123,7 @@ int run_simulation(int argc, char *argv[]) {
    totaltime = computationSteps * delta_t;
    T = temperature / double(298);
    double UnitEnergy = SIenergy * SItime * SItime / (SImass * SIsigma * (1e-9));
-   cout << "Unit energy is " << UnitEnergy << endl;
+   //cout << "Unit energy is " << UnitEnergy << endl;
                         
    if (world.rank() == 0) {                                 // making model.parameters file
       sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
