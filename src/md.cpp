@@ -240,7 +240,7 @@ int run_simulation(int argc, char *argv[]) {
    gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                               //setting up random seed for brownian
    unsigned long int Seed = 23410981;
    gsl_rng_set(r, Seed);
-   
+   /*
    if (world.rank() == 0) {
       ofile << "ITEM: TIMESTEP" << endl << 0 << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
       << endl
@@ -255,7 +255,7 @@ int run_simulation(int argc, char *argv[]) {
          << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
          << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
       }
-   }
+   }*/
    
    
 
