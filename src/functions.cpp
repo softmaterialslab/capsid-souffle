@@ -129,8 +129,8 @@ double compute_MD_trust_factor_R(int &hiteqm, bool &done, string directory) {
    string col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11;
    double col2_db, col7_db, col8_db, col5_db, col1_db;
    vector<double> ext, ke, pe, lj, time;
-   in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-   while (in >> col1 >> col2 >> col3 >> col4 >> col5 >> col6 >> col7 >> col8 >> col9) {
+   in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+   while (in >> col1 >> col2 >> col3 >> col4 >> col5 >> col6 >> col7 >> col8 >> col9 >> col10 >> col11) {
       try {  
          col1_db = boost::lexical_cast<double>(col1);
          col2_db = boost::lexical_cast<double>(col2); //use boost lexical_cast to look for extra headers from restart files
@@ -141,7 +141,6 @@ double compute_MD_trust_factor_R(int &hiteqm, bool &done, string directory) {
          cout << "Caught a restart header! This will artificially inflate R value." << endl;
          goto next;
       }
-      in >> col10 >> col11;
       time.push_back(col1_db);
       ext.push_back(col7_db);
       ke.push_back(col2_db);
@@ -250,7 +249,7 @@ double compute_MD_trust_factor_R(int &hiteqm, bool &done, string directory) {
    //    {
    ofstream out( (directory+"/analysis.rdat").c_str() );
    out << "Sample size " << ext.size() << endl;
-   out << "Sd: ext, kinetic energy and R" << endl;
+   out << "Standard Deviation: total energy, kinetic energy | R" << endl;
    out << ext_sd << setw(15) << ke_sd << setw(15) << R << endl;
    //    }
    cout << endl << endl << "R is: " << R << endl << endl;
