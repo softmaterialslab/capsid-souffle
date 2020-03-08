@@ -1,6 +1,7 @@
 # This is a makefile.
 
 HOME = ./
+BIN = ../bin
 PROG = capsid-souffle
 OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o analysis.o energies.o forces.o
 
@@ -53,6 +54,11 @@ endif
 	
 clean:
 	rm -f *.o
+	rm -f $(PROG)
 
 dataclean: 
-	rm -f outfiles/*.out outfiles/*.lammpstrj; rmdir $(HOME)outfiles
+	rm -f $(BIN)/outfiles/*.out $(BIN)/outfiles/*.lammpstrj
+	rmdir $(BIN)/outfiles
+	
+distclean: clean
+	rm -f $(BIN)/$(PROG)
