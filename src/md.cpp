@@ -372,7 +372,7 @@ int run_simulation(int argc, char *argv[]) {
       /*								ANALYZE ENERGIES							     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
          
-      if (a % 1000 == 0 && world.rank() == 0) {
+      if (a % 100000 == 0 && world.rank() == 0) {
    
          dress_up(subunit_edge, subunit_face);                     //update edge and face properties
    
@@ -440,7 +440,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if (a % 1000 == 0 && world.rank() == 0) {
+      if (a % 100000 == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
             << endl
