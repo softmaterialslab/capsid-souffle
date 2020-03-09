@@ -1,6 +1,7 @@
 # This is a makefile.
 
 HOME = ./
+BIN = ../bin
 PROG = capsid-souffle
 OBJ = main.o initialize.o functions.o bead.o edge.o face.o subunit.o md.o analysis.o energies.o forces.o
 
@@ -24,7 +25,7 @@ OFLAG = -o
 
 all: $(PROG)
 
-nanoHUB-install:
+install:
 	. /etc/environ.sh; use -e -r boost-1.62.0-mpich2-1.3-gnu-4.7.2; make CCF=nanoHUB all
 	@echo "compiling the souffle code on Nanohub"
 	cp -f $(PROG) $(BIN)
@@ -53,6 +54,11 @@ endif
 	
 clean:
 	rm -f *.o
+	rm -f $(PROG)
 
 dataclean: 
-	rm -f outfiles/*.out outfiles/*.lammpstrj; rmdir $(HOME)outfiles
+	rm -f $(BIN)/outfiles/*.out $(BIN)/outfiles/*.lammpstrj
+	rmdir $(BIN)/outfiles
+	
+distclean: clean
+	rm -f $(BIN)/$(PROG)
