@@ -1,5 +1,7 @@
 # About
-SOUFFLE is a molecular dynamics software for use in testing virus self-assemly with elastic capsomeres.
+SOUFFLE is a molecular dynamics software for use in testing virus self-assemly with elastic capsomeres. Check out the [Wiki](https://github.com/softmaterialslab/capsid-souffle/wiki) for more detailed information!
+
+Below are brief installation and run instructions. 
 
 
 ## Install and run instructions on Cluster
@@ -46,38 +48,3 @@ SOUFFLE is a molecular dynamics software for use in testing virus self-assemly w
 ## Aditional information about different input parameter settings
 
 * if testing on a separate folder, copy bin/infiles in addition to executable and job script
-
-#### OPTIONS                           FLAG  DEFAULT   
-* engine selection,                   **-D**  m         
-    * set to 'b' for brownian, 'm' for molecular dynamics
-* filename,                           **-f**  41part_c
-* capsomere conc (microM),            **-C**  200.0
-* salt conc (mM),                     **-c**  500.0
-* stretching constant (kBT),          **-s**  50.0
-* bending constant (kBT),             **-b**  20.0
-* total time (Computational Steps),   **-T**  2500       
-    * number of computational steps = T/t
-* timestep (MD units),                **-t**  0.004
-* number subunits,                    **-S**  64         
-* temperature (K),                    **-K**  298.0
-* nose-hoover chain length,           **-q**  5         
-    * to turn off thermostat set to 1
-* electrostatics cut-off coefficient, **-e**  12.0      
-    * to turn off electrostatic cut-off set to 0
-* friction coefficient,               **-r**  1.0
-* lennard jones attractive E_lj,	  **-E**  2
-* Restart file bool,                  **-R**  true     
-    * set to 'false' to bypass all restart files
-* Neighbor list build frequency,      **-B**  20
-* Neighbor list cutoff,               **-L**  10.0
-
-* verbose                             **-v**
-* help                                **-h**
-
-
-#### Premade input files
-* 41part_c -- this is a rhombic dodecahedron subunit (41part has no charge,  41part_cu has a uniform charge pattern)
-* 43part_* -- these files are test files for dimeric T=1 and T3/T4 HBV systems
-* 51part_c -- this is an HBV-like subunit that assembles hexamer sheets
-* trimer_MVM -- this is an MVM subunit
-* xyz_T4 -- this is a cluster file for HBV T3 assembly
