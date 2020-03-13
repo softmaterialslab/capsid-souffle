@@ -76,9 +76,10 @@ public:
     }
     
     //position updated full step
-    void update_position_brownian(double delta_t, double c2){ 
+    void update_position_brownian(double delta_t, double c2, double fric_zeta){ 
       // pos =  pos + (vel + (tforce ^ (delta_t * (0.5 / m))) + (noise / m)) ^ (delta_t / c2);
-       pos =  pos + ((vel + (noise / m)) ^ (delta_t / c2));
+      // pos =  pos + ((vel + noise) ^ (delta_t / c2));
+       pos = (pos ^ (1 - ((fric_zeta * delta_t) / (c2 * m)) )) + (vel ^ (delta_t / c2)); 
        // periodic boundary is accounted for
        if (pos.x > hbx.x) pos.x = pos.x - bx.x;
        else if (pos.x < -hbx.x) pos.x = pos.x + bx.x;

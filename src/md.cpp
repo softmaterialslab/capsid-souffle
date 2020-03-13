@@ -37,7 +37,7 @@ int run_simulation(int argc, char *argv[]) {
    int buildFrequency ;
 	
    double qs = 1;                                           //salt valency
-   double T;                                            //set temperature (reduced units)
+   double T;                                                //set temperature (reduced units)
    double Q = 10;                                           //nose hoover mass (reduced units)
 	
    double const Avagadro = 6.022e23; // mol^-1		      //useful constants
@@ -150,7 +150,7 @@ int run_simulation(int argc, char *argv[]) {
    double lb = (0.701e-9) / SIsigma;   // e^2 / (4 pi Er E0 Kb T) ; value for T = 298 K.
    //number density (1/sigma*^3)
    double ni = salt_concentration * Avagadro * SIsigma * SIsigma * SIsigma;
-   //electrostatics parameter
+   //electrostatics parameters
    double kappa = sqrt(8 * Pi * ni * lb * qs * qs);
    double screen = 1 / kappa;	
    double ecut_el = screen * ecut_c;			      // screening length times a constant so that electrostatics is cutoff at approximately 0.015
@@ -291,20 +291,19 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
-         double c1, c2;
+         double c2;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            c1 = 1 - (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
             c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(2 * fric_zeta * UnitEnergy * delta_t);                  //determine noise term
-            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(2 * fric_zeta * UnitEnergy * delta_t);
-            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(2 * fric_zeta * UnitEnergy * delta_t);
-            subunit_bead[i].vel = ((subunit_bead[i].noise / subunit_bead[i].m) + ((subunit_bead[i].vel + (subunit_bead[i].tforce ^ (delta_t * 0.5 / subunit_bead[i].m))) ^ c1)) ^ (1 / c2);
+            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(0.5 * UnitEnergy * fric_zeta * delta_t) / subunit_bead[i].m;                  //determine noise term
+            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(0.5 * UnitEnergy * fric_zeta * delta_t) / subunit_bead[i].m;
+            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(0.5 * UnitEnergy * fric_zeta * delta_t) / subunit_bead[i].m;
+            subunit_bead[i].vel += (subunit_bead[i].tforce ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].pos ^ (fric_zeta / subunit_bead[i].m)) + subunit_bead[i].noise;
            // cout << "velocities are " << subunit_bead[i].vel.x << " , " << subunit_bead[i].vel.y << " , " << subunit_bead[i].vel.z << endl;
          }
          for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
                c2 = 1 + (delta_t * 0.5 * fric_zeta / protein[i].itsB[ii]->m);
-               protein[i].itsB[ii]->update_position_brownian(delta_t, c2);                                   //update position full step
+               protein[i].itsB[ii]->update_position_brownian(delta_t, c2, fric_zeta);                                   //update position full step
             }  // for ii
          }  // for i
       }  // else
@@ -338,9 +337,8 @@ int run_simulation(int argc, char *argv[]) {
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            double c1 = 1 - (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
             double c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            subunit_bead[i].vel = (subunit_bead[i].tforce ^ (delta_t * 0.5 / subunit_bead[i].m)) + ((((subunit_bead[i].vel ^ c1) + (subunit_bead[i].noise / subunit_bead[i].m) ) ^ c1) ^ (1 / c2));  
+            subunit_bead[i].vel += (subunit_bead[i].tforce ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].pos ^ (fric_zeta / subunit_bead[i].m)) + subunit_bead[i].noise;
          }  
       }  // else
 
@@ -372,7 +370,7 @@ int run_simulation(int argc, char *argv[]) {
       /*								ANALYZE ENERGIES							     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
          
-      if (a % 100000 == 0 && world.rank() == 0) {
+      if (a % 1000 == 0 && world.rank() == 0) {
    
          dress_up(subunit_edge, subunit_face);                     //update edge and face properties
    
@@ -440,7 +438,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if (a % 100000 == 0 && world.rank() == 0) {
+      if (a % 1000 == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
             << endl
