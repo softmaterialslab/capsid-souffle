@@ -4,6 +4,10 @@ SOUFFLE is a molecular dynamics software for use in testing virus self-assemly w
 Below are brief installation and run instructions. 
 
 
+## NanoHUB app page:
+* https://nanohub.org/tools/capsidsouffle
+
+
 ## Install and run instructions on Cluster
 * First, git clone the project:
 ```git clone https://github.com/softmaterialslab/capsid-souffle.git```
