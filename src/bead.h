@@ -32,8 +32,10 @@ public:
    int unit ;                            //id of the subunit it belongs to
    int type ;                            //id of type of bead
    VECTOR3D pos;                         //position of the particle (xyz) (lj reduced unit)
+   VECTOR3D oldpos;
    VECTOR3D vel;                         //velocity of the particle (xyz) (delt^-1)
    VECTOR3D sforce;                      //forces on the particle (xyz) (amu/delt^2)
+   VECTOR3D oldtforce;
    VECTOR3D tforce;
    VECTOR3D ljforce;
    VECTOR3D bforce;
@@ -79,7 +81,9 @@ public:
     void update_position_brownian(double delta_t, double c2, double fric_zeta){ 
       // pos =  pos + (vel + (tforce ^ (delta_t * (0.5 / m))) + (noise / m)) ^ (delta_t / c2);
       // pos =  pos + ((vel + noise) ^ (delta_t / c2));
-       pos = (pos ^ (1 - ((fric_zeta * delta_t) / (c2 * m)) )) + (vel ^ (delta_t / c2)); 
+       oldpos = pos;
+       pos =  pos + (vel ^ (delta_t / c2)) + (noise ^ (0.5 * delta_t / (m * c2))) + (tforce ^ (delta_t * delta_t * 0.5 / (c2 * m)));
+       pos = (pos ^ (1 - ((fric_zeta * delta_t) / (c2 * m)) )) + (vel ^ (delta_t / c2));
        // periodic boundary is accounted for
        if (pos.x > hbx.x) pos.x = pos.x - bx.x;
        else if (pos.x < -hbx.x) pos.x = pos.x + bx.x;
