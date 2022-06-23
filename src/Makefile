@@ -12,8 +12,8 @@ nanoHUBCFLAG = -I${BOOST_INCDIR}
 nanoHUBOFLAG = -o
 
 # BigRed2 flags. 
-BigRed2CC = CC -O3 -g -Wall -fopenmp
-BigRed2LFLAG = -L/N/soft/cle6/boost/gnu/1.72.0/lib -L/N/soft/cle6/gsl/2.6/lib -lgsl -lgslcblas -lm -lboost_program_options -lboost_mpi -lboost_serialization -lboost_filesystem -lboost_system
+BigRed2CC = CC -O3 -g -Wall -fopenmp -std=c++11 -Wunused-variable -Wunknown-pragmas
+BigRed2LFLAG = -L/N/soft/cle7/boost/gnu/1.76.0/lib -L/N/soft/cle7/gsl/gnu/2.7/lib -lgsl -lgslcblas -lm -lboost_filesystem -lboost_system -lboost_program_options -lboost_mpi -lboost_serialization
 BigRed2CFLAG = -c
 BigRed2OFLAG = -o
 
@@ -34,7 +34,7 @@ local-install: all
 	@echo "creating output files folder: outfiles/"; mkdir $(HOME)outfiles
 
 cluster-install:
-	module swap PrgEnv-intel/6.0.5 PrgEnv-gnu && module load boost/gnu && module load gsl; make CCF=BigRed2 all
+	module swap PrgEnv-intel PrgEnv-gnu && module load boost/gnu && module load gsl/gnu/2.7; make CCF=BigRed2 all
 	@echo "Installing $(PROG) into $(HOME) directory on your computing cluster"; mkdir $(HOME)outfiles
 
 $(PROG) : $(OBJ)

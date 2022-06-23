@@ -34,7 +34,7 @@ int run_simulation(int argc, char *argv[]) {
    double salt_concentration, temperature;	                                          // environmental or control parameters					
    double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff;// computational parameters
    bool verbose, restartFile, clusters;
-   int buildFrequency ;
+   int buildFrequency, moviefreq, writefreq, restartfreq;
 	
    double qs = 1;                                           //salt valency
    double T;                                                //set temperature (reduced units)
@@ -74,7 +74,10 @@ int run_simulation(int argc, char *argv[]) {
    ("verbose,V", value<bool>(&verbose)->default_value(true), "verbose true: provides detailed output")
    ("lennard jones well depth,E", value<double>(&elj_att)->default_value(2), "lennard jones well depth")
    ("Neighbor list build frequency,B", value<int>(&buildFrequency)->default_value(20), "Neighbor list build frequency")
-   ("Neighbor list cutoff,L", value<double>(&NListCutoff_c)->default_value(7.5), "Neighbor list cutoff (x + es & lj cutoff)");
+   ("Neighbor list cutoff,L", value<double>(&NListCutoff_c)->default_value(7.5), "Neighbor list cutoff (x + es & lj cutoff)")
+   ("moviefreq,M", value<int>(&moviefreq)->default_value(1000), "The frequency of shooting the movie")
+   ("writefreq,W", value<int>(&writefreq)->default_value(1000),"frequency of dumping energy file")
+   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -294,10 +297,10 @@ int run_simulation(int argc, char *argv[]) {
          double c2;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
             c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(0.5 * UnitEnergy * fric_zeta * delta_t) / subunit_bead[i].m;                  //determine noise term
-            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(0.5 * UnitEnergy * fric_zeta * delta_t) / subunit_bead[i].m;
-            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(0.5 * UnitEnergy * fric_zeta * delta_t) / subunit_bead[i].m;
-            subunit_bead[i].vel += (subunit_bead[i].tforce ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].pos ^ (fric_zeta / subunit_bead[i].m)) + subunit_bead[i].noise;
+            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);                  //determine noise term
+            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);
+            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);
+            subunit_bead[i].oldtforce = subunit_bead[i].tforce;
            // cout << "velocities are " << subunit_bead[i].vel.x << " , " << subunit_bead[i].vel.y << " , " << subunit_bead[i].vel.z << endl;
          }
          for (unsigned int i = 0; i < protein.size(); i++) {
@@ -338,7 +341,19 @@ int run_simulation(int argc, char *argv[]) {
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
             double c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            subunit_bead[i].vel += (subunit_bead[i].tforce ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].pos ^ (fric_zeta / subunit_bead[i].m)) + subunit_bead[i].noise;
+            VECTOR3D r_vec; //= (A->pos - B->pos);
+            r_vec.x = subunit_bead[i].oldpos.x - subunit_bead[i].pos.x;
+            r_vec.y = subunit_bead[i].oldpos.y - subunit_bead[i].pos.y;
+            r_vec.z = subunit_bead[i].oldpos.z - subunit_bead[i].pos.z;
+            VECTOR3D box = subunit_bead[i].bx;
+            VECTOR3D hbox = subunit_bead[i].hbx;
+            if (r_vec.x > hbox.x) r_vec.x -= box.x;
+            else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+            if (r_vec.y > hbox.y) r_vec.y -= box.y;
+            else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+            if (r_vec.z > hbox.z) r_vec.z -= box.z;
+            else if (r_vec.z < -hbox.z) r_vec.z += box.z;
+            subunit_bead[i].vel += ((subunit_bead[i].oldtforce + subunit_bead[i].tforce) ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].noise ^ (1/subunit_bead[i].m)) + (r_vec ^ (fric_zeta / subunit_bead[i].m));
          }  
       }  // else
 
@@ -352,7 +367,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*                                                              MAKING RESTART FILE                                                                                                                */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////         
-      if (a % 1000000 == 0 && world.rank() == 0) {
+      if (a % restartfreq == 0 && world.rank() == 0) {
          stringstream step;
          step << a;
          restartFilename = "outfiles/restart_" + step.str();
@@ -370,7 +385,7 @@ int run_simulation(int argc, char *argv[]) {
       /*								ANALYZE ENERGIES							     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
          
-      if (a % 1000 == 0 && world.rank() == 0) {
+      if (a % writefreq == 0 && world.rank() == 0) {
    
          dress_up(subunit_edge, subunit_face);                     //update edge and face properties
    
@@ -438,7 +453,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if (a % 1000 == 0 && world.rank() == 0) {
+      if (a % moviefreq == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
             ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
             << endl
