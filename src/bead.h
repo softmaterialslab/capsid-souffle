@@ -124,6 +124,21 @@ public:
    void update_stretching_energy(double ks);
 
    void update_stretching_force(double ks);
+   
+   void compute_fdrag(double damp){
+       fdrag = vel*(-1.0 * m / damp);
+   }
+
+   void compute_fran(double delta_t, double damp, double rand_num){
+       fran.x = sqrt((m*24.0)/(damp * delta_t)) * rand_num;
+       fran.y = sqrt((m*24.0)/(damp * delta_t)) * rand_num;
+       fran.z = sqrt((m*24.0)/(damp * delta_t)) * rand_num;
+   }
+
+   void update_tforce(){
+       tforce = tforce + fran + fdrag;
+   }
+
 
 };
 

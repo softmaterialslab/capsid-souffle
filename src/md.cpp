@@ -315,7 +315,7 @@ int run_simulation(int argc, char *argv[]) {
       } else {                                                                    // FOR BROWNIAN DYNAMICS
           for (unsigned int i = 0; i < protein.size(); i++) {
               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-                  protein[i].itsB[ii]->fdrag = protein[i].itsB[ii]->vel*(-1.0 * protein[i].itsB[ii]->m / damp);
+                  protein[i].itsB[ii]->compute_fdrag(damp);
               }
           }
           for (unsigned int i = 0; i < protein.size(); i++) {
@@ -357,10 +357,8 @@ int run_simulation(int argc, char *argv[]) {
       } else {                                                                //FOR BROWNIAN DYNAMICS
           for (unsigned int i = 0; i < protein.size(); i++) {
               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-                  protein[i].itsB[ii]->fran.x = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
-                  protein[i].itsB[ii]->fran.y = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
-                  protein[i].itsB[ii]->fran.z = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
-                  protein[i].itsB[ii]->tforce = protein[i].itsB[ii]->tforce + protein[i].itsB[ii]->fran + protein[i].itsB[ii]->fdrag;
+                  protein[i].itsB[ii]->compute_fran(delta_t, damp, distr(generator));
+                  protein[i].itsB[ii]->update_tforce();
                   protein[i].itsB[ii]->update_velocity(delta_t);
               }
           }
