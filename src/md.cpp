@@ -313,6 +313,7 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
+      if (world.rank()==0){
           for (unsigned int i = 0; i < protein.size(); i++) {
               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                   protein[i].itsB[ii]->compute_fdrag(damp);
@@ -324,6 +325,7 @@ int run_simulation(int argc, char *argv[]) {
                   protein[i].itsB[ii]->update_position(delta_t);
               }
           }
+      }
 
       }  // else
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,6 +357,7 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < real_bath.size(); i++)
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
+         if (world.rank()==0){
           for (unsigned int i = 0; i < protein.size(); i++) {
               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
                   protein[i].itsB[ii]->compute_fran(delta_t, damp, distr(generator));
@@ -362,6 +365,7 @@ int run_simulation(int argc, char *argv[]) {
                   protein[i].itsB[ii]->update_velocity(delta_t);
               }
           }
+         }
 
       }  // else
 
