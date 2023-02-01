@@ -361,7 +361,7 @@ int run_simulation(int argc, char *argv[]) {
           for (unsigned int i = 0; i < protein.size(); i++) {
               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
                   protein[i].itsB[ii]->compute_fran(delta_t, damp, distr(generator));
-                  protein[i].itsB[ii]->update_tforce();
+                  //protein[i].itsB[ii]->update_tforce();
                   protein[i].itsB[ii]->update_velocity(delta_t);
               }
           }
