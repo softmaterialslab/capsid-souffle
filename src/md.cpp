@@ -131,7 +131,7 @@ int run_simulation(int argc, char *argv[]) {
    double UnitEnergy = SIenergy * SItime * SItime / (SImass * SIsigma * (1e-9));
    //cout << "Unit energy is " << UnitEnergy << endl;
                         
-   if (world.rank() == 0) {                                 // making model.parameters file
+   //if (world.rank() == 0) {                                 // making model.parameters file
       sysdata << "Simulation will run for " << totaltime * SItime / (1e-9) << " nanoseconds with a "
       << delta_t * SItime / (1e-12) << " picosecond timestep." << endl;
       sysdata << "Capsomere concentration: " << capsomere_concentration << " micromolar" << endl;
@@ -145,7 +145,7 @@ int run_simulation(int argc, char *argv[]) {
       sysdata << "Total number of subunits is " << number_capsomeres << endl;
       sysdata << "Temperature is " << temperature << " K" << " Which is " << T << " in reduced units" << endl;
       sysdata << "Attractive LJ paramerter is " << elj_att << " Which is " << elj_att * (SIenergy * Avagadro / (1000 * UnitEnergy) ) << " kJ/mol." << endl;
-     }
+     //}
      
 	// LJ features
    double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),1.0 / 3.0); //calculating box size, prefactor of 1000 used to combine units
