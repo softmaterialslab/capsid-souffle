@@ -280,7 +280,7 @@ int run_simulation(int argc, char *argv[]) {
 
 
    //set up random distribution for brownian
-   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+   unsigned seed = 69521;
    std::default_random_engine generator (seed);
    std::normal_distribution<double> distribution (0.0,1.0);
    std::uniform_real_distribution<> distr(-0.5,0.5);
