@@ -314,11 +314,11 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
-         //for (int i = 0; i < protein.size(); i++) {
-            //for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-               //protein[i].itsB[ii]->compute_fdrag(damp);
-            //}
-         // }
+         for (int i = 0; i < protein.size(); i++) {
+            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+               protein[i].itsB[ii]->compute_fdrag(damp);
+            }
+          }
          for (int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_velocity(delta_t);
