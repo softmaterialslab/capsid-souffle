@@ -40,7 +40,7 @@ int run_simulation(int argc, char *argv[]) {
 	
    double qs = 1;                                           //salt valency
    double T;                                                //set temperature (reduced units)
-   double Q = 10;                                           //nose hoover mass (reduced units)
+   double Q;                                           //nose hoover mass (reduced units)
 	
    double const Avagadro = 6.022e23; // mol^-1		      //useful constants
    double const Boltzmann = 1.3806e-23; // m2kg/s2K
@@ -70,6 +70,7 @@ int run_simulation(int argc, char *argv[]) {
    "friction coefficient (reduced unit)")                   //used in brownian
    ("damping coefficient,d", value<double>(&damp)->default_value(100),"damping coefficient (unit of LJ time)")                   //used in brownian
    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
+   ("thermal mass,Q", value<double>(&Q)->default_value(10), "nose hoover mass") //used in MD
    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
    ("ecut_c,e", value<double>(&ecut_c)->default_value(12), "electrostatics cutoff coefficient, input 0 for no cutoff")
    ("Restart bool,R", value<bool>(&restartFile)->default_value(true), "restartFile true: initializes from a restart file in outfiles/")
@@ -145,7 +146,7 @@ int run_simulation(int argc, char *argv[]) {
       sysdata << "Total number of subunits is " << number_capsomeres << endl;
       sysdata << "Temperature is " << temperature << " K" << " Which is " << T << " in reduced units" << endl;
       sysdata << "Attractive LJ paramerter is " << elj_att << " Which is " << elj_att * (SIenergy * Avagadro / (1000 * UnitEnergy) ) << " kJ/mol." << endl;
-     }
+   }
      
 	// LJ features
    double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),1.0 / 3.0); //calculating box size, prefactor of 1000 used to combine units
@@ -313,12 +314,12 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
-         for (int i = lowerBound; i <= upperBound; i++) {
-            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-               protein[i].itsB[ii]->compute_fdrag(damp);
-            }
-          }
-         for (int i = lowerBound; i <= upperBound; i++) {
+         //for (int i = 0; i < protein.size(); i++) {
+            //for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+               //protein[i].itsB[ii]->compute_fdrag(damp);
+            //}
+         // }
+         for (int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_velocity(delta_t);
                protein[i].itsB[ii]->update_position(delta_t);
@@ -355,9 +356,9 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < real_bath.size(); i++)
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
-         for (int i = lowerBound; i <= upperBound; i++) {
+         for (int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               protein[i].itsB[ii]->compute_fran(delta_t, damp, distr(generator));
+               //protein[i].itsB[ii]->compute_fran(delta_t, damp, distr(generator));
                //protein[i].itsB[ii]->update_tforce();
                protein[i].itsB[ii]->update_velocity(delta_t);
             }
