@@ -8,12 +8,12 @@ Below are brief installation and run instructions.
 * https://nanohub.org/tools/capsidsouffle
 
 
-## Install and run instructions on Cluster
+## Install and run instructions on Cluster(updated to bigred200)(2023/10/24)
 * First, git clone the project:
 ```git clone https://github.com/softmaterialslab/capsid-souffle.git```
 * Then, load the required modules: boost, gsl and gnu computing environment.
-* * These modules are installed for you in src/Makefile, currently configured for BigRed3 supercomputer
-```module swap PrgEnv-intel/6.0.5 PrgEnv-gnu && module load boost/gnu && module load gsl```
+* * These modules are installed for you in src/Makefile, currently configured for BigRed200 supercomputer
+```module load gsl/2.7 && module load boost/1.78.0```
 * Next, go to the root directory:
  ```cd capsid-souffle```
 * Then, install the project:
@@ -29,7 +29,7 @@ Below are brief installation and run instructions.
 * If you want to clean the output data for a new run, use:
 ```make dataclean```
 
-## Install and run instructions on Local computer (Linux)
+## Install and run instructions on Local computer (Linux)(Not updated)
 * Load the necessary modules: boost, gsl and openmpi
 ```module load gsl && module load openmpi/3.0.1 && module load boost/1_67_0```
 * Also make sure to export OMP_NUM_THREADS environment variable with maximum threads available in your CPU:
