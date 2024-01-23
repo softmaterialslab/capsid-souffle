@@ -36,7 +36,7 @@ local-install: all
 cluster-install:
 	#module swap PrgEnv-intel PrgEnv-gnu && module load boost/gnu && module load gsl/gnu/2.7; make CCF=BigRed2 all
 	module load gsl/2.7 && module load boost/1.78.0; make CCF=BigRed2 all
-	@echo "Installing $(PROG) into $(HOME) directory on your computing cluster"; mkdir $(HOME)outfiles
+	@echo "Installing $(PROG) into $(HOME) directory on your computing cluster"
 
 $(PROG) : $(OBJ)
 ifeq ($(CCF),BigRed2)	
