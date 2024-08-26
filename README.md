@@ -1,3 +1,16 @@
+#New Remarks(updated 8/26/2024)
+* Code for generating the new MVM trimer can be found in python/generate_capsid.ipyb
+* New trimer has been updated in bin/infiles/trimer_MVM
+* Multiple changes has been made in src code contents for Langevin dynamics
+* Run instruction on bigred200:
+* * In the root directory ```./capsid-souffle```, complie using makefile ```make cluster-install```
+* * Submit a batch script or run with these boost option parameters: ```./capsid-souffle -D b -f trimer_MVM -S 20 -d 100 -T 10000 -s 5000 -b 5000 -C 800 -c 100 -E 2.1 -t 0.005 -W 1000 -M 1000 -K 298```
+
+
+
+
+
+
 # About
 SOUFFLE is a molecular dynamics software for use in testing virus self-assemly with elastic capsomeres. Check out the [Wiki](https://github.com/softmaterialslab/capsid-souffle/wiki) for more detailed information!
 
