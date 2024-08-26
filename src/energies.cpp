@@ -23,14 +23,14 @@ long double particle_kinetic_energy(vector <BEAD> &subunit_bead){ //part of ther
  
 void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, vector<vector<int> > lj_a, double elj_att, double lb, double ni, double qs, double ecut_el, double kappa){
    
-   double ecut6 = ecut * ecut * ecut * ecut * ecut * ecut;
-   double ecut12 = ecut6 * ecut6;
+   double ecut3 = ecut * ecut * ecut;
+   double ecut6 = ecut3 * ecut3;
    VECTOR3D box = subunit_bead[0].bx;
    VECTOR3D hbox = subunit_bead[0].hbx;
    
    for (unsigned int i = 0; i < subunit_bead.size(); i++){
       for (unsigned int j = i+1; j < subunit_bead.size(); j++){
-         
+
          bool electrostatic = (i != j && subunit_bead[i].q != 0 && subunit_bead[j].q != 0);
          bool lj =(subunit_bead[i].itsS[0]->id != subunit_bead[j].itsS[0]->id);
          long double r = 0.0;
@@ -47,20 +47,24 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
             r = r_vec.GetMagnitude();
          }
             
-         if (electrostatic && r < ecut_el && ecut_el != 0){ //electrostatic energy
+         if (electrostatic && r < ecut_el && ecut_el != 0){//electrostatic energy
             subunit_bead[i].ce += ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) -
                                   ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*ecut_el) ) / (ecut_el)) );
          } else if (electrostatic && ecut_el == 0){
             subunit_bead[i].ce += ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) );
+         } else{
+             subunit_bead[i].ce += 0;
          }
          
          double sig1 = subunit_bead[i].sigma;
          double sig2 = subunit_bead[j].sigma;
          double shc = (sig1 + sig2)/2;
-         
-         if (r >= ecut && r >= (1.12246205 * shc)) continue;  
-         
-         double test;
+         double sigma3 = shc * shc * shc;
+         double sigma6 = sigma3 * sigma3;
+         double r3 = r * r * r;
+         double r6 = r3 * r3;
+         if (r >= ecut && r >= (1.12246205 * shc)) continue;  //for (6,12) potential
+         //if (r >= ecut && r >= (1 * shc)) continue;  //for (6,9) potential
          
          if (lj) {
             bool lj_attractive = false;
@@ -71,18 +75,14 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
                   break;
                }
             }
-            if (r < (1.12246205*shc) && lj_attractive == false){        //Repulsive
-               double sigma6 = shc * shc * shc * shc * shc * shc;
+            if (r < (1.12246205*shc) && lj_attractive == false){
+            //if (r < (1*shc) && lj_attractive == false){           //for (6,9) potential, Repulsive
                double elj = 1; //repulsive lj fixed @ 1. Also fixed in forces.cpp
-               double r6 = r * r * r * r * r * r;
+               //subunit_bead[i].ne += ((elj * (sigma6 / r6) * (2*(sigma3 / r3) - 3)) + elj);   //for (6,9) potential
                subunit_bead[i].ne += ((4 * elj * (sigma6 / r6) * ((sigma6 / r6) - 1)) + elj);
             } else if ( r < ecut && lj_attractive == true ){            //Attractive
-               if (subunit_bead[j].type == 7) test = 50;
-               else test = elj_att;
-               double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
-               double sigma12 = sigma6 * sigma6;
-               double r6 = r * r * r * r * r * r;
-               subunit_bead[i].ne += (((4 * test * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * test * ((sigma12 / ecut12) - (sigma6 / ecut6)))));
+               //subunit_bead[i].ne += (((elj_att * (sigma6 / r6) * (2*(sigma3 / r3) - 3)) - (elj_att * ((sigma6 / ecut6) * (2*(sigma3 / ecut3) - 3))))); //for (6,9) potential
+               subunit_bead[i].ne += (((4 * elj_att * (sigma6 / r6) * ((sigma6 / r6) - 1)) - (4 * elj_att * ((sigma6 / ecut6) * ((sigma6 / ecut6) - 1)))));
             } else {
                subunit_bead[i].ne += 0;
             }

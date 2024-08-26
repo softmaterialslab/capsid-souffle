@@ -56,6 +56,11 @@ void EDGE::update_bending_energy(double Kb){
    r[2] = itsF[0]->across(this);       //         \    / <---f[1]
    r[3] = itsF[1]->across(this);       //          r[3]
 
+   if (itsF[0]->normvec * itsF[1]->normvec < 0) {
+      itsF[1]->normvec = itsF[1]->normvec^(-1);
+      itsF[1]->areavector = itsF[1]->areavector^(-1);
+   }
+
    for(int i=0; i<4; i++) {
       r[i]->be +=  Kb * 0.25 * ( 1 - (itsF[0]->normvec * itsF[1]->normvec));
    }
@@ -69,7 +74,11 @@ void EDGE::update_bending_forces(double Kb)
    r[1] = itsB[1];                     //     r[0]------r[1]
    r[2] = itsF[0]->across(this);       //         \    / <---f[1]
    r[3] = itsF[1]->across(this);       //          r[3]
-
+   
+   if (itsF[0]->normvec * itsF[1]->normvec < 0) {
+      itsF[1]->normvec = itsF[1]->normvec^(-1);
+      itsF[1]->areavector = itsF[1]->areavector^(-1);
+   }
 
    double S = (itsF[0]->areavector * itsF[1]->areavector) * 4;
    VECTOR3D dist01 = lengthvec;

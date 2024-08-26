@@ -357,14 +357,32 @@ int run_simulation(int argc, char *argv[]) {
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (int i = 0; i < protein.size(); i++) {
+            double randforce_x = sqrt((protein[i].itsB[0]->m*24.0*T)/(damp * delta_t)) * distr(generator);
+            double randforce_y = sqrt((protein[i].itsB[0]->m*24.0*T)/(damp * delta_t)) * distr(generator);
+            double randforce_z = sqrt((protein[i].itsB[0]->m*24.0*T)/(damp * delta_t)) * distr(generator);
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               protein[i].itsB[ii]->compute_fran(delta_t, damp, distr(generator));
+               protein[i].itsB[ii]->fran.x = randforce_x;
+               protein[i].itsB[ii]->fran.y = randforce_y;
+               protein[i].itsB[ii]->fran.z = randforce_z;
                protein[i].itsB[ii]->update_tforce();
                protein[i].itsB[ii]->update_velocity(delta_t);
             }
          }
 
       }  // else
+
+
+
+      //adjust system velocity to ensure it equals the intial system velocity V=0
+      VECTOR3D average_velocity_vector = VECTOR3D(0, 0, 0);
+      for (unsigned int i = 0; i < protein.size(); i++) {
+         for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+            average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
+         }
+      }
+      average_velocity_vector = average_velocity_vector ^ (1.0 / subunit_bead.size());
+      for (unsigned int i = 0; i < subunit_bead.size(); i++)
+         subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
 
       /*     __                 __                        ____     ________     ____
       *     /  \    |\    |    /  \    |       \   /     /    \        |       /    \
@@ -448,7 +466,7 @@ int run_simulation(int argc, char *argv[]) {
                  << setw(15) << tenergy / subunit_bead.size() << setw(15) 
                  << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
                  << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
-                 << setw(15) << tkenergy / subunit_bead.size() << endl;
+                 << setw(15) << tkenergy / subunit_bead.size() << setw(15) << average_velocity_vector.GetMagnitude() << endl;
          }
          senergy = 0;                                             //blanking out energies
          kenergy = 0;

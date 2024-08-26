@@ -25,6 +25,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    double ecut_el2 = ecut_el * ecut_el;
    double ecut2 = ecut * ecut;
    double replj2 = 1.12246205 * 1.12246205;
+   //double replj2 = 1 * 1;                 //for (6,9) force
    
    //////////////////////////////////////////////////////////////////////////////////////////////////////////
    /*                               PARALLEL LOOP                                                          */
@@ -111,6 +112,10 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
             double sig1 = subunit_bead[i_bead].sigma;
             double sig2 = subunit_bead[j_bead].sigma;
             double shc = (sig1 +sig2)/2;
+            double sigma3 = shc * shc * shc;
+            double sigma6 = sigma3 * sigma3;
+            double r3 = r * r * r;
+            double r6 = r3 * r3;
             
             if (r2 >= ecut2 && r2 >= (replj2 * shc * shc))
                continue;
@@ -127,16 +132,12 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                   }
                }
                if (lj_attractive == true && r2 < (ecut2)){
-                  if (subunit_bead[j_bead].type == 7) test = 50;
-                  else test = elj_att;
-                  double r6 = r2 * r2 * r2;
-                  double sigma6 = sig1 * sig1 * sig1 * sig1 * sig1 * sig1;
-                  ljForce += (r_vec ^ (48 * test * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
+                  //ljForce += (r_vec ^ (18 * elj_att * ((sigma6 / r6) * ((sigma3 / r3) - 1) ) * (1 / (r2))));    //for (6,9) force
+                  ljForce += (r_vec ^ (48 * elj_att * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                }
                else if (lj_attractive == false && r2 < (replj2 * shc * shc)){
-                  double r6 = r2 * r2 * r2;
-                  double sigma6 = shc * shc * shc * shc * shc * shc;
                   double elj = 1;//fixed @ 1. Also fixed in energies.cpp
+                  //ljForce += (r_vec ^ (18 * elj * ((sigma6 / r6) * ((sigma3 / r3) - 1) ) * (1 / (r2))));       //for (6,9) force
                   ljForce += (r_vec ^ (48 * elj * ((sigma6 / r6) * ((sigma6 / r6) - 0.5) ) * (1 / (r2))));
                } 
             } //if lj
