@@ -329,6 +329,7 @@ int run_simulation(int argc, char *argv[]) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
                protein[i].itsB[ii]->fdrag = dragforce;
             }
+         }
          for (int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_velocity_long(delta_t);
