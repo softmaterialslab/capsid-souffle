@@ -40,6 +40,7 @@ public:
    VECTOR3D ljforce;
    VECTOR3D bforce;
    VECTOR3D eforce;
+   VECTOR3D eljforce;                    //electrostatic + LJ
    VECTOR3D fdrag;
    VECTOR3D fran;
    double se;                            //stretching energy (KbT)

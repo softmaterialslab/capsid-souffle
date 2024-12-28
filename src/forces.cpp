@@ -172,7 +172,8 @@ void forceCalculation_long(vector<SUBUNIT> &protein, double lb, double ni, doubl
    //Total force accumulation
    
    for (unsigned int i = 0; i < subunit_bead.size(); i++)
-      subunit_bead[i].tforce = forvecGather[i];
+      //subunit_bead[i].tforce = forvecGather[i];
+      subunit_bead[i].eljforce = forvecGather[i];
    
    forvec.clear();
    forvecGather.clear();
