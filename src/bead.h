@@ -100,6 +100,14 @@ public:
       vel = ( vel + ( (tforce) ^ (0.5*delt/m) ) );
    }
 
+   void update_velocity_long(double delt){
+      vel = ( vel + ( (eljforce) ^ (0.5*delt/m) ) );
+   }
+
+   void update_velocity_short(double delt){
+      vel = ( vel + ( (bforce + sforce) ^ (0.5*delt/m) ) );
+   }
+
 // update velocity with integrator that unifies velocity verlet and Nose-Hoover
    void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac){
       vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
