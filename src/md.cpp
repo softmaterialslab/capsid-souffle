@@ -226,7 +226,8 @@ int run_simulation(int argc, char *argv[]) {
       subunit_bead[i].itsN.assign(NListVectorSize, -1);                       //Making "empty" pairlist (fill with -1)                    
    }
 
-   forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+   forceCalculation_short(protein, subunit_edge, subunit_face, ks, kb);
+   forceCalculation_long(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
 
    double senergy = 0;                                                        //blank all the energy metrics
    double kenergy = 0;
