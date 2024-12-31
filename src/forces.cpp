@@ -35,32 +35,7 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 
       VECTOR3D r_vec = VECTOR3D(0, 0, 0);
       long double r2 = 0.0;
-      VECTOR3D sForce = VECTOR3D(0, 0, 0);
-      VECTOR3D bForce = VECTOR3D(0, 0, 0);
 
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      /*                               DRESSING UP PROTEIN[i]                                                 */
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      for (unsigned int ii = 0; ii < protein[i].itsE.size(); ii++){
-         protein[i].itsE[ii]->update_length();
-      }
-      for (unsigned int ii = 0; ii < protein[i].itsF.size(); ii++){
-         protein[i].itsF[ii]->update_area_normal();
-      }
-
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      /*                               INTRAMOLECULAR FORCES                                                  */
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-         protein[i].itsB[ii]->update_stretching_force(ks);
-         protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);         //resetting bending force here
-      }
-      for (unsigned int mm = 0; mm < protein[i].itsE.size(); mm++){
-         if (protein[i].itsE[mm]->type != 0)                      //if it is a bending edge...
-            protein[i].itsE[mm]->update_bending_forces(kb);
-      }
 
      //////////////////////////////////////////////////////////////////////////////////////////////////////////
      /*                               INTERMOLECULAR FORCES                                                  */
@@ -141,10 +116,8 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
                }
             } //if lj
          } // for jj
-         sForce = protein[i].itsB[ii]->sforce;
-         bForce = protein[i].itsB[ii]->bforce;
          VECTOR3D eljforces = eForce + ljForce;
-         forvec[(i - lowerBound)*protein[i].itsB.size()+ii] = sForce + bForce + eljforces;
+         forvec[(i - lowerBound)*protein[i].itsB.size()+ii] = eljforces;
       } // for ii
    } //for i
 
@@ -166,9 +139,30 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
    //Total force accumulation
 
    for (unsigned int i = 0; i < subunit_bead.size(); i++)
-      subunit_bead[i].tforce = forvecGather[i];
+      subunit_bead[i].eljforce = forvecGather[i];
 
    forvec.clear();
    forvecGather.clear();
 
 } //void fxn
+
+
+void forceCalculation_short(vector<SUBUNIT> &protein, vector<EDGE> &subunit_edge, vector<FACE> &subunit_face, double ks, double kb) {
+   //short range force(elastic)
+
+   dress_up(subunit_edge, subunit_face);
+
+   for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         protein[i].itsB[ii]->update_stretching_force(ks);
+         protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);
+      }
+      for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
+         if (protein[i].itsE[kk]->typeb != 0) {
+            //if it is a bending edge...
+            protein[i].itsE[kk]->update_bending_forces(kb);
+         }
+      }
+   }
+
+}

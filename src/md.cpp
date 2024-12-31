@@ -81,7 +81,8 @@ int run_simulation(int argc, char *argv[]) {
    ("Neighbor list cutoff,L", value<double>(&NListCutoff_c)->default_value(7.5), "Neighbor list cutoff (x + es & lj cutoff)")
    ("moviefreq,M", value<int>(&moviefreq)->default_value(1000), "The frequency of shooting the movie")
    ("writefreq,W", value<int>(&writefreq)->default_value(1000),"frequency of dumping energy file")
-   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files");
+   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files")
+   ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -244,6 +245,77 @@ int run_simulation(int argc, char *argv[]) {
    double particle_ke = particle_kinetic_energy(subunit_bead);                //thermostat variables for nose hoover
    double expfac_real = 0;
 
+   //initialize bending and streching energy
+   dress_up(subunit_edge, subunit_face);                     //update edge and face properties
+
+
+   for (unsigned int i = 0; i < protein.size(); i++) {       //blanking out energies here
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         protein[i].itsB[ii]->be = 0;
+         protein[i].itsB[ii]->ne = 0;
+         protein[i].itsB[ii]->ce = 0;
+      }
+   }
+
+   for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         protein[i].itsB[ii]->update_stretching_energy(ks);
+         protein[i].itsB[ii]->update_kinetic_energy();
+      }
+      for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
+         if (protein[i].itsE[kk]->typeb != 0) {
+            //if it is a bending edge...
+            protein[i].itsE[kk]->update_bending_energy(kb);
+            //traj << "Normal Vector 0 on edge " << kk << ": " << protein[i].itsE[kk]->itsF[0]->normvec.x << ", " <<protein[i].itsE[kk]->itsF[0]->normvec.y << ", " << protein[i].itsE[kk]->itsF[0]->normvec.z << endl;
+            //traj << "Normal Vector 1 on edge " << kk << ": " << protein[i].itsE[kk]->itsF[1]->normvec.x << ", " <<protein[i].itsE[kk]->itsF[1]->normvec.y << ", " << protein[i].itsE[kk]->itsF[1]->normvec.z << endl;
+         }
+      }
+   }
+                                                                  //Intermolecular Energies
+   update_LJ_ES_energies_simplified(subunit_bead, ecut, lj_a, elj_att, lb, ni, qs, ecut_el, kappa);
+
+   for (unsigned int i = 0; i < protein.size(); i++) {      //blanking out energies here
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         senergy += protein[i].itsB[ii]->se;                //sum up total energies
+         kenergy += protein[i].itsB[ii]->ke;
+         ljenergy += protein[i].itsB[ii]->ne;
+         benergy += protein[i].itsB[ii]->be;
+         cenergy += protein[i].itsB[ii]->ce;
+      }
+   }
+
+   for (unsigned int i = 0; i < real_bath.size(); i++) {    //thermostat energies
+      real_bath[i].potential_energy();
+      real_bath[i].kinetic_energy();
+   }
+   for (unsigned int i = 0; i < real_bath.size(); i++) {
+      tpenergy += real_bath[i].pe;                          //sum up total energies
+      tkenergy += real_bath[i].ke;
+   }
+
+   tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy + tkenergy;
+
+
+
+
+   if (world.rank() == 0) {                                 //print info to files for data analysis
+      traj << 0 << setw(15) << kenergy / subunit_bead.size() << setw(15)
+                 << senergy / subunit_bead.size() << setw(15) << benergy / subunit_bead.size()
+                 << setw(15) << ljenergy / subunit_bead.size() << setw(15) << cenergy / subunit_bead.size()
+                 << setw(15) << tenergy / subunit_bead.size() << setw(15)
+                 << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
+                 << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
+                 << setw(15) << tkenergy / subunit_bead.size() << endl;
+   }
+   senergy = 0;                                             //blanking out energies
+   kenergy = 0;
+   benergy = 0;
+   tenergy = 0;
+   ljenergy = 0;
+   cenergy = 0;
+   tpenergy = 0;
+   tkenergy = 0;
+
 
     /*
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                               //setting up random seed for brownian
@@ -321,8 +393,31 @@ int run_simulation(int argc, char *argv[]) {
           }
          for (int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-               protein[i].itsB[ii]->update_velocity(delta_t);
-               protein[i].itsB[ii]->update_position(delta_t);
+               protein[i].itsB[ii]->update_velocity_long(delta_t);
+            }
+         }
+
+         //update verlet with shorter range force
+         for (unsigned int j = 0; j < N_step; j++) {
+             for (unsigned int i = 0; i < protein.size(); i++) {
+               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+                  protein[i].itsB[ii]->update_velocity_short(delta_t/N_step);
+               }
+            }
+
+            //update position
+            for (unsigned int i = 0; i < protein.size(); i++) {
+               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+                  protein[i].itsB[ii]->update_position(delta_t/N_step);
+               }
+            }
+
+            forceCalculation_short(protein, subunit_edge, subunit_face, ks, kb);
+
+            for (unsigned int i = 0; i < protein.size(); i++) {
+               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+                  protein[i].itsB[ii]->update_velocity_short(delta_t/N_step);
+               }
             }
          }
 
@@ -338,6 +433,7 @@ int run_simulation(int argc, char *argv[]) {
       /*									MD LOOP FORCES						  */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
                         
+      forceCalculation_short(protein, subunit_edge, subunit_face, ks, kb);
       forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
             
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,8 +460,7 @@ int run_simulation(int argc, char *argv[]) {
                protein[i].itsB[ii]->fran.x = randforce_x;
                protein[i].itsB[ii]->fran.y = randforce_y;
                protein[i].itsB[ii]->fran.z = randforce_z;
-               //protein[i].itsB[ii]->update_tforce();
-               protein[i].itsB[ii]->update_velocity(delta_t);
+               protein[i].itsB[ii]->update_velocity_long(delta_t);
             }
          }
 
