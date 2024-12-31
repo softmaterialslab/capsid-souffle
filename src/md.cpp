@@ -36,7 +36,7 @@ int run_simulation(int argc, char *argv[]) {
    double salt_concentration, temperature;	                                          // environmental or control parameters					
    double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp;// computational parameters
    bool verbose, restartFile, clusters;
-   int buildFrequency, moviefreq, writefreq, restartfreq, N_step;
+   int buildFrequency, moviefreq, writefreq, restartfreq;
 	
    double qs = 1;                                           //salt valency
    double T;                                                //set temperature (reduced units)
@@ -81,8 +81,7 @@ int run_simulation(int argc, char *argv[]) {
    ("Neighbor list cutoff,L", value<double>(&NListCutoff_c)->default_value(7.5), "Neighbor list cutoff (x + es & lj cutoff)")
    ("moviefreq,M", value<int>(&moviefreq)->default_value(1000), "The frequency of shooting the movie")
    ("writefreq,W", value<int>(&writefreq)->default_value(1000),"frequency of dumping energy file")
-   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files")
-   ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation");
+   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -226,7 +225,7 @@ int run_simulation(int argc, char *argv[]) {
       subunit_bead[i].itsN.assign(NListVectorSize, -1);                       //Making "empty" pairlist (fill with -1)                    
    }
 
-   forceCalculation_long(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+   forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
 
    double senergy = 0;                                                        //blank all the energy metrics
    double kenergy = 0;
@@ -315,19 +314,17 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
-         for (unsigned int i = 0; i < protein.size(); i++) {
-            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               protein[i].itsB[ii]->fdrag = VECTOR3D(0, 0, 0);
+         for (int i = 0; i < protein.size(); i++) {
+            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+               protein[i].itsB[ii]->fdrag = VECTOR3D(0,0,0);
             }
-         }
+          }
          for (int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_velocity(delta_t);
                protein[i].itsB[ii]->update_position(delta_t);
             }
          }
-
-
 
       }  // else
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +337,8 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*									MD LOOP FORCES						  */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      forceCalculation_long(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+                        
+      forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
             
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								VELOCITY VERLET							  */
@@ -359,7 +357,14 @@ int run_simulation(int argc, char *argv[]) {
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (int i = 0; i < protein.size(); i++) {
+            double randforce_x = 0;
+            double randforce_y = 0;
+            double randforce_z = 0;
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+               protein[i].itsB[ii]->fran.x = randforce_x;
+               protein[i].itsB[ii]->fran.y = randforce_y;
+               protein[i].itsB[ii]->fran.z = randforce_z;
+               //protein[i].itsB[ii]->update_tforce();
                protein[i].itsB[ii]->update_velocity(delta_t);
             }
          }
