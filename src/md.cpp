@@ -36,7 +36,7 @@ int run_simulation(int argc, char *argv[]) {
    double salt_concentration, temperature;	                                          // environmental or control parameters					
    double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp;// computational parameters
    bool verbose, restartFile, clusters;
-   int buildFrequency, moviefreq, writefreq, restartfreq;
+   int buildFrequency, moviefreq, writefreq, restartfreq, N_step;
 	
    double qs = 1;                                           //salt valency
    double T;                                                //set temperature (reduced units)
@@ -263,7 +263,7 @@ int run_simulation(int argc, char *argv[]) {
          protein[i].itsB[ii]->update_kinetic_energy();
       }
       for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
-         if (protein[i].itsE[kk]->typeb != 0) {
+         if (protein[i].itsE[kk]->type != 0) {
             //if it is a bending edge...
             protein[i].itsE[kk]->update_bending_energy(kb);
             //traj << "Normal Vector 0 on edge " << kk << ": " << protein[i].itsE[kk]->itsF[0]->normvec.x << ", " <<protein[i].itsE[kk]->itsF[0]->normvec.y << ", " << protein[i].itsE[kk]->itsF[0]->normvec.z << endl;
