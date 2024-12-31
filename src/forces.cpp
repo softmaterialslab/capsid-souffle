@@ -158,7 +158,7 @@ void forceCalculation_short(vector<SUBUNIT> &protein, vector<EDGE> &subunit_edge
          protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);
       }
       for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
-         if (protein[i].itsE[kk]->typeb != 0) {
+         if (protein[i].itsE[kk]->type != 0) {
             //if it is a bending edge...
             protein[i].itsE[kk]->update_bending_forces(kb);
          }
