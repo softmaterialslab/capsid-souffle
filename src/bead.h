@@ -148,6 +148,10 @@ public:
        tforce = tforce + fran + fdrag;
    }
 
+   void update_eljforce(){
+       eljforce = eljforce + fran + fdrag;
+   }
+
 
 };
 
