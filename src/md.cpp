@@ -424,6 +424,26 @@ int run_simulation(int argc, char *argv[]) {
 
             forceCalculation_short(protein, subunit_edge, subunit_face, ks, kb);
 
+            vector<VECTOR3D> sforce_drift;
+            vector<VECTOR3D> bforce_drift;
+            sforce_drift.resize(protein.size());
+            bforce_drift.resize(protein.size());
+            for (unsigned int i = 0; i < protein.size(); i++) {
+               sforce_drift[i] = VECTOR3D(0, 0, 0);
+               bforce_drift[i] = VECTOR3D(0, 0, 0);
+               for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+                  sforce_drift[i] = sforce_drift[i] + protein[i].itsB[j]->sforce;
+                  bforce_drift[i] = bforce_drift[i] + protein[i].itsB[j]->bforce;
+               }
+            }
+
+            for (unsigned int i = 0; i < protein.size(); i++) {
+               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+                  protein[i].itsB[ii]->sforce = protein[i].itsB[ii]->sforce - sforce_drift[i];
+                  protein[i].itsB[ii]->bforce = protein[i].itsB[ii]->bforce - bforce_drift[i];
+               }
+            }
+
             for (unsigned int i = 0; i < protein.size(); i++) {
                for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                   protein[i].itsB[ii]->update_velocity_short(delta_t/N_step);
