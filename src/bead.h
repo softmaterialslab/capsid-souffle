@@ -135,7 +135,7 @@ public:
    void update_stretching_force(double ks);
    
    void compute_fdrag(double damp){
-       fdrag = vel*(-1.0 * m / damp);
+       fdrag = vel ^ (-1.0 * m / damp);
    }
 
    void compute_fran(double delta_t, double damp, double rand_num){

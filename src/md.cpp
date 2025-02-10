@@ -386,68 +386,15 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
-         vector<VECTOR3D> drag_velocity;
-         drag_velocity.resize(protein.size());
          for (unsigned int i = 0; i < protein.size(); i++) {
-            drag_velocity[i] = VECTOR3D(0, 0, 0);
-            for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
-               drag_velocity[i] = drag_velocity[i] + protein[i].itsB[j]->vel;
-            }
-         }
-
-         for (unsigned int i = 0; i < protein.size(); i++) {
-            VECTOR3D dragforce =  drag_velocity[i]*(-1.0 / damp);
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               protein[i].itsB[ii]->fdrag = dragforce;
+               protein[i].itsB[ii]->compute_fdrag(damp);
             }
          }
-         for (int i = 0; i < protein.size(); i++) {
+         for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-               protein[i].itsB[ii]->update_velocity_long(delta_t);
-            }
-         }
-
-         //update verlet with shorter range force
-         for (unsigned int j = 0; j < N_step; j++) {
-             for (unsigned int i = 0; i < protein.size(); i++) {
-               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-                  protein[i].itsB[ii]->update_velocity_short(delta_t/N_step);
-               }
-            }
-
-            //update position
-            for (unsigned int i = 0; i < protein.size(); i++) {
-               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-                  protein[i].itsB[ii]->update_position(delta_t/N_step);
-               }
-            }
-
-            forceCalculation_short(protein, subunit_edge, subunit_face, ks, kb);
-
-            vector<VECTOR3D> sforce_drift;
-            vector<VECTOR3D> bforce_drift;
-            sforce_drift.resize(protein.size());
-            bforce_drift.resize(protein.size());
-            for (unsigned int i = 0; i < protein.size(); i++) {
-               sforce_drift[i] = VECTOR3D(0, 0, 0);
-               bforce_drift[i] = VECTOR3D(0, 0, 0);
-               for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
-                  sforce_drift[i] = sforce_drift[i] + protein[i].itsB[j]->sforce;
-                  bforce_drift[i] = bforce_drift[i] + protein[i].itsB[j]->bforce;
-               }
-            }
-
-            for (unsigned int i = 0; i < protein.size(); i++) {
-               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-                  protein[i].itsB[ii]->sforce = protein[i].itsB[ii]->sforce - (sforce_drift[i]/protein[i].itsB.size());
-                  protein[i].itsB[ii]->bforce = protein[i].itsB[ii]->bforce - (bforce_drift[i]/protein[i].itsB.size());
-               }
-            }
-
-            for (unsigned int i = 0; i < protein.size(); i++) {
-               for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
-                  protein[i].itsB[ii]->update_velocity_short(delta_t/N_step);
-               }
+               protein[i].itsB[ii]->update_velocity(delta_t);
+               protein[i].itsB[ii]->update_position(delta_t);
             }
          }
 
@@ -482,15 +429,12 @@ int run_simulation(int argc, char *argv[]) {
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
          for (int i = 0; i < protein.size(); i++) {
-            double randforce_x = sqrt((protein[i].itsB[0]->m*24.0*T)/(damp * delta_t)) * distr(generator);;
-            double randforce_y = sqrt((protein[i].itsB[0]->m*24.0*T)/(damp * delta_t)) * distr(generator);;
-            double randforce_z = sqrt((protein[i].itsB[0]->m*24.0*T)/(damp * delta_t)) * distr(generator);;
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               protein[i].itsB[ii]->fran.x = randforce_x;
-               protein[i].itsB[ii]->fran.y = randforce_y;
-               protein[i].itsB[ii]->fran.z = randforce_z;
-               protein[i].itsB[ii]->update_eljforce();
-               protein[i].itsB[ii]->update_velocity_long(delta_t);
+               protein[i].itsB[ii]->fran.x = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+               protein[i].itsB[ii]->fran.y = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+               protein[i].itsB[ii]->fran.z = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+               protein[i].itsB[ii]->update_tforce();
+               protein[i].itsB[ii]->update_velocity(delta_t);
             }
          }
 
