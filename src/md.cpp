@@ -450,8 +450,8 @@ int run_simulation(int argc, char *argv[]) {
          }
       }
       average_velocity_vector = average_velocity_vector ^ (1.0 / subunit_bead.size());
-      for (unsigned int i = 0; i < subunit_bead.size(); i++)
-         subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
+      // for (unsigned int i = 0; i < subunit_bead.size(); i++)
+      //    subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
 
       /*     __                 __                        ____     ________     ____
       *     /  \    |\    |    /  \    |       \   /     /    \        |       /    \
