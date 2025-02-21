@@ -433,6 +433,21 @@ int run_simulation(int argc, char *argv[]) {
                protein[i].itsB[ii]->fran.x = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
                protein[i].itsB[ii]->fran.y = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
                protein[i].itsB[ii]->fran.z = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+            }
+         }
+         VECTOR3D average_fran = VECTOR3D(0, 0, 0);
+         for (unsigned int i = 0; i < protein.size(); i++) {
+            for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+               average_fran = average_fran + protein[i].itsB[j]->fran;
+            }
+         }
+         average_fran = average_fran ^ (1.0 / subunit_bead.size());
+
+         for (unsigned int i = 0; i < subunit_bead.size(); i++)
+            subunit_bead[i].fran = subunit_bead[i].fran - average_fran;
+
+         for (unsigned int i = 0; i < protein.size(); i++) {
+            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_tforce();
                protein[i].itsB[ii]->update_velocity(delta_t);
             }
@@ -450,8 +465,8 @@ int run_simulation(int argc, char *argv[]) {
          }
       }
       average_velocity_vector = average_velocity_vector ^ (1.0 / subunit_bead.size());
-      // for (unsigned int i = 0; i < subunit_bead.size(); i++)
-      //    subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
+      for (unsigned int i = 0; i < subunit_bead.size(); i++)
+         subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
 
       /*     __                 __                        ____     ________     ____
       *     /  \    |\    |    /  \    |       \   /     /    \        |       /    \
