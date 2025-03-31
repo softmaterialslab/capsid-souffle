@@ -90,3 +90,47 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
       } // for j
    } // for i
 } // energy fxn
+
+
+void update_LJ_ES_energies_bigbeads(vector<BEAD>& big_bead, vector<BEAD>& subunit_bead, double ecut, double lb, double ni, double qs, double ecut_el, double kappa, double shc) {
+   VECTOR3D box = subunit_bead[0].bx;
+   VECTOR3D hbox = subunit_bead[0].hbx;
+
+   for (unsigned int i = 0; i < big_bead.size(); i++){
+      for (unsigned int j = 0; j < subunit_bead.size(); j++){
+
+         bool electrostatic = (subunit_bead[j].q != 0);
+         long double r = 0.0;
+         double ce = 0.0;
+         double ne = 0.0;
+
+         VECTOR3D r_vec;
+         r_vec = big_bead[i].pos - subunit_bead[j].pos;
+         if (r_vec.x > hbox.x) r_vec.x -= box.x;
+         else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+         if (r_vec.y > hbox.y) r_vec.y -= box.y;
+         else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+         if (r_vec.z > hbox.z) r_vec.z -= box.z;
+         else if (r_vec.z < -hbox.z) r_vec.z += box.z;
+         r = r_vec.GetMagnitude();
+
+         double sig1 = big_bead[i].sigma;
+         double sig2 = subunit_bead[j].sigma;
+         double sigavg = (sig1 + sig2)/2;
+         double delta = sigavg - shc;
+         double shc6 = pow(shc, 6);
+         double r6 = pow((r-delta), 6);
+
+         double yukawa_scale = exp(kappa * sigavg)/((1+kappa*sig1/2)*(1+kappa*sig2/2));
+         if (electrostatic) ce = ( (big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) * yukawa_scale ) / (r)); else ce = 0;
+         big_bead[i].ce += ce;
+         subunit_bead[j].ce += ce;
+
+         if (r < delta + 1.12246205*shc) ne = ((4 * (shc6 / r6) * ((shc6 / r6) - 1)) + 1); else ne = 0;
+         big_bead[i].ne += ne;
+         subunit_bead[j].ne += ne;
+
+      }
+   }
+
+}

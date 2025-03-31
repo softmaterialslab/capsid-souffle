@@ -168,22 +168,67 @@ void forceCalculation(vector<SUBUNIT> &protein, double lb, double ni, double qs,
 } //void fxn
 
 
-void forceCalculation_short(vector<SUBUNIT> &protein, vector<EDGE> &subunit_edge, vector<FACE> &subunit_face, double ks, double kb) {
-   //short range force(elastic)
+void forceCalculation_bigbead(vector<BEAD>& big_bead, vector<BEAD>& subunit_bead, double ecut, double lb, double ni, double qs, double ecut_el, double kappa, double shc) {
 
-   dress_up(subunit_edge, subunit_face);
+   VECTOR3D box = subunit_bead[0].bx;
+   VECTOR3D hbox = subunit_bead[0].hbx;
 
-   for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
-      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-         protein[i].itsB[ii]->update_stretching_force(ks);
-         protein[i].itsB[ii]->bforce = VECTOR3D(0, 0, 0);
-      }
-      for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
-         if (protein[i].itsE[kk]->type != 0) {
-            //if it is a bending edge...
-            protein[i].itsE[kk]->update_bending_forces(kb);
-         }
+   //reset elec and lj force
+   for (unsigned int i = 0; i < big_bead.size(); i++) {
+      big_bead[i].eforce = VECTOR3D(0, 0, 0);
+      big_bead[i].ljforce = VECTOR3D(0, 0, 0);
+   }
+
+   for (unsigned int i = 0; i < subunit_bead.size(); i++) {
+      subunit_bead[i].eforce = VECTOR3D(0, 0, 0);
+      subunit_bead[i].ljforce = VECTOR3D(0, 0, 0);
+   }
+
+   for (unsigned int i = 0; i < big_bead.size(); i++){
+      for (unsigned int j = 0; j < subunit_bead.size(); j++){
+
+         bool electrostatic = (subunit_bead[j].q != 0);
+         long double r = 0.0;
+         long double r2 = 0.0;
+         VECTOR3D eForce = VECTOR3D(0, 0, 0);
+         VECTOR3D ljForce = VECTOR3D(0, 0, 0);
+
+         VECTOR3D r_vec;
+         r_vec = big_bead[i].pos - subunit_bead[j].pos;
+         if (r_vec.x > hbox.x) r_vec.x -= box.x;
+         else if (r_vec.x < -hbox.x) r_vec.x += box.x;
+         if (r_vec.y > hbox.y) r_vec.y -= box.y;
+         else if (r_vec.y < -hbox.y) r_vec.y += box.y;
+         if (r_vec.z > hbox.z) r_vec.z -= box.z;
+         else if (r_vec.z < -hbox.z) r_vec.z += box.z;
+         r = r_vec.GetMagnitude();
+         r2 = r_vec.GetMagnitudeSquared();
+
+         double sig1 = big_bead[i].sigma;
+         double sig2 = subunit_bead[j].sigma;
+         double sigavg = (sig1 + sig2)/2;
+         double delta = sigavg - shc;
+         double shc6 = pow(shc, 6);
+         double r6 = pow((r-delta), 6);
+
+         double yukawa_scale = exp(kappa * sigavg)/((1+kappa*sig1/2)*(1+kappa*sig2/2));
+         r_vec ^ ((big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)/ (r2)) * (kappa + 1 / r));
+         if (electrostatic) eForce = r_vec ^ ((big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)/ (r2)) * (kappa + 1 / r) * yukawa_scale); else eForce = VECTOR3D(0, 0, 0);
+         big_bead[i].eforce = big_bead[i].eforce + eForce;
+         subunit_bead[j].eforce = subunit_bead[j].eforce - eForce;
+
+         if (r2 < (delta + 1.12246205*shc)*(delta + 1.12246205*shc)) ljForce =(r_vec ^ (48 * ((shc6 / r6) * ((shc6 / r6) - 0.5) ) * (1 / r)*(1 / (r-delta)) )); else ljForce = VECTOR3D(0,0,0);
+         big_bead[i].ljforce = big_bead[i].ljforce + ljForce;
+         subunit_bead[j].ljforce = subunit_bead[j].ljforce - ljForce;
+
       }
    }
+
+   for (unsigned int i = 0; i < big_bead.size(); i++)
+      big_bead[i].tforce = big_bead[i].tforce + big_bead[i].ljforce + big_bead[i].eforce;
+
+   for (unsigned int i = 0; i < subunit_bead.size(); i++)
+      subunit_bead[i].tforce = subunit_bead[i].tforce + subunit_bead[i].ljforce + subunit_bead[i].eforce;
+
 
 }

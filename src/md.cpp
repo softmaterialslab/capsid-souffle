@@ -82,7 +82,8 @@ int run_simulation(int argc, char *argv[]) {
    ("moviefreq,M", value<int>(&moviefreq)->default_value(1000), "The frequency of shooting the movie")
    ("writefreq,W", value<int>(&writefreq)->default_value(1000),"frequency of dumping energy file")
    ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files")
-   ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation");
+   ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation")
+   ("encapsulation flag ,p", value<bool>(&encapsulation)->default_value(false), "flag to turn on encapsulation with big beads");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -153,6 +154,10 @@ int run_simulation(int argc, char *argv[]) {
    double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),1.0 / 3.0); //calculating box size, prefactor of 1000 used to combine units
    VECTOR3D box_size = VECTOR3D(box_x, box_x, box_x);
    double ecut = 2.5 * (SIsigma / 1e-9);	                  // Lennard-Jones cut-off distance
+   double shc = 3.5;
+
+   //assign big beads
+   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,6.0,subunit_bead,box_size,10.0,3,-100,1000000);
 	
 	// Electrostatic features
    double lb = (0.701e-9) / SIsigma;   // e^2 / (4 pi Er E0 Kb T) ; value for T = 298 K.
@@ -227,6 +232,7 @@ int run_simulation(int argc, char *argv[]) {
    }
 
    forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+   if (encapsulation) forceCalculation_bigbead(big_beads, subunit_bead, ecut,  lb,  ni, qs,ecut_el, kappa,shc);
 
    double senergy = 0;                                                        //blank all the energy metrics
    double kenergy = 0;
@@ -273,6 +279,7 @@ int run_simulation(int argc, char *argv[]) {
    }
                                                                   //Intermolecular Energies
    update_LJ_ES_energies_simplified(subunit_bead, ecut, lj_a, elj_att, lb, ni, qs, ecut_el, kappa);
+   if (encapsulation) update_LJ_ES_energies_bigbeads(big_beads, subunit_bead, ecut, lb, ni, qs, ecut_el, kappa, shc);
 
    for (unsigned int i = 0; i < protein.size(); i++) {      //blanking out energies here
       for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -411,6 +418,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
                         
       forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+      if (encapsulation) forceCalculation_bigbead(big_beads, subunit_bead, ecut,  lb,  ni, qs,ecut_el, kappa,shc);
             
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								VELOCITY VERLET							  */
@@ -520,6 +528,7 @@ int run_simulation(int argc, char *argv[]) {
          }
                                                                   //Intermolecular Energies
          update_LJ_ES_energies_simplified(subunit_bead, ecut, lj_a, elj_att, lb, ni, qs, ecut_el, kappa);
+         if (encapsulation) update_LJ_ES_energies_bigbeads(big_beads, subunit_bead, ecut, lb, ni, qs, ecut_el, kappa, shc);
    
          for (unsigned int i = 0; i < protein.size(); i++) {      //blanking out energies here
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -566,18 +575,33 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       if (a % moviefreq == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
-            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
-            << endl
+            if (encapsulation) {
+               ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()+big_beads.size() << endl
             << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
             << setw(15)
             << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
             << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+            }
+            else {
+               ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size() << endl
+               << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
+               << setw(15)
+               << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
+               << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+            }
          }
          if (world.rank() == 0) {
             for (unsigned int b = 0; b < subunit_bead.size(); b++) {
                ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
                << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
                << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
+            }
+            if (encapsulation) {
+               for (unsigned int bb = 0; bb < big_beads.size(); bb++) {
+                  ofile << subunit_bead.size() + bb + 1 << setw(15) << big_beads[bb].type << setw(15) << big_beads[bb].pos.x << setw(15)
+                  << big_beads[bb].pos.y << setw(15) << big_beads[bb].pos.z << setw(15)
+                  << big_beads[bb].be << setw(15) << big_beads[bb].q << endl;
+               }
             }
          }
       } //position print loop
@@ -596,43 +620,3 @@ int run_simulation(int argc, char *argv[]) {
    
    return 0;
 } //end simulation fxn
-
-
-/* old brownian function
- *          double c2;
-         for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);                  //determine noise term
-            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);
-            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);
-            subunit_bead[i].oldtforce = subunit_bead[i].tforce;
-            //subunit_bead[i].vel += (subunit_bead[i].tforce ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].pos ^ (fric_zeta / subunit_bead[i].m)) + subunit_bead[i].noise;
-           // cout << "velocities are " << subunit_bead[i].vel.x << " , " << subunit_bead[i].vel.y << " , " << subunit_bead[i].vel.z << endl;
-         }
-         for (unsigned int i = 0; i < protein.size(); i++) {
-            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               c2 = 1 + (delta_t * 0.5 * fric_zeta / protein[i].itsB[ii]->m);
-               protein[i].itsB[ii]->update_position_brownian(delta_t, c2, fric_zeta);                                   //update position full step
-            }  // for ii
-         }  // for i
-
-
-         for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            double c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            //subunit_bead[i].vel += (subunit_bead[i].tforce ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].pos ^ (fric_zeta / subunit_bead[i].m)) + subunit_bead[i].noise;
-             VECTOR3D r_vec; //= (A->pos - B->pos);
-             r_vec.x = subunit_bead[i].oldpos.x - subunit_bead[i].pos.x;
-             r_vec.y = subunit_bead[i].oldpos.y - subunit_bead[i].pos.y;
-             r_vec.z = subunit_bead[i].oldpos.z - subunit_bead[i].pos.z;
-             VECTOR3D box = subunit_bead[i].bx;
-             VECTOR3D hbox = subunit_bead[i].hbx;
-             if (r_vec.x > hbox.x) r_vec.x -= box.x;
-             else if (r_vec.x < -hbox.x) r_vec.x += box.x;
-             if (r_vec.y > hbox.y) r_vec.y -= box.y;
-             else if (r_vec.y < -hbox.y) r_vec.y += box.y;
-             if (r_vec.z > hbox.z) r_vec.z -= box.z;
-             else if (r_vec.z < -hbox.z) r_vec.z += box.z;
-             subunit_bead[i].vel += ((subunit_bead[i].oldtforce + subunit_bead[i].tforce) ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].noise ^ (1/subunit_bead[i].m)) + (r_vec ^ (fric_zeta / subunit_bead[i].m));
-         }
-
-*/

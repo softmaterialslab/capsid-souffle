@@ -15,6 +15,6 @@ void forceCalculation(std::vector<SUBUNIT> &protein, double lb, double ni, doubl
                       double kappa, double elj_att, bool updatePairlist, double NListCutoff);
 
 
-void forceCalculation_short(std::vector<SUBUNIT> &protein, std::vector<EDGE> &subunit_edge, std::vector<FACE> &subunit_face, double ks, double kb);
+void forceCalculation_bigbead(std::vector<BEAD>& big_bead, std::vector<BEAD>& subunit_bead, double ecut, double lb, double ni, double qs, double ecut_el, double kappa, double shc);
 
 #endif //SOUFFLE_FORCES_H
