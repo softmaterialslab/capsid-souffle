@@ -342,7 +342,6 @@ int run_simulation(int argc, char *argv[]) {
          encapdata << 0 << setw(15) << big_kenergy / big_beads.size() << setw(15)
                  << big_ljenergy / big_beads.size() << setw(15) << big_cenergy / big_beads.size()
                  << setw(15) << (big_kenergy + big_ljenergy + big_cenergy) / big_beads.size() << setw(15)
-                 << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
                  << big_kenergy * 2 / (3 * big_beads.size()) << endl;
       }
    }
@@ -614,7 +613,6 @@ int run_simulation(int argc, char *argv[]) {
                encapdata << a << setw(15) << big_kenergy / big_beads.size() << setw(15)
                        << big_ljenergy / big_beads.size() << setw(15) << big_cenergy / big_beads.size()
                        << setw(15) << (big_kenergy + big_ljenergy + big_cenergy) / big_beads.size() << setw(15)
-                       << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
                        << big_kenergy * 2 / (3 * big_beads.size()) << endl;
             }
          }
