@@ -94,6 +94,7 @@ int run_simulation(int argc, char *argv[]) {
    }
    
    ofstream traj("outfiles/energy.out", ios_base::app);     //setting up file outputs
+   ofstream encapdata("outfiles/capenergy.out", ios::out);
    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
    ofstream sysdata("outfiles/model.parameters.out", ios::out);
    ofstream restart;
@@ -157,7 +158,7 @@ int run_simulation(int argc, char *argv[]) {
    double shc = 3.5;
 
    //assign big beads
-   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,6.0,subunit_bead,box_size,10.0,3,-100,1000000);
+   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,6.0,subunit_bead,box_size,100.0,3,-100,1000000);
 	
 	// Electrostatic features
    double lb = (0.701e-9) / SIsigma;   // e^2 / (4 pi Er E0 Kb T) ; value for T = 298 K.
@@ -263,6 +264,16 @@ int run_simulation(int argc, char *argv[]) {
       }
    }
 
+   //blank out energy of big beads and update their kinetic energy
+   if (encapsulation) {
+      for (unsigned int i = 0; i < big_beads.size(); i++) {
+         big_beads[i].be = 0;
+         big_beads[i].ne = 0;
+         big_beads[i].ce = 0;
+         big_beads[i].update_kinetic_energy();
+      }
+   }
+
    for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
       for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
          protein[i].itsB[ii]->update_stretching_energy(ks);
@@ -303,6 +314,20 @@ int run_simulation(int argc, char *argv[]) {
    tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy + tkenergy;
 
 
+   //For big beads, create necessary energy attributes to sum up energies
+   double big_cenergy = 0;
+   double big_kenergy = 0;
+   double big_ljenergy = 0;
+
+   if (encapsulation) {
+      for (unsigned int i = 0; i < big_beads.size(); i++) {
+         big_cenergy += big_beads[i].ce;
+         big_kenergy += big_beads[i].ke;
+         big_ljenergy += big_beads[i].ne;
+      }
+   }
+
+
 
 
    if (world.rank() == 0) {                                 //print info to files for data analysis
@@ -313,6 +338,13 @@ int run_simulation(int argc, char *argv[]) {
                  << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
                  << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
                  << setw(15) << tkenergy / subunit_bead.size() << endl;
+      if (encapsulation) {
+         encapdata << 0 << setw(15) << big_kenergy / big_beads.size() << setw(15)
+                 << big_ljenergy / big_beads.size() << setw(15) << big_cenergy / big_beads.size()
+                 << setw(15) << (big_kenergy + big_ljenergy + big_cenergy) / big_beads.size() << setw(15)
+                 << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
+                 << big_kenergy * 2 / (3 * big_beads.size()) << endl;
+      }
    }
    senergy = 0;                                             //blanking out energies
    kenergy = 0;
@@ -322,27 +354,10 @@ int run_simulation(int argc, char *argv[]) {
    cenergy = 0;
    tpenergy = 0;
    tkenergy = 0;
+   big_cenergy = 0;
+   big_kenergy = 0;
+   big_ljenergy = 0;
 
-
-    /*
-    gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                               //setting up random seed for brownian
-    unsigned long int Seed = 23410981;
-    gsl_rng_set(r, Seed);
-    if (world.rank() == 0) {
-       ofile << "ITEM: TIMESTEP" << endl << 0 << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
-       << endl
-       << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
-       << setw(15)
-       << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
-       << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
-    }
-    if (world.rank() == 0) {
-       for (unsigned int b = 0; b < subunit_bead.size(); b++) {
-          ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
-          << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
-          << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
-       }
-    }*/
    
    
 
@@ -396,12 +411,15 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
                protein[i].itsB[ii]->compute_fdrag(damp);
-            }
-         }
-         for (unsigned int i = 0; i < protein.size(); i++) {
-            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_velocity(delta_t);
                protein[i].itsB[ii]->update_position(delta_t);
+            }
+         }
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].compute_fdrag(damp);
+               big_beads[i].update_velocity(delta_t);
+               big_beads[i].update_position(delta_t);
             }
          }
 
@@ -454,6 +472,20 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < subunit_bead.size(); i++)
             subunit_bead[i].fran = subunit_bead[i].fran - average_fran;
 
+
+
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].fran.x = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
+               big_beads[i].fran.y = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
+               big_beads[i].fran.z = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
+            }
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].update_tforce();
+               big_beads[i].update_velocity(delta_t);
+            }
+         }   
+            
          for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
                protein[i].itsB[ii]->update_tforce();
@@ -515,6 +547,15 @@ int run_simulation(int argc, char *argv[]) {
                protein[i].itsB[ii]->ce = 0;
             }
          }
+
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].be = 0;
+               big_beads[i].ne = 0;
+               big_beads[i].ce = 0;
+               big_beads[i].update_kinetic_energy();
+            }
+         }
    
          for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -549,8 +590,16 @@ int run_simulation(int argc, char *argv[]) {
             tkenergy += real_bath[i].ke;
          }
    
-         tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy +
-         tkenergy;                                                
+         tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy + tkenergy;
+
+
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_cenergy += big_beads[i].ce;
+               big_kenergy += big_beads[i].ke;
+               big_ljenergy += big_beads[i].ne;
+            }
+         }                                                
          
          if (world.rank() == 0) {                                 //print info to files for data analysis
             traj << a << setw(15) << kenergy / subunit_bead.size() << setw(15)
@@ -560,6 +609,14 @@ int run_simulation(int argc, char *argv[]) {
                  << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
                  << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
                  << setw(15) << tkenergy / subunit_bead.size() << setw(15) << average_velocity_vector.GetMagnitude() << endl;
+
+            if (encapsulation) {
+               encapdata << a << setw(15) << big_kenergy / big_beads.size() << setw(15)
+                       << big_ljenergy / big_beads.size() << setw(15) << big_cenergy / big_beads.size()
+                       << setw(15) << (big_kenergy + big_ljenergy + big_cenergy) / big_beads.size() << setw(15)
+                       << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
+                       << big_kenergy * 2 / (3 * big_beads.size()) << endl;
+            }
          }
          senergy = 0;                                             //blanking out energies
          kenergy = 0;
@@ -569,6 +626,9 @@ int run_simulation(int argc, char *argv[]) {
          cenergy = 0;
          tpenergy = 0;
          tkenergy = 0;
+         big_cenergy = 0;
+         big_kenergy = 0;
+         big_ljenergy = 0;
       } // energy analysis loop
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */

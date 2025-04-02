@@ -635,6 +635,7 @@ vector<BEAD> generate_big_beads(int num_big_beads, double sigma, const vector<BE
                 new_bead.bx = box_size;
                 new_bead.hbx = VECTOR3D(hbx, hbx, hbx);
                 new_bead.id = existing_beads.size() + big_beads.size();
+                new_bead.vel = VECTOR3D(0,0,0);
 
                 big_beads.push_back(new_bead);
                 placed = true;

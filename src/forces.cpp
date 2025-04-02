@@ -225,7 +225,7 @@ void forceCalculation_bigbead(vector<BEAD>& big_bead, vector<BEAD>& subunit_bead
    }
 
    for (unsigned int i = 0; i < big_bead.size(); i++)
-      big_bead[i].tforce = big_bead[i].tforce + big_bead[i].ljforce + big_bead[i].eforce;
+      big_bead[i].tforce = big_bead[i].ljforce + big_bead[i].eforce;
 
    for (unsigned int i = 0; i < subunit_bead.size(); i++)
       subunit_bead[i].tforce = subunit_bead[i].tforce + subunit_bead[i].ljforce + subunit_bead[i].eforce;
