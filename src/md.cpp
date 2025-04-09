@@ -34,7 +34,7 @@ int run_simulation(int argc, char *argv[]) {
    string file_name;
    double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;            // capsomere hamiltonian					
    double salt_concentration, temperature;	                                          // environmental or control parameters					
-   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp;// computational parameters
+   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp, radius_a, shc;// computational parameters
    bool verbose, restartFile, clusters, encapsulation;
    int buildFrequency, moviefreq, writefreq, restartfreq, N_step;
 	
@@ -83,7 +83,9 @@ int run_simulation(int argc, char *argv[]) {
    ("writefreq,W", value<int>(&writefreq)->default_value(1000),"frequency of dumping energy file")
    ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files")
    ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation")
-   ("encapsulation flag ,p", value<bool>(&encapsulation)->default_value(false), "flag to turn on encapsulation with big beads");
+   ("encapsulation flag ,p", value<bool>(&encapsulation)->default_value(false), "flag to turn on encapsulation with big beads")
+   ("big beads radius,a", value<double>(&radius_a)->default_value(3.0), "big beads radius in nm")
+   ("hard-core distance,H", value<double>(&shc)->default_value(3.5), "hard-core distance in nm");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -155,10 +157,7 @@ int run_simulation(int argc, char *argv[]) {
    double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),1.0 / 3.0); //calculating box size, prefactor of 1000 used to combine units
    VECTOR3D box_size = VECTOR3D(box_x, box_x, box_x);
    double ecut = 2.5 * (SIsigma / 1e-9);	                  // Lennard-Jones cut-off distance
-   double shc = 3.5;
 
-   //assign big beads
-   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,6.0,subunit_bead,box_size,100.0,3,-100,1000000);
 	
 	// Electrostatic features
    double lb = (0.701e-9) / SIsigma;   // e^2 / (4 pi Er E0 Kb T) ; value for T = 298 K.
@@ -177,6 +176,11 @@ int run_simulation(int argc, char *argv[]) {
       sysdata << "electrostatic cutoff is " << ecut_el * SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Neighborlist cutoff is " << NListCutoff * SIsigma / (1e-9) << " nanometers." << endl;
      }
+
+   //assign big beads
+   double reduced_a = (radius_a * 1e-9) / SIsigma;
+   double effective_charge = -1*(reduced_a / lb)*(4*kappa*reduced_a+6);
+   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,2*radius_a,subunit_bead,box_size,100.0,3,effective_charge,1000000, restartFile);
 
    if (brownian == false) {                                 //for molecular, set up the nose hoover thermostat
       if (chain_length_real == 1)
@@ -526,10 +530,17 @@ int run_simulation(int argc, char *argv[]) {
          restart << "Velocities & Positions for " << a << endl;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
              restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12) << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
-       //     restart << subunit_bead[i].tforce.x << setw(25) << setprecision(12) << subunit_bead[i].tforce.y << setw(25) << setprecision(12) << subunit_bead[i].tforce.z  << setw(25) << setprecision(12)
-                //     << endl;
          }
          restart.close();
+         if (encapsulation) {
+            rbFilename = "outfiles/rb_" + step.str();
+            rbFilename += ".out";
+            rb.open(rbFilename.c_str(), ios::out);
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               rb <<  big_beads[i].vel.x << setw(25) << setprecision(12) << big_beads[i].vel.y << setw(25) << setprecision(12) << big_beads[i].vel.z  << setw(25) << setprecision(12) << big_beads[i].pos.x << setw(25) << setprecision(12) << big_beads[i].pos.y << setw(25) << setprecision(12) << big_beads[i].pos.z  << setw(25) << setprecision(12) << endl;
+            }
+            rb.close();
+         }
       }
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								ANALYZE ENERGIES							     */

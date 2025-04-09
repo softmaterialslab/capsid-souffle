@@ -565,13 +565,40 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
 
 vector<BEAD> generate_big_beads(int num_big_beads, double sigma, const vector<BEAD>& existing_beads,
                                const VECTOR3D& box_size, double mass, int type, double charge,
-                               unsigned int max_attempts = 10000) {
+                               unsigned int max_attempts = 10000, bool restartflag = false) {
     vector<BEAD> big_beads;
     srand(0);  // Seed random number generator
 
     const double box_x = box_size.x;
     const double hbx = box_x * 0.5;  // Half box size (assuming cubic box)
     const double R_squared = (sigma) * (sigma);  // Minimum distance squared between big beads
+
+    if (restartflag == true) {
+      ifstream restart;
+      double vel_x, vel_y, vel_z, x, y, z;
+      vector<string> names = getFileNames("outfiles/");
+      filter(names, "rb"); // Filters to keep only files containing "rb"
+      sort(names.begin(), names.end(), numeric_string_compare);
+      restart.open(("outfiles/" + names.back()).c_str());
+      for(int i = 0; i < num_big_beads; i++) {
+         restart >> vel_x >> vel_y >> vel_z >> x >> y >> z;
+         cout << vel_x << ", " << vel_y << ", " << vel_z << endl;
+         BEAD new_bead(VECTOR3D(x, y, z));
+         new_bead.sigma = sigma;
+         new_bead.type = type;
+         new_bead.m = mass;
+         new_bead.q = charge;
+         new_bead.bx = box_size;
+         new_bead.hbx = VECTOR3D(hbx, hbx, hbx);
+         new_bead.id = existing_beads.size() + big_beads.size();
+         new_bead.eforce = VECTOR3D(0,0,0);
+         new_bead.ljforce = VECTOR3D(0,0,0);
+         new_bead.vel = VECTOR3D(vel_x,vel_y,vel_z);
+
+         big_beads.push_back(new_bead);
+      }
+      return big_beads;
+   }
 
     for(int i = 0; i < num_big_beads; i++) {
         bool placed = false;

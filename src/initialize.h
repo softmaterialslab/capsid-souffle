@@ -31,6 +31,6 @@ void initialize_constant_bead_velocities(std::vector<SUBUNIT> &protein, std::vec
 
 std::vector<BEAD> generate_big_beads(int num_big_beads, double sigma, const std::vector<BEAD>& existing_beads,
     const VECTOR3D& box_size, double mass, int type, double charge,
-    unsigned int max_attempts);
+    unsigned int max_attempts, bool restartflag);
 
 #endif //SOUFFLE_INITIALIZE_H
