@@ -99,8 +99,8 @@ int run_simulation(int argc, char *argv[]) {
    ofstream encapdata("outfiles/capenergy.out", ios::out);
    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
    ofstream sysdata("outfiles/model.parameters.out", ios::out);
-   ofstream restart;
-   string restartFilename;
+   ofstream restart, rb;
+   string restartFilename, rbFilename;
    int restartStep;
    initialize_outputfile(traj, ofile);
    
