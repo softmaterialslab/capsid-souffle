@@ -34,7 +34,7 @@ int run_simulation(int argc, char *argv[]) {
    string file_name;
    double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;            // capsomere hamiltonian					
    double salt_concentration, temperature;	                                          // environmental or control parameters					
-   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp, radius_a, shc;// computational parameters
+   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp, radius_a, charge_a, shc;// computational parameters
    bool verbose, restartFile, clusters, encapsulation;
    int buildFrequency, moviefreq, writefreq, restartfreq, N_step;
 	
