@@ -85,6 +85,7 @@ int run_simulation(int argc, char *argv[]) {
    ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation")
    ("encapsulation flag ,p", value<bool>(&encapsulation)->default_value(false), "flag to turn on encapsulation with big beads")
    ("big beads radius,a", value<double>(&radius_a)->default_value(3.0), "big beads radius in nm")
+   ("big beads charge,G", value<double>(&charge_a)->default_value(78.0), "big beads charge in e")
    ("hard-core distance,H", value<double>(&shc)->default_value(3.5), "hard-core distance in nm");
    
    variables_map vm;
@@ -178,9 +179,9 @@ int run_simulation(int argc, char *argv[]) {
      }
 
    //assign big beads
-   double reduced_a = (radius_a * 1e-9) / SIsigma;
-   double effective_charge = -1*(reduced_a / lb)*(4*kappa*reduced_a+6);
-   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,2*radius_a,subunit_bead,box_size,100.0,3,effective_charge,1000000, restartFile);
+   // double reduced_a = (radius_a * 1e-9) / SIsigma;
+   // double effective_charge = -1*(reduced_a / lb)*(4*kappa*reduced_a+6);
+   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,radius_a*2,subunit_bead,box_size,100.0,3,charge_a,1000000, restartFile);
 
    if (brownian == false) {                                 //for molecular, set up the nose hoover thermostat
       if (chain_length_real == 1)
