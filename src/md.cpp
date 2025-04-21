@@ -36,7 +36,7 @@ int run_simulation(int argc, char *argv[]) {
    double salt_concentration, temperature;	                                          // environmental or control parameters					
    double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp, radius_a, charge_a, shc;// computational parameters
    bool verbose, restartFile, clusters, encapsulation;
-   int buildFrequency, moviefreq, writefreq, restartfreq, N_step;
+   int buildFrequency, moviefreq, writefreq, restartfreq, N_step, number_bigbeads;
 	
    double qs = 1;                                           //salt valency
    double T;                                                //set temperature (reduced units)
@@ -85,7 +85,8 @@ int run_simulation(int argc, char *argv[]) {
    ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation")
    ("encapsulation flag ,p", value<bool>(&encapsulation)->default_value(false), "flag to turn on encapsulation with big beads")
    ("big beads radius,a", value<double>(&radius_a)->default_value(3.0), "big beads radius in nm")
-   ("big beads charge,G", value<double>(&charge_a)->default_value(78.0), "big beads charge in e")
+   ("big beads charge,G", value<double>(&charge_a)->default_value(-78.0), "big beads charge in e")
+   ("number of big beads,m", value<int>(&number_bigbeads)->default_value(1), "number of big beads placed in the simulation box")
    ("hard-core distance,H", value<double>(&shc)->default_value(3.5), "hard-core distance in nm");
    
    variables_map vm;
@@ -181,7 +182,7 @@ int run_simulation(int argc, char *argv[]) {
    //assign big beads
    // double reduced_a = (radius_a * 1e-9) / SIsigma;
    // double effective_charge = -1*(reduced_a / lb)*(4*kappa*reduced_a+6);
-   vector<BEAD> big_beads = generate_big_beads(int((protein.size()-1)/20)+1,radius_a*2,subunit_bead,box_size,100.0,3,charge_a,1000000, restartFile);
+   vector<BEAD> big_beads = generate_big_beads(number_bigbeads,2*radius_a,subunit_bead,box_size,100.0,3,charge_a,1000000, restartFile);
 
    if (brownian == false) {                                 //for molecular, set up the nose hoover thermostat
       if (chain_length_real == 1)

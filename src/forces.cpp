@@ -213,7 +213,7 @@ void forceCalculation_bigbead(vector<BEAD>& big_bead, vector<BEAD>& subunit_bead
 
          double yukawa_scale = exp(kappa * sigavg)/((1+kappa*sig1/2)*(1+kappa*sig2/2));
          r_vec ^ ((big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)/ (r2)) * (kappa + 1 / r));
-         if (electrostatic) eForce = r_vec ^ ((big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)/ (r2)) * (kappa + 1 / r) * yukawa_scale); else eForce = VECTOR3D(0, 0, 0);
+         if (electrostatic && r2 < (ecut_el*ecut_el)) eForce = r_vec ^ ((big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa * r)/ (r2)) * (kappa + 1 / r) * yukawa_scale); else eForce = VECTOR3D(0, 0, 0);
          big_bead[i].eforce = big_bead[i].eforce + eForce;
          subunit_bead[j].eforce = subunit_bead[j].eforce - eForce;
 

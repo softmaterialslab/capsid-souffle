@@ -122,7 +122,7 @@ void update_LJ_ES_energies_bigbeads(vector<BEAD>& big_bead, vector<BEAD>& subuni
          double r6 = pow((r-delta), 6);
 
          double yukawa_scale = exp(kappa * sigavg)/((1+kappa*sig1/2)*(1+kappa*sig2/2));
-         if (electrostatic) ce = ( (big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) * yukawa_scale ) / (r)); else ce = 0;
+         if (electrostatic && r < ecut_el) ce = ( (big_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) * yukawa_scale ) / (r)); else ce = 0;
          big_bead[i].ce += ce;
          subunit_bead[j].ce += ce;
 
