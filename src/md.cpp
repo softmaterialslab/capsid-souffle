@@ -423,8 +423,8 @@ int run_simulation(int argc, char *argv[]) {
          if (encapsulation) {
             for (unsigned int i = 0; i < big_beads.size(); i++) {
                big_beads[i].compute_fdrag(damp);
-               big_beads[i].update_velocity(delta_t);
-               big_beads[i].update_position(delta_t);
+               //big_beads[i].update_velocity(delta_t);
+               //big_beads[i].update_position(delta_t);
             }
          }
 
@@ -486,8 +486,8 @@ int run_simulation(int argc, char *argv[]) {
                big_beads[i].fran.z = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
             }
             for (unsigned int i = 0; i < big_beads.size(); i++) {
-               big_beads[i].update_tforce();
-               big_beads[i].update_velocity(delta_t);
+               //big_beads[i].update_tforce();
+               //big_beads[i].update_velocity(delta_t);
             }
          }   
             
