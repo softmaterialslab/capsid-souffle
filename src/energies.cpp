@@ -46,19 +46,20 @@ void update_LJ_ES_energies_simplified(vector<BEAD>& subunit_bead, double ecut, v
             else if (r_vec.z < -hbox.z) r_vec.z += box.z;
             r = r_vec.GetMagnitude();
          }
-            
+         double sig1 = subunit_bead[i].sigma;
+         double sig2 = subunit_bead[j].sigma;
+         double shc = (sig1 + sig2)/2;
+         double yukawa_scale = exp(kappa * shc)/((1+kappa*sig1/2)*(1+kappa*sig2/2));
+
          if (electrostatic && r < ecut_el && ecut_el != 0){//electrostatic energy
-            subunit_bead[i].ce += ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) -
+            subunit_bead[i].ce += yukawa_scale * ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) -
                                   ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*ecut_el) ) / (ecut_el)) );
          } else if (electrostatic && ecut_el == 0){
-            subunit_bead[i].ce += ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) ) / (r) );
+            subunit_bead[i].ce += ( (subunit_bead[i].q * subunit_bead[j].q * lb * exp(-kappa*r) * yukawa_scale) / (r) );
          } else{
              subunit_bead[i].ce += 0;
          }
          
-         double sig1 = subunit_bead[i].sigma;
-         double sig2 = subunit_bead[j].sigma;
-         double shc = (sig1 + sig2)/2;
          double sigma3 = shc * shc * shc;
          double sigma6 = sigma3 * sigma3;
          double r3 = r * r * r;
