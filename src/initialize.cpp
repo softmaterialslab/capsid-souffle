@@ -14,7 +14,7 @@ void initialize_outputfile(ofstream &reftraj, ofstream &refofile) {
       //create files for data analysis
       reftraj << "time" << setw(15) << "kinetic" << setw(15) << "stretching" << setw(15) << "bending" << setw(15)
               << "LJ" << setw(15) << "electrostatics" << setw(15) << "total" << setw(15) << "potential" << setw(15)
-              << "temperature" << setw(20) << "thermo_potential" << setw(15) << "thermo_kinetic" << endl;
+              << "temperature" << setw(20) << "thermo_potential" << setw(15) << "thermo_kinetic" << setw(15) << "system_velocity_magnitude"<< endl;
    } //if
 } // void fxn
 
@@ -561,4 +561,121 @@ void initialize_bead_velocities(vector<SUBUNIT> &protein, vector<BEAD> &subunit_
       list_initial_velocities.close();
    }
    return;
+}
+
+vector<BEAD> generate_big_beads(int num_big_beads, double sigma, const vector<BEAD>& existing_beads,
+                               const VECTOR3D& box_size, double mass, int type, double charge,
+                               unsigned int max_attempts = 10000, bool restartflag = false) {
+    vector<BEAD> big_beads;
+    srand(0);  // Seed random number generator
+
+    const double box_x = box_size.x;
+    const double hbx = box_x * 0.5;  // Half box size (assuming cubic box)
+    const double R_squared = (sigma) * (sigma);  // Minimum distance squared between big beads
+
+    if (restartflag == true) {
+      ifstream restart;
+      double vel_x, vel_y, vel_z, x, y, z;
+      vector<string> names = getFileNames("outfiles/");
+      filter(names, "rb"); // Filters to keep only files containing "rb"
+      sort(names.begin(), names.end(), numeric_string_compare);
+      restart.open(("outfiles/" + names.back()).c_str());
+      for(int i = 0; i < num_big_beads; i++) {
+         restart >> vel_x >> vel_y >> vel_z >> x >> y >> z;
+         cout << vel_x << ", " << vel_y << ", " << vel_z << endl;
+         BEAD new_bead(VECTOR3D(x, y, z));
+         new_bead.sigma = sigma;
+         new_bead.type = type;
+         new_bead.m = mass;
+         new_bead.q = charge;
+         new_bead.bx = box_size;
+         new_bead.hbx = VECTOR3D(hbx, hbx, hbx);
+         new_bead.id = existing_beads.size() + big_beads.size();
+         new_bead.eforce = VECTOR3D(0,0,0);
+         new_bead.ljforce = VECTOR3D(0,0,0);
+         new_bead.vel = VECTOR3D(vel_x,vel_y,vel_z);
+
+         big_beads.push_back(new_bead);
+      }
+      return big_beads;
+   }
+
+    for(int i = 0; i < num_big_beads; i++) {
+        bool placed = false;
+        unsigned int attempts = 0;
+
+        while(!placed && attempts < max_attempts) {
+            // Generate random position within box
+            double x = (static_cast<double>(rand())/RAND_MAX - 0.5) * box_size.x;
+            double y = (static_cast<double>(rand())/RAND_MAX - 0.5) * box_size.y;
+            double z = (static_cast<double>(rand())/RAND_MAX - 0.5) * box_size.z;
+
+            bool collision = false;
+
+            // Check against existing beads
+           for(const BEAD& bead : existing_beads) {
+              double dx = x - bead.pos.x;
+              dx -= box_size.x * floor(dx/box_size.x + 0.5);  // Periodic correction
+
+              double dy = y - bead.pos.y;
+              dy -= box_size.y * floor(dy/box_size.y + 0.5);
+
+              double dz = z - bead.pos.z;
+              dz -= box_size.z * floor(dz/box_size.z + 0.5);
+
+              double dist_sq = dx*dx + dy*dy + dz*dz;
+              double min_dist = bead.sigma / 2 + sigma / 2;
+
+              if(dist_sq < min_dist*min_dist) {
+                 collision = true;
+                 break;
+              }
+           }
+
+            // Check against other big beads
+           if(!collision) {
+              for(const BEAD& big_bead : big_beads) {
+                 double dx = x - big_bead.pos.x;
+                 dx -= box_size.x * floor(dx/box_size.x + 0.5);
+
+                 double dy = y - big_bead.pos.y;
+                 dy -= box_size.y * floor(dy/box_size.y + 0.5);
+
+                 double dz = z - big_bead.pos.z;
+                 dz -= box_size.z * floor(dz/box_size.z + 0.5);
+
+                 double dist_sq = dx*dx + dy*dy + dz*dz;
+
+                 if(dist_sq < R_squared) {
+                    collision = true;
+                    break;
+                 }
+              }
+           }
+
+            if(!collision) {
+                BEAD new_bead(VECTOR3D(x, y, z));
+                new_bead.sigma = sigma;
+                new_bead.type = type;
+                new_bead.m = mass;
+                new_bead.q = charge;
+                new_bead.bx = box_size;
+                new_bead.hbx = VECTOR3D(hbx, hbx, hbx);
+                new_bead.id = existing_beads.size() + big_beads.size();
+                new_bead.vel = VECTOR3D(0,0,0);
+
+                big_beads.push_back(new_bead);
+                placed = true;
+            }
+            attempts++;
+        }
+
+        if(attempts >= max_attempts) {
+            cerr << "Error: Failed to place big bead " << i+1
+                 << " after " << max_attempts << " attempts" << endl;
+            exit(1);
+        }
+    }
+
+    return big_beads;
 }

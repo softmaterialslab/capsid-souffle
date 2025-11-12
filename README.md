@@ -12,8 +12,8 @@ Below are brief installation and run instructions.
 * First, git clone the project:
 ```git clone https://github.com/softmaterialslab/capsid-souffle.git```
 * Then, load the required modules: boost, gsl and gnu computing environment.
-* * These modules are installed for you in src/Makefile, currently configured for BigRed3 supercomputer
-```module swap PrgEnv-intel/6.0.5 PrgEnv-gnu && module load boost/gnu && module load gsl```
+* * These modules are installed for you in src/Makefile, currently configured for BigRed200 supercomputer
+```module load gsl/2.8 && module load boost/1.86.0```
 * Next, go to the root directory:
  ```cd capsid-souffle```
 * Then, install the project:
@@ -28,10 +28,11 @@ Below are brief installation and run instructions.
 ```make clean```
 * If you want to clean the output data for a new run, use:
 ```make dataclean```
+* Submit a batch script or run with these boost option parameters: ```./capsid-souffle -D b -f trimer_MVM -S 20 -d 100 -T 10000 -s 5000 -b 5000 -C 800 -c 100 -E 2.1 -t 0.005 -W 1000 -M 1000 -K 298```
 
 ## Install and run instructions on Local computer (Linux)
 * Load the necessary modules: boost, gsl and openmpi
-```module load gsl && module load openmpi/3.0.1 && module load boost/1_67_0```
+```module load gsl/2.8 && module load openmpi/3.0.1 && module load boost/1.86.0```
 * Also make sure to export OMP_NUM_THREADS environment variable with maximum threads available in your CPU:
 ```export OMP_NUM_THREADS=16```
 * Next, go to the root directory:
@@ -41,7 +42,7 @@ Below are brief installation and run instructions.
 * Next, go to the bin directory:
  ```cd bin```
 * Next, run the job:
-``` time mpirun -np 1 -N 16 ./capsid-souffle -f trimer_MVM -S 20 -T 1000000 -s 500 -b 500 -C 520 -c 1000 -E 1.9 ```
+``` time mpirun -np 1 -N 16 ./capsid-souffle -f trimer_MVM -S 20 -d 100 -T 10000 -s 5000 -b 5000 -C 800 -c 100 -E 2.1 -t 0.005 -W 1000 -M 1000 -K 298 ```
 * All outputs from the simulation will be stored in the bin folder when the simulation is completed.
 * Check and compare files (ex: energy.out) inside the ```bin/outfiles``` directory; model.parameters.out contains info on the system.
 * If you want to clean everything and create a new build, use:

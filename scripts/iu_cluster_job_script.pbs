@@ -1,20 +1,23 @@
-#! /bin/bash
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1 
-#SBATCH --time=00:10:00
-#SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=lm44@iu.edu
+#!/bin/bash
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=24
+#SBATCH --time=4:00:00
+#SBATCH -A r00458
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --mail-user=fanbsun@iu.edu
 #SBATCH --output=out.log
 #SBATCH --error=err.log
 #SBATCH --job-name=MVM_INPUT_TEMP
 
 # below are the modules you will need to compile the code on bigred2 (see README)
 # uncomment the following 3 lines to load the modules at the time of job launch
-module swap PrgEnv-intel/6.0.5 PrgEnv-gnu
-module load boost/gnu
-module load gsl
+#module swap PrgEnv-intel PrgEnv-gnu
+module load boost/1.78.0
+module load gsl/2.7
+module load lammps/2Aug2023
 
-export OMP_NUM_THREADS=1
-# -d refers to number of cores. this should match ppn in Line 2.
 cd $SLURM_SUBMIT_DIR
-time srun -n 1 -d 1 ./capsid-souffle -D m -f 43part_25_20 -S 100 -C 520 -c 1000 -s 500 -b 500 -T 10000 -t 0.004 -K INPUT_TEMP
+chmod 777 capsid-souffle
+export OMP_NUM_THREADS=24# -d refers to number of cores. this should match ppn in Line 2.
+cd $SLURM_SUBMIT_DIR
+time srun -n 4 -d 24 ./capsid-souffle -D m -f trimer_MVM -S 20 -C 800 -c 100 -s 5000.0 -b 5000.0 -T 50000000 -E 2.0 -t 0.001 -M 100000 -W 50000

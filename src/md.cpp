@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iomanip>
 #include <vector>
+#include <chrono>
+#include <random>
 #include "initialize.h"
 #include "functions.h"
 #include "energies.h"
@@ -32,13 +34,13 @@ int run_simulation(int argc, char *argv[]) {
    string file_name;
    double capsomere_concentration, ks, kb, number_capsomeres, ecut_c, elj_att;            // capsomere hamiltonian					
    double salt_concentration, temperature;	                                          // environmental or control parameters					
-   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff;// computational parameters
-   bool verbose, restartFile, clusters;
-   int buildFrequency, moviefreq, writefreq, restartfreq;
+   double computationSteps, totaltime, delta_t, fric_zeta, chain_length_real, NListCutoff_c, NListCutoff, damp, radius_a, charge_a, shc;// computational parameters
+   bool verbose, restartFile, clusters, encapsulation;
+   int buildFrequency, moviefreq, writefreq, restartfreq, N_step, number_bigbeads;
 	
    double qs = 1;                                           //salt valency
    double T;                                                //set temperature (reduced units)
-   double Q = 10;                                           //nose hoover mass (reduced units)
+   double Q;                                           //nose hoover mass (reduced units)
 	
    double const Avagadro = 6.022e23; // mol^-1		      //useful constants
    double const Boltzmann = 1.3806e-23; // m2kg/s2K
@@ -66,7 +68,9 @@ int run_simulation(int argc, char *argv[]) {
    ("timestep,t", value<double>(&delta_t)->default_value(0.004), "timestep (MD steps)")
    ("friction coefficient,r", value<double>(&fric_zeta)->default_value(1),
    "friction coefficient (reduced unit)")                   //used in brownian
+   ("damping coefficient,d", value<double>(&damp)->default_value(100),"damping coefficient (unit of LJ time)")                   //used in brownian
    ("chain length,q", value<double>(&chain_length_real)->default_value(5), "nose hoover chain length") //used in MD
+   ("thermal mass,Q", value<double>(&Q)->default_value(10), "nose hoover mass") //used in MD
    ("temperature,K", value<double>(&temperature)->default_value(298), "temperature (Kelvin)")
    ("ecut_c,e", value<double>(&ecut_c)->default_value(12), "electrostatics cutoff coefficient, input 0 for no cutoff")
    ("Restart bool,R", value<bool>(&restartFile)->default_value(true), "restartFile true: initializes from a restart file in outfiles/")
@@ -77,7 +81,13 @@ int run_simulation(int argc, char *argv[]) {
    ("Neighbor list cutoff,L", value<double>(&NListCutoff_c)->default_value(7.5), "Neighbor list cutoff (x + es & lj cutoff)")
    ("moviefreq,M", value<int>(&moviefreq)->default_value(1000), "The frequency of shooting the movie")
    ("writefreq,W", value<int>(&writefreq)->default_value(1000),"frequency of dumping energy file")
-   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files");
+   ("restartfreq,w", value<int>(&restartfreq)->default_value(1000000), "The frequency of making restart files")
+   ("srstep ,N", value<int>(&N_step)->default_value(4), "number of steps used in short range computation")
+   ("encapsulation flag ,p", value<bool>(&encapsulation)->default_value(false), "flag to turn on encapsulation with big beads")
+   ("big beads radius,a", value<double>(&radius_a)->default_value(3.0), "big beads radius in nm")
+   ("big beads charge,G", value<double>(&charge_a)->default_value(-78.0), "big beads charge in e")
+   ("number of big beads,m", value<int>(&number_bigbeads)->default_value(1), "number of big beads placed in the simulation box")
+   ("hard-core distance,H", value<double>(&shc)->default_value(3.5), "hard-core distance in nm");
    
    variables_map vm;
    store(parse_command_line(argc, argv, desc), vm);
@@ -88,10 +98,11 @@ int run_simulation(int argc, char *argv[]) {
    }
    
    ofstream traj("outfiles/energy.out", ios_base::app);     //setting up file outputs
+   ofstream encapdata("outfiles/capenergy.out", ios::out);
    ofstream ofile("outfiles/ovito.lammpstrj", ios_base::app);
    ofstream sysdata("outfiles/model.parameters.out", ios::out);
-   ofstream restart;
-   string restartFilename;
+   ofstream restart, rb;
+   string restartFilename, rbFilename;
    int restartStep;
    initialize_outputfile(traj, ofile);
    
@@ -142,12 +153,13 @@ int run_simulation(int argc, char *argv[]) {
       sysdata << "Total number of subunits is " << number_capsomeres << endl;
       sysdata << "Temperature is " << temperature << " K" << " Which is " << T << " in reduced units" << endl;
       sysdata << "Attractive LJ paramerter is " << elj_att << " Which is " << elj_att * (SIenergy * Avagadro / (1000 * UnitEnergy) ) << " kJ/mol." << endl;
-     }
+   }
      
 	// LJ features
    double box_x = pow((number_capsomeres * 1000 / (capsomere_concentration * pow(SIsigma, 3) * Avagadro)),1.0 / 3.0); //calculating box size, prefactor of 1000 used to combine units
    VECTOR3D box_size = VECTOR3D(box_x, box_x, box_x);
    double ecut = 2.5 * (SIsigma / 1e-9);	                  // Lennard-Jones cut-off distance
+
 	
 	// Electrostatic features
    double lb = (0.701e-9) / SIsigma;   // e^2 / (4 pi Er E0 Kb T) ; value for T = 298 K.
@@ -166,6 +178,11 @@ int run_simulation(int argc, char *argv[]) {
       sysdata << "electrostatic cutoff is " << ecut_el * SIsigma / (1e-9) << " nanometers." << endl;
       sysdata << "Neighborlist cutoff is " << NListCutoff * SIsigma / (1e-9) << " nanometers." << endl;
      }
+
+   //assign big beads
+   // double reduced_a = (radius_a * 1e-9) / SIsigma;
+   // double effective_charge = -1*(reduced_a / lb)*(4*kappa*reduced_a+6);
+   vector<BEAD> big_beads = generate_big_beads(number_bigbeads,2*radius_a,subunit_bead,box_size,100.0,3,charge_a,1000000, restartFile);
 
    if (brownian == false) {                                 //for molecular, set up the nose hoover thermostat
       if (chain_length_real == 1)
@@ -222,6 +239,7 @@ int run_simulation(int argc, char *argv[]) {
    }
 
    forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+   if (encapsulation) forceCalculation_bigbead(big_beads, subunit_bead, ecut,  lb,  ni, qs,ecut_el, kappa,shc);
 
    double senergy = 0;                                                        //blank all the energy metrics
    double kenergy = 0;
@@ -236,29 +254,115 @@ int run_simulation(int argc, char *argv[]) {
       initialize_bead_velocities(protein, subunit_bead, T, clusters, cluster_size);
      //initialize_constant_bead_velocities(protein, subunit_bead, T);
    }
-                                                                              
+
    double particle_ke = particle_kinetic_energy(subunit_bead);                //thermostat variables for nose hoover
-   double expfac_real = 0;                     
-                   
-   gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);                               //setting up random seed for brownian
-   unsigned long int Seed = 23410981;
-   gsl_rng_set(r, Seed);
-   /*
-   if (world.rank() == 0) {
-      ofile << "ITEM: TIMESTEP" << endl << 0 << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
-      << endl
-      << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
-      << setw(15)
-      << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
-      << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
-   }
-   if (world.rank() == 0) {
-      for (unsigned int b = 0; b < subunit_bead.size(); b++) {
-         ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
-         << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
-         << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
+   double expfac_real = 0;
+
+   //initialize bending and streching energy
+   dress_up(subunit_edge, subunit_face);                     //update edge and face properties
+
+
+   for (unsigned int i = 0; i < protein.size(); i++) {       //blanking out energies here
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         protein[i].itsB[ii]->be = 0;
+         protein[i].itsB[ii]->ne = 0;
+         protein[i].itsB[ii]->ce = 0;
       }
-   }*/
+   }
+
+   //blank out energy of big beads and update their kinetic energy
+   if (encapsulation) {
+      for (unsigned int i = 0; i < big_beads.size(); i++) {
+         big_beads[i].be = 0;
+         big_beads[i].ne = 0;
+         big_beads[i].ce = 0;
+         big_beads[i].update_kinetic_energy();
+      }
+   }
+
+   for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         protein[i].itsB[ii]->update_stretching_energy(ks);
+         protein[i].itsB[ii]->update_kinetic_energy();
+      }
+      for (unsigned int kk = 0; kk < protein[i].itsE.size(); kk++) {
+         if (protein[i].itsE[kk]->type != 0) {
+            //if it is a bending edge...
+            protein[i].itsE[kk]->update_bending_energy(kb);
+            //traj << "Normal Vector 0 on edge " << kk << ": " << protein[i].itsE[kk]->itsF[0]->normvec.x << ", " <<protein[i].itsE[kk]->itsF[0]->normvec.y << ", " << protein[i].itsE[kk]->itsF[0]->normvec.z << endl;
+            //traj << "Normal Vector 1 on edge " << kk << ": " << protein[i].itsE[kk]->itsF[1]->normvec.x << ", " <<protein[i].itsE[kk]->itsF[1]->normvec.y << ", " << protein[i].itsE[kk]->itsF[1]->normvec.z << endl;
+         }
+      }
+   }
+                                                                  //Intermolecular Energies
+   update_LJ_ES_energies_simplified(subunit_bead, ecut, lj_a, elj_att, lb, ni, qs, ecut_el, kappa);
+   if (encapsulation) update_LJ_ES_energies_bigbeads(big_beads, subunit_bead, ecut, lb, ni, qs, ecut_el, kappa, shc);
+
+   for (unsigned int i = 0; i < protein.size(); i++) {      //blanking out energies here
+      for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+         senergy += protein[i].itsB[ii]->se;                //sum up total energies
+         kenergy += protein[i].itsB[ii]->ke;
+         ljenergy += protein[i].itsB[ii]->ne;
+         benergy += protein[i].itsB[ii]->be;
+         cenergy += protein[i].itsB[ii]->ce;
+      }
+   }
+
+   for (unsigned int i = 0; i < real_bath.size(); i++) {    //thermostat energies
+      real_bath[i].potential_energy();
+      real_bath[i].kinetic_energy();
+   }
+   for (unsigned int i = 0; i < real_bath.size(); i++) {
+      tpenergy += real_bath[i].pe;                          //sum up total energies
+      tkenergy += real_bath[i].ke;
+   }
+
+   tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy + tkenergy;
+
+
+   //For big beads, create necessary energy attributes to sum up energies
+   double big_cenergy = 0;
+   double big_kenergy = 0;
+   double big_ljenergy = 0;
+
+   if (encapsulation) {
+      for (unsigned int i = 0; i < big_beads.size(); i++) {
+         big_cenergy += big_beads[i].ce;
+         big_kenergy += big_beads[i].ke;
+         big_ljenergy += big_beads[i].ne;
+      }
+   }
+
+
+
+
+   if (world.rank() == 0) {                                 //print info to files for data analysis
+      traj << 0 << setw(15) << kenergy / subunit_bead.size() << setw(15)
+                 << senergy / subunit_bead.size() << setw(15) << benergy / subunit_bead.size()
+                 << setw(15) << ljenergy / subunit_bead.size() << setw(15) << cenergy / subunit_bead.size()
+                 << setw(15) << tenergy / subunit_bead.size() << setw(15)
+                 << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
+                 << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
+                 << setw(15) << tkenergy / subunit_bead.size() << endl;
+      if (encapsulation) {
+         encapdata << 0 << setw(15) << big_kenergy / big_beads.size() << setw(15)
+                 << big_ljenergy / big_beads.size() << setw(15) << big_cenergy / big_beads.size()
+                 << setw(15) << (big_kenergy + big_ljenergy + big_cenergy) / big_beads.size() << setw(15)
+                 << big_kenergy * 2 / (3 * big_beads.size()) << endl;
+      }
+   }
+   senergy = 0;                                             //blanking out energies
+   kenergy = 0;
+   benergy = 0;
+   tenergy = 0;
+   ljenergy = 0;
+   cenergy = 0;
+   tpenergy = 0;
+   tkenergy = 0;
+   big_cenergy = 0;
+   big_kenergy = 0;
+   big_ljenergy = 0;
+
    
    
 
@@ -272,12 +376,26 @@ int run_simulation(int argc, char *argv[]) {
    int loopStart;
    if (restartFile == false) loopStart = 0;
    if (restartFile == true) loopStart = restartStep;
+
+
+   //set up random distribution for brownian
+   unsigned seed = 69521;
+   std::default_random_engine generator (seed);
+   std::normal_distribution<double> distribution (0.0,1.0);
+   std::uniform_real_distribution<> distr(-0.5,0.5);
                         
    for (unsigned int a = loopStart; a < ((totaltime / delta_t)+1); a++) {        // BEGIN MD LOOP
    
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								VELOCITY VERLET		                                */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //  Brownian Dynamics Equations
+      //  r1 = -m / damp;
+      //  r2 = sqrt((24*m*kB)/(damp*dt));
+      //  frandom = r2 * uniform(-0.5, 0.5);
+      //  fdrag = r1 * v
+      // force = force + frandom + fdrag
+
       
       if (brownian == false) {                                                //FOR MOLECULAR DYNAMICS
          for (int i = real_bath.size() - 1; i > -1; i--)                      //thermostat update
@@ -286,6 +404,7 @@ int run_simulation(int argc, char *argv[]) {
             real_bath[i].update_eta(delta_t);
 			
          expfac_real = exp(-0.5 * delta_t * real_bath[0].xi);
+
                                  
          for (unsigned int i = 0; i < protein.size(); i++) {                  //velocity verlet loop
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -294,21 +413,21 @@ int run_simulation(int argc, char *argv[]) {
             }
          } // for i
       } else {                                                                    // FOR BROWNIAN DYNAMICS
-         double c2;
-         for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            subunit_bead[i].noise.x = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);                  //determine noise term
-            subunit_bead[i].noise.y = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);
-            subunit_bead[i].noise.z = gsl_ran_gaussian(r,1) * sqrt(2 * UnitEnergy * fric_zeta * delta_t);
-            subunit_bead[i].oldtforce = subunit_bead[i].tforce;
-           // cout << "velocities are " << subunit_bead[i].vel.x << " , " << subunit_bead[i].vel.y << " , " << subunit_bead[i].vel.z << endl;
-         }
          for (unsigned int i = 0; i < protein.size(); i++) {
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
-               c2 = 1 + (delta_t * 0.5 * fric_zeta / protein[i].itsB[ii]->m);
-               protein[i].itsB[ii]->update_position_brownian(delta_t, c2, fric_zeta);                                   //update position full step
-            }  // for ii
-         }  // for i
+               protein[i].itsB[ii]->compute_fdrag(damp);
+               protein[i].itsB[ii]->update_velocity(delta_t);
+               protein[i].itsB[ii]->update_position(delta_t);
+            }
+         }
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].compute_fdrag(damp);
+               //big_beads[i].update_velocity(delta_t);
+               //big_beads[i].update_position(delta_t);
+            }
+         }
+
       }  // else
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*                                                                      UPDATE PAIRLIST                 */
@@ -322,6 +441,7 @@ int run_simulation(int argc, char *argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
                         
       forceCalculation(protein, lb, ni, qs, subunit_bead, ecut, ks, kb, lj_a, ecut_el, kappa, elj_att, updatePairlist, NListCutoff);
+      if (encapsulation) forceCalculation_bigbead(big_beads, subunit_bead, ecut,  lb,  ni, qs,ecut_el, kappa,shc);
             
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								VELOCITY VERLET							  */
@@ -339,23 +459,59 @@ int run_simulation(int argc, char *argv[]) {
          for (unsigned int i = 0; i < real_bath.size(); i++)
             update_chain_xi(i, real_bath, delta_t, particle_ke);
       } else {                                                                //FOR BROWNIAN DYNAMICS
-         for (unsigned int i = 0; i < subunit_bead.size(); i++) {
-            double c2 = 1 + (delta_t * 0.5 * fric_zeta / subunit_bead[i].m);
-            VECTOR3D r_vec; //= (A->pos - B->pos);
-            r_vec.x = subunit_bead[i].oldpos.x - subunit_bead[i].pos.x;
-            r_vec.y = subunit_bead[i].oldpos.y - subunit_bead[i].pos.y;
-            r_vec.z = subunit_bead[i].oldpos.z - subunit_bead[i].pos.z;
-            VECTOR3D box = subunit_bead[i].bx;
-            VECTOR3D hbox = subunit_bead[i].hbx;
-            if (r_vec.x > hbox.x) r_vec.x -= box.x;
-            else if (r_vec.x < -hbox.x) r_vec.x += box.x;
-            if (r_vec.y > hbox.y) r_vec.y -= box.y;
-            else if (r_vec.y < -hbox.y) r_vec.y += box.y;
-            if (r_vec.z > hbox.z) r_vec.z -= box.z;
-            else if (r_vec.z < -hbox.z) r_vec.z += box.z;
-            subunit_bead[i].vel += ((subunit_bead[i].oldtforce + subunit_bead[i].tforce) ^ (0.5 * delta_t / subunit_bead[i].m)) + (subunit_bead[i].noise ^ (1/subunit_bead[i].m)) + (r_vec ^ (fric_zeta / subunit_bead[i].m));
-         }  
+         for (int i = 0; i < protein.size(); i++) {
+            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
+               protein[i].itsB[ii]->fran.x = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+               protein[i].itsB[ii]->fran.y = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+               protein[i].itsB[ii]->fran.z = sqrt((protein[i].itsB[ii]->m*24.0)/(damp * delta_t)) * distr(generator);
+            }
+         }
+         VECTOR3D average_fran = VECTOR3D(0, 0, 0);
+         for (unsigned int i = 0; i < protein.size(); i++) {
+            for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+               average_fran = average_fran + protein[i].itsB[j]->fran;
+            }
+         }
+         average_fran = average_fran ^ (1.0 / subunit_bead.size());
+
+         for (unsigned int i = 0; i < subunit_bead.size(); i++)
+            subunit_bead[i].fran = subunit_bead[i].fran - average_fran;
+
+
+
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].fran.x = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
+               big_beads[i].fran.y = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
+               big_beads[i].fran.z = sqrt((big_beads[i].m*24.0)/(damp * delta_t)) * distr(generator);
+            }
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               //big_beads[i].update_tforce();
+               //big_beads[i].update_velocity(delta_t);
+            }
+         }   
+            
+         for (unsigned int i = 0; i < protein.size(); i++) {
+            for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++){
+               protein[i].itsB[ii]->update_tforce();
+               protein[i].itsB[ii]->update_velocity(delta_t);
+            }
+         }
+
       }  // else
+
+
+
+      //adjust system velocity to ensure it equals the intial system velocity V=0
+      VECTOR3D average_velocity_vector = VECTOR3D(0, 0, 0);
+      for (unsigned int i = 0; i < protein.size(); i++) {
+         for (unsigned int j = 0; j < protein[i].itsB.size(); j++) {
+            average_velocity_vector = average_velocity_vector + protein[i].itsB[j]->vel;
+         }
+      }
+      average_velocity_vector = average_velocity_vector ^ (1.0 / subunit_bead.size());
+      for (unsigned int i = 0; i < subunit_bead.size(); i++)
+         subunit_bead[i].vel = subunit_bead[i].vel - average_velocity_vector;
 
       /*     __                 __                        ____     ________     ____
       *     /  \    |\    |    /  \    |       \   /     /    \        |       /    \
@@ -376,10 +532,17 @@ int run_simulation(int argc, char *argv[]) {
          restart << "Velocities & Positions for " << a << endl;
          for (unsigned int i = 0; i < subunit_bead.size(); i++) {
              restart << i << "  " << subunit_bead[i].vel.x << setw(25) << setprecision(12) << subunit_bead[i].vel.y << setw(25) << setprecision(12) << subunit_bead[i].vel.z  << setw(25) << setprecision(12) << subunit_bead[i].pos.x << setw(25) << setprecision(12) << subunit_bead[i].pos.y << setw(25) << setprecision(12) << subunit_bead[i].pos.z  << setw(25) << setprecision(12) << endl;
-       //     restart << subunit_bead[i].tforce.x << setw(25) << setprecision(12) << subunit_bead[i].tforce.y << setw(25) << setprecision(12) << subunit_bead[i].tforce.z  << setw(25) << setprecision(12)
-                //     << endl;
          }
          restart.close();
+         if (encapsulation) {
+            rbFilename = "outfiles/rb_" + step.str();
+            rbFilename += ".out";
+            rb.open(rbFilename.c_str(), ios::out);
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               rb <<  big_beads[i].vel.x << setw(25) << setprecision(12) << big_beads[i].vel.y << setw(25) << setprecision(12) << big_beads[i].vel.z  << setw(25) << setprecision(12) << big_beads[i].pos.x << setw(25) << setprecision(12) << big_beads[i].pos.y << setw(25) << setprecision(12) << big_beads[i].pos.z  << setw(25) << setprecision(12) << endl;
+            }
+            rb.close();
+         }
       }
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								ANALYZE ENERGIES							     */
@@ -396,6 +559,15 @@ int run_simulation(int argc, char *argv[]) {
                protein[i].itsB[ii]->ce = 0;
             }
          }
+
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_beads[i].be = 0;
+               big_beads[i].ne = 0;
+               big_beads[i].ce = 0;
+               big_beads[i].update_kinetic_energy();
+            }
+         }
    
          for (unsigned int i = 0; i < protein.size(); i++) {       // Intramolecular Energies
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -409,6 +581,7 @@ int run_simulation(int argc, char *argv[]) {
          }
                                                                   //Intermolecular Energies
          update_LJ_ES_energies_simplified(subunit_bead, ecut, lj_a, elj_att, lb, ni, qs, ecut_el, kappa);
+         if (encapsulation) update_LJ_ES_energies_bigbeads(big_beads, subunit_bead, ecut, lb, ni, qs, ecut_el, kappa, shc);
    
          for (unsigned int i = 0; i < protein.size(); i++) {      //blanking out energies here
             for (unsigned int ii = 0; ii < protein[i].itsB.size(); ii++) {
@@ -429,8 +602,16 @@ int run_simulation(int argc, char *argv[]) {
             tkenergy += real_bath[i].ke;
          }
    
-         tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy +
-         tkenergy;                                                
+         tenergy = senergy + kenergy + ljenergy + benergy + cenergy + tpenergy + tkenergy;
+
+
+         if (encapsulation) {
+            for (unsigned int i = 0; i < big_beads.size(); i++) {
+               big_cenergy += big_beads[i].ce;
+               big_kenergy += big_beads[i].ke;
+               big_ljenergy += big_beads[i].ne;
+            }
+         }                                                
          
          if (world.rank() == 0) {                                 //print info to files for data analysis
             traj << a << setw(15) << kenergy / subunit_bead.size() << setw(15)
@@ -439,7 +620,14 @@ int run_simulation(int argc, char *argv[]) {
                  << setw(15) << tenergy / subunit_bead.size() << setw(15) 
                  << (benergy + senergy + ljenergy + cenergy) / subunit_bead.size() << setw(15)
                  << kenergy * 2 / (3 * subunit_bead.size()) << setw(15) << tpenergy / subunit_bead.size()
-                 << setw(15) << tkenergy / subunit_bead.size() << endl;
+                 << setw(15) << tkenergy / subunit_bead.size() << setw(15) << average_velocity_vector.GetMagnitude() << endl;
+
+            if (encapsulation) {
+               encapdata << a << setw(15) << big_kenergy / big_beads.size() << setw(15)
+                       << big_ljenergy / big_beads.size() << setw(15) << big_cenergy / big_beads.size()
+                       << setw(15) << (big_kenergy + big_ljenergy + big_cenergy) / big_beads.size() << setw(15)
+                       << big_kenergy * 2 / (3 * big_beads.size()) << endl;
+            }
          }
          senergy = 0;                                             //blanking out energies
          kenergy = 0;
@@ -449,24 +637,42 @@ int run_simulation(int argc, char *argv[]) {
          cenergy = 0;
          tpenergy = 0;
          tkenergy = 0;
+         big_cenergy = 0;
+         big_kenergy = 0;
+         big_ljenergy = 0;
       } // energy analysis loop
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /*								STORE POSITION INFO TO FILE					     */
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       if (a % moviefreq == 0 && world.rank() == 0) {
          if (world.rank() == 0) {
-            ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()
-            << endl
+            if (encapsulation) {
+               ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size()+big_beads.size() << endl
             << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
             << setw(15)
             << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
             << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+            }
+            else {
+               ofile << "ITEM: TIMESTEP" << endl << a << endl << "ITEM: NUMBER OF ATOMS" << endl << subunit_bead.size() << endl
+               << "ITEM: BOX BOUNDS" << endl << -box_size.x / 2 << setw(15) << box_size.x / 2 << endl << -box_size.y / 2
+               << setw(15)
+               << box_size.y / 2 << endl << -box_size.z / 2 << setw(15) \
+               << box_size.z / 2 << endl << "ITEM: ATOMS index type x y z b charge" << endl;
+            }
          }
          if (world.rank() == 0) {
             for (unsigned int b = 0; b < subunit_bead.size(); b++) {
                ofile << b + 1 << setw(15) << subunit_bead[b].type << setw(15) << subunit_bead[b].pos.x << setw(15)
                << subunit_bead[b].pos.y << setw(15) << subunit_bead[b].pos.z << setw(15)
                << subunit_bead[b].be << setw(15) << subunit_bead[b].q << endl;
+            }
+            if (encapsulation) {
+               for (unsigned int bb = 0; bb < big_beads.size(); bb++) {
+                  ofile << subunit_bead.size() + bb + 1 << setw(15) << big_beads[bb].type << setw(15) << big_beads[bb].pos.x << setw(15)
+                  << big_beads[bb].pos.y << setw(15) << big_beads[bb].pos.z << setw(15)
+                  << big_beads[bb].be << setw(15) << big_beads[bb].q << endl;
+               }
             }
          }
       } //position print loop
@@ -481,9 +687,7 @@ int run_simulation(int argc, char *argv[]) {
       }
    } //time loop end
 
-   gsl_rng_free (r);                            //free gsl memory from brownian random variables
+//gsl_rng_free (r);                            //free gsl memory from brownian random variables
    
    return 0;
 } //end simulation fxn
-
-

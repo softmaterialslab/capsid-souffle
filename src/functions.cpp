@@ -281,11 +281,18 @@ vector<string> getFileNames(string directoryPath)
 
 
 
+struct CheckPattern {
+   std::string pattern_;
+   CheckPattern(const std::string& pattern) : pattern_(pattern) {}
+   bool operator()(const std::string& s) const {
+      return s.find(pattern_) == std::string::npos;
+   }
+};
 
-void filter(vector<string>& strings, string pattern)
-{
-   vector<string>::iterator pos = remove_if(strings.begin(), strings.end(), isRestart) ; 
-   strings.erase(pos, strings.end()) ;
+void filter(std::vector<std::string>& strings, std::string pattern) {
+   CheckPattern predicate(pattern);
+   std::vector<std::string>::iterator pos = std::remove_if(strings.begin(), strings.end(), predicate);
+   strings.erase(pos, strings.end());
 }
 
 
@@ -300,9 +307,5 @@ bool numeric_string_compare(const std::string& s1, const std::string& s2) {
 }
 
 
-
-bool isRestart (string& s) {
-   return s.find("restart") == std::string::npos ; 
-}
 
 

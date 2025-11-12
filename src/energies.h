@@ -11,4 +11,6 @@ void update_LJ_ES_energies_simplified(std::vector<BEAD>& subunit_bead, double ec
 
 long double particle_kinetic_energy(std::vector <BEAD> &subunit_bead);
 
+void update_LJ_ES_energies_bigbeads(std::vector<BEAD>& big_bead, std::vector<BEAD>& subunit_bead, double ecut, double lb, double ni, double qs, double ecut_el, double kappa, double shc);
+
 #endif //SOUFFLE_ENERGIES_H

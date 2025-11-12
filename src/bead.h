@@ -40,6 +40,9 @@ public:
    VECTOR3D ljforce;
    VECTOR3D bforce;
    VECTOR3D eforce;
+   VECTOR3D eljforce;                    //electrostatic + LJ
+   VECTOR3D fdrag;
+   VECTOR3D fran;
    double se;                            //stretching energy (KbT)
    double ke;                            //kinetic energy (KbT)
    double be;                            //bending energy (KbT)
@@ -98,6 +101,14 @@ public:
       vel = ( vel + ( (tforce) ^ (0.5*delt/m) ) );
    }
 
+   void update_velocity_long(double delt){
+      vel = ( vel + ( (eljforce) ^ (0.5*delt/m) ) );
+   }
+
+   void update_velocity_short(double delt){
+      vel = ( vel + ( (bforce + sforce) ^ (0.5*delt/m) ) );
+   }
+
 // update velocity with integrator that unifies velocity verlet and Nose-Hoover
    void therm_update_velocity(double dt, THERMOSTAT main_bath, double expfac){
       vel = ( ( vel ^ (expfac)  ) + ( tforce ^ (0.5 * dt * (std::sqrt(expfac)) / m) ) );
@@ -122,6 +133,25 @@ public:
    void update_stretching_energy(double ks);
 
    void update_stretching_force(double ks);
+   
+   void compute_fdrag(double damp){
+       fdrag = vel ^ (-1.0 * m / damp);
+   }
+
+   void compute_fran(double delta_t, double damp, double rand_num){
+       fran.x = sqrt((m*24.0)/(damp * delta_t)) * rand_num;
+       fran.y = sqrt((m*24.0)/(damp * delta_t)) * rand_num;
+       fran.z = sqrt((m*24.0)/(damp * delta_t)) * rand_num;
+   }
+
+   void update_tforce(){
+       tforce = tforce + fran + fdrag;
+   }
+
+   void update_eljforce(){
+       eljforce = eljforce + fran + fdrag;
+   }
+
 
 };
 
